@@ -14,6 +14,10 @@ rvm:
 before_install:
   - gem install bundler
   - gem update bundler
+  - docker pull bodsch/docker-grafana:1709.1
+  - docker run --rm --detach --publish=3000:3000 --env URL_PATH=/ --env ORGANISATION=Docker --env ADMIN_PASSWORD=grafana_admin  --env DATASOURCES: '{"graphite": [{"name":"graphite","host":"localhost","port":2003,"database":"graphite","default":true}]}' --hostname=grafana bodsch/docker-grafana:1709.1
+  - docker ps
+  - sleep 20s
 
 script: bundle exec rspec spec || true
 
@@ -21,4 +25,3 @@ fast_finish: true
 
 gemfile:
   - Gemfile
-
