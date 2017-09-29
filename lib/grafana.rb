@@ -1,5 +1,2 @@
-require "grafana/version"
 
-module Grafana
-  # Your code goes here...
-end
+require 'grafana/client.rb'
