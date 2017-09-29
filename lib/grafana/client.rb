@@ -9,9 +9,11 @@ require 'logger'
 require_relative 'version'
 require_relative 'login'
 require_relative 'network'
-# require_relative 'admin'
+require_relative 'tools'
+require_relative 'admin'
 # require_relative 'organization'
 require_relative 'organizations'
+require_relative 'dashboard'
 
 module Grafana
   # Abstract base class for the API calls.
@@ -24,9 +26,12 @@ module Grafana
     include Grafana::Version
     include Grafana::Login
     include Grafana::Network
-#     include Grafana::Admin
+    include Grafana::Tools
+    include Grafana::Admin
 #     include Grafana::Organization
     include Grafana::Organizations
+
+    include Grafana::Dashboard
 
     def initialize( settings )
 
@@ -177,3 +182,4 @@ module Grafana
   end
 
 end
+

@@ -128,6 +128,14 @@ module Grafana
           status: 409,
           message: 'Conflict'
         }
+
+      rescue RestClient::PreconditionFailed => e
+
+        return {
+          status: 412,
+          message: 'Precondition failed. the dashboard probably already exists.'
+        }
+
       rescue RestClient::Exception => e
 
         @logger.error( "Error: #2 #{__method__} #{method_type.upcase} on #{endpoint} error: '#{e}'" )

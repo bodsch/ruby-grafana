@@ -138,6 +138,8 @@ module Grafana
     # DELETE /api/orgs/:orgId/users/:userId
     def delete_user_from_organization( params ) # org_id, user_id)
 
+      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+
       organization   = params.dig(:organization)
       login_or_email = params.dig(:loginOrEmail)
 
