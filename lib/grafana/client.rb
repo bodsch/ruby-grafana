@@ -9,8 +9,8 @@ require 'logger'
 require_relative 'version'
 require_relative 'login'
 require_relative 'network'
-require_relative 'admin'
-require_relative 'organization'
+# require_relative 'admin'
+# require_relative 'organization'
 require_relative 'organizations'
 
 module Grafana
@@ -24,8 +24,8 @@ module Grafana
     include Grafana::Version
     include Grafana::Login
     include Grafana::Network
-    include Grafana::Admin
-    include Grafana::Organization
+#     include Grafana::Admin
+#     include Grafana::Organization
     include Grafana::Organizations
 
     def initialize( settings )

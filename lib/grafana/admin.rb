@@ -95,6 +95,7 @@ module Grafana
       post( endpoint, params.to_json)
     end
 
+
     def delete_user()
 
       # path=/api/org/users/:id
