@@ -93,6 +93,7 @@ describe Grafana do
       message = r.dig('name')
 
       expect(status).to be_a(Integer)
+      expect(status).to be == 200
       expect(orgId).to be_a(Integer)
     end
 
@@ -103,7 +104,7 @@ describe Grafana do
 
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).equal?(200)
+      expect(status).to be == 200
     end
 
    it 'Get Organisation by Id' do
@@ -117,6 +118,7 @@ describe Grafana do
      name    = r.dig('name')
 
      expect(status).to be_a(Integer)
+     expect(status).to be == 200
      expect(id).to be_a(Integer)
      expect(name).to be_a(String)
    end
@@ -131,9 +133,10 @@ describe Grafana do
       name    = r.dig('name')
 
       expect(status).to be_a(Integer)
+      expect(status).to be == 200
       expect(id).to be_a(Integer)
       expect(name).to be_a(String)
-      expect(name).equal?('Spec Test')
+      expect(name).to be == 'Spec Test'
 
     end
 
@@ -148,11 +151,10 @@ describe Grafana do
 
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).equal?(200)
+      expect(status).to be == 200
 
       r = @g.update_organization( organization: 'Spec+Test', name: 'Spec Test' )
     end
-
 
     it 'Get Users in Organisation' do
 
@@ -161,52 +163,45 @@ describe Grafana do
       name = org.dig('name')
 
       r = @g.organization_users(id)
-
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).equal?(200)
+      expect(status).to be == 200
       message = r.dig('message')
-
       expect(message).to be_a(Array)
       expect(message.size).to be >= 1
     end
 
     it 'Add User in Organisation' do
 
-      r = @g.add_user_to_organization( organization: 'Spec Test', loginOrEmail: 'foo@bar.com', role: 'Viewer' )
+      r = @g.add_user_to_organization( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld', role: 'Viewer' )
 
       expect(r).to be_a(Hash)
       status  = r.dig('status')
-      expect(status).equal?(200)
+      expect(status).to be == 200
     end
 
     it 'Update Users in Organisation' do
-
-      r = @g.update_organization_user( organization: 'Spec Test', loginOrEmail: 'foo@bar.com', role: 'Viewer' ) # @orgId, 2, role: 'Viewer' )
-
+      r = @g.update_organization_user( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld', role: 'Editor' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
-      expect(status).equal?(200)
+      expect(status).to be == 200
     end
 
     it 'Delete User in Organisation' do
-      r = @g.delete_user_from_organization( organization: 'Spec Test', loginOrEmail: 'foo@bar.com' )
-
+      r = @g.delete_user_from_organization( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
-      expect(status).equal?(200)
+      expect(status).to be == 200
     end
 
     it 'Delete Organisation' do
       r = @g.delete_organisation( name: 'Spec Test' )
-
       expect(r).to be_a(Hash)
-
       status = r.dig('status')
       message = r.dig('message')
-
       expect(status).to be_a(Integer)
+      expect(status).to be == 200
       expect(message).to be_a(String)
     end
 
@@ -215,49 +210,93 @@ describe Grafana do
 
   describe 'Dashboard' do
 
-    it 'list dashboard' do
-      r = @g.dashboard('test')
-      expect(r).to be_a(Hash)
-
-      slug = r.dig('slug')
-      expect(slug).equal?('test')
-    end
-
     it 'import dashboards from directory' do
 
-      r = @g.import_dashboards_from_directory('/tmp/grafana/dashboards')
+      r = @g.import_dashboards_from_directory('spec/dashboards')
       expect(r).to be_a(Hash)
 
       puts r.find { |x| x.dig('status') }
     end
 
     it 'dashboards tags' do
-
       r = @g.dashboard_tags
       expect(r).to be_a(Hash)
-
       status  = r.dig('status')
-      expect(status).equal?(200)
+      expect(status).to be == 200
     end
 
     it 'home dashboard' do
-
       r = @g.home_dashboard
       expect(r).to be_a(Hash)
-
       status  = r.dig('status')
-      expect(status).equal?(200)
+      expect(status).to be == 200
+    end
+
+    it 'search tagged dashboards' do
+      search = { :tags => 'QA' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).equal?(2)
+    end
+
+    it 'search starred dashboards' do
+
+      search = { :starred => true }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).to be == 0
+    end
+
+    it 'search dashboards with query' do
+      search = { :query => 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).to be == 1
+    end
+
+    it 'list dashboard' do
+      search = { :query => 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      message = r.dig('message')
+      title = message.first.dig('title')
+      r = @g.dashboard(title)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      t = r.dig('dashboard','title')
+      expect(t).to be_a(String)
+      expect(t).equal?(title)
     end
 
     it 'delete dashboard' do
-
-      r = @g.delete_dashboard('test')
+      search = { :tags => 'QA' }
+      r = @g.search_dashboards( search )
       expect(r).to be_a(Hash)
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).equal?(2)
 
-      status  = r.dig('status')
-      expect(status).equal?(200)
+      message.each do |m|
+        title = m.dig('title')
+        r = @g.delete_dashboard(title)
+        expect(r).to be_a(Hash)
+        status  = r.dig('status')
+        expect(status).to be == 200
+      end
+
     end
-
 
   end
 

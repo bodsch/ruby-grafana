@@ -72,10 +72,7 @@ module Grafana
     #    searchDashboards( { :tags   => [ 'tag2' ] } )
     #    searchDashboards( { :query  => title } )
     #    searchDashboards( { :starred => true } )
-
     def search_dashboards( params = {} )
-
-      logger.debug( "search_dashboards( #{params} )" )
 
       query   = params.dig(:query)
       starred = params.dig(:starred)
@@ -96,7 +93,7 @@ module Grafana
 
       endpoint = format( '/api/search/?%s' , api )
 
-      logger.debug("Attempting to search for dashboards (GET #{endpoint})") if @debug
+      @logger.debug("Attempting to search for dashboards (GET #{endpoint})") if @debug
 
       get( endpoint )
     end

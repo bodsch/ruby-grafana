@@ -5,6 +5,8 @@ module Grafana
 
     def slug( text )
 
+      raise ArgumentError.new('text must be an String') unless( text.is_a?(String) )
+
       if( text =~ /\s/ )
 
         text = if( text =~ /-/ )
@@ -13,13 +15,15 @@ module Grafana
           text.gsub( /\s+/, '-' )
         end
 
-        text.downcase
+        return text.downcase
       end
 
       text
     end
 
     def regenerate_template_ids( json )
+
+      raise ArgumentError.new('json must be an Hash') unless( json.is_a?(Hash) )
 
       if( valid_json?( json ) )
 
@@ -55,8 +59,6 @@ module Grafana
 
     def valid_json?( json )
 
-#       @logger.debug( json.class.to_s )
-#       @logger.debug( json )
       begin
         JSON.parse( json ) if( json.is_a?(String) )
         return true
