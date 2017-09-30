@@ -23,6 +23,7 @@ before_install:
     --env URL_PATH=/ \
     --env ORGANISATION=Docker \
     --env ADMIN_PASSWORD=grafana_admin \
+    --env USERS='[{"username":"foo","password":"bar11bar","email":"foo@foo-bar.tld","role":"Admin"}]' \
     --env DATASOURCES='{"graphite":[{"name":"graphite","host":"localhost","port":2003,"database":"graphite","default":true}]}' \
     --hostname=grafana \
     bodsch/docker-grafana:1709.1
