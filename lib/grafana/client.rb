@@ -11,6 +11,8 @@ require_relative 'login'
 require_relative 'network'
 require_relative 'tools'
 require_relative 'admin'
+require_relative 'user'
+require_relative 'users'
 # require_relative 'organization'
 require_relative 'organizations'
 require_relative 'dashboard'
@@ -28,6 +30,8 @@ module Grafana
     include Grafana::Network
     include Grafana::Tools
     include Grafana::Admin
+    include Grafana::User
+    include Grafana::Users
 #     include Grafana::Organization
     include Grafana::Organizations
 
@@ -137,7 +141,7 @@ module Grafana
         rescue RestClient::Unauthorized => e
 
           @logger.debug( request_data.to_json )
-          raise format( 'Not authorized to connect \'%s\' - wrong username or password?', @url )
+          raise RuntimeError, format( 'Not authorized to connect \'%s\' - wrong username or password?', @url )
 
         rescue Errno::ECONNREFUSED => e
 

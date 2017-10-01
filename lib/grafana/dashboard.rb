@@ -3,7 +3,6 @@ module Grafana
 
   module Dashboard
 
-
     def dashboard( name )
 
       raise ArgumentError.new('name must be an String') unless( name.is_a?(String) )
@@ -65,8 +64,6 @@ module Grafana
       get(endpoint)
     end
 
-
-
     #    searchDashboards( { :tags   => host } )
     #    searchDashboards( { :tags   => [ host, 'tag1' ] } )
     #    searchDashboards( { :tags   => [ 'tag2' ] } )
@@ -105,9 +102,7 @@ module Grafana
 
       result = {}
 
-      Dir.chdir( directory )
-
-      dirs = Dir.glob( "**.json" ).sort
+      dirs = Dir.glob( format( '%s/**.json', directory ) ).sort
 
       dirs.each do |f|
 

@@ -81,6 +81,158 @@ describe Grafana do
 #   end
 #
 
+  describe 'User' do
+
+    it 'Actual User' do
+      r = @g.current_user
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Organisations of the actual User' do
+      r = @g.current_user_oganizations
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'import dashboards from directory' do
+
+      r = @g.import_dashboards_from_directory('spec/dashboards')
+      expect(r).to be_a(Hash)
+
+#       puts r.find { |x| x.dig('status') }
+    end
+
+    it 'Star a dashboard' do
+      r = @g.add_dashboard_star( 'QA Graphite Carbon Metrics' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Unstar a dashboard' do
+      r = @g.remove_dashboard_star( 'QA Graphite Carbon Metrics' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+
+    it 'delete dashboard' do
+      search = { :tags => 'QA' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).equal?(2)
+
+      message.each do |m|
+        title = m.dig('title')
+        r = @g.delete_dashboard(title)
+        expect(r).to be_a(Hash)
+        status  = r.dig('status')
+        expect(status).to be == 200
+      end
+
+    end
+  end
+
+
+  describe 'Users' do
+
+    it 'All Users' do
+      r = @g.all_users
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+      expect(message).to be_a(Array)
+      expect(message.count).to be >= 1
+    end
+
+    it 'Users by Id' do
+      r = @g.user_by_id(1)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+
+      r = @g.user_by_id(2)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Users by Name' do
+      r = @g.user_by_name( 'admin@localhost' )
+      expect(r).to be_a(Hash)
+
+      status  = r.dig('status')
+      message = r.dig('message')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Search for Users by' do
+      r = @g.search_for_users_by( 'isAdmin': true )
+      expect(r).to be_a(Array)
+
+      r = @g.search_for_users_by( 'isAdmin': false )
+      expect(r).to be_a(FalseClass)
+    end
+
+    it 'Get Organisations for user' do
+
+      r = @g.user_organizations('foo@foo-bar.tld')
+      expect(r).to be_a(Hash)
+
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Update Users' do
+      r = @g.update_user(
+        user_name: 'foo@foo-bar.tld',
+        theme: 'light',
+        name: 'spec-test',
+        email: 'spec-test@foo-bar.tld'
+      )
+      expect(r).to be_a(Hash)
+
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+
+      r = @g.update_user(
+        user_name: 'spec-test@foo-bar.tld',
+        email: 'foo@foo-bar.tld',
+      )
+      expect(r).to be_a(Hash)
+
+    end
+
+  end
+
+
   describe 'Organisations' do
 
     it 'Create Organisation' do
@@ -89,12 +241,11 @@ describe Grafana do
       expect(r).to be_a(Hash)
 
       status  = r.dig('status')
-      orgId   = r.dig('orgId')
-      message = r.dig('name')
+      org_id  = r.dig('orgId')
 
       expect(status).to be_a(Integer)
       expect(status).to be == 200
-      expect(orgId).to be_a(Integer)
+      expect(org_id).to be_a(Integer)
     end
 
     it 'Search all Organisations' do
@@ -244,7 +395,6 @@ describe Grafana do
     end
 
     it 'search starred dashboards' do
-
       search = { :starred => true }
       r = @g.search_dashboards( search )
       expect(r).to be_a(Hash)
