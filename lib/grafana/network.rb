@@ -118,22 +118,22 @@ module Grafana
       rescue RestClient::NotFound => e
 
         return {
-          status: 404,
-          message: 'not found'
+          'status' => 404,
+          'message' => 'Not Found'
         }
 
       rescue RestClient::Conflict => e
 
         return {
-          status: 409,
-          message: 'Conflict'
+          'status' => 409,
+          'message' => 'Conflict with the current state of the target resource'
         }
 
       rescue RestClient::PreconditionFailed => e
 
         return {
-          status: 412,
-          message: 'Precondition failed. the dashboard probably already exists.'
+          'status' => 412,
+          'message' => 'Precondition failed. The Object probably already exists.'
         }
 
       rescue RestClient::Exception => e

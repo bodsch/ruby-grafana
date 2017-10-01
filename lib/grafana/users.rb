@@ -66,7 +66,10 @@ module Grafana
       usr = user_by_id(user_name) if(user_name.is_a?(Integer))
       usr = user_by_name(user_name) if(user_name.is_a?(String))
 
-      return { status: 404, message: format('User \'%s\' not found', user_name) } if( usr.nil? || usr.dig('status').to_i != 200 )
+      return {
+        'status' => 404,
+        'message' => format('User \'%s\' not found', user_name)
+      } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       user_id = usr.dig('id')
 
@@ -93,7 +96,10 @@ module Grafana
       usr = user_by_id(user) if(user.is_a?(Integer))
       usr = user_by_name(user) if(user.is_a?(String))
 
-      return { status: 404, message: format('User \'%s\' not found', user) } if( usr.nil? || usr.dig('status').to_i != 200 )
+      return {
+        'status' => 404,
+        'message' => format('User \'%s\' not found', user)
+      } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       user_id = usr.dig('id')
 
@@ -105,7 +111,5 @@ module Grafana
     # Switch user context for a specified user
     # POST /api/users/:userId/using/:organizationId
 
-
   end
-
 end

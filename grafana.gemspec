@@ -54,15 +54,11 @@ Gem::Specification.new do |spec|
       spec.add_dependency('ruby_dig')
     end
 
-#    if( RUBY_VERSION >= '2.3' )
-#      spec.add_dependency('openssl', '~> 2.0')
-#    end
   rescue => e
     warn "#{$0}: #{e}"
     exit!
   end
 
-#  spec.add_development_dependency('bundler', '~> 1.12')
   spec.add_development_dependency('rake')
   spec.add_development_dependency('rake-notes')
   spec.add_development_dependency('rubocop')

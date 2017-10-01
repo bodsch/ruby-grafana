@@ -2,6 +2,7 @@
 module Grafana
 
   # http://docs.grafana.org/http_api/org/#organisation-api
+  #
   module Organization
 
     # Get current Organisation
@@ -20,10 +21,15 @@ module Grafana
     #
     #
     #
-    def update_current_organization(properties={})
+    def update_current_organization( params = {} )
+
+      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      name = params.dig(:name)
+      raise ArgumentError.new('missing name') if( name.nil? )
+
       endpoint = '/api/org'
       @logger.info("Updating current organization (PUT #{endpoint})") if @debug
-      putRequest(endpoint, properties)
+      put(endpoint, params.to_json)
     end
 
     # Get all users within the actual organisation
@@ -42,10 +48,40 @@ module Grafana
     #
     #
     #
-    def add_user_to_current_organization( properties = {} )
+    def add_user_to_current_organization( params = {} )
+
+      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      login_or_email = params.dig(:loginOrEmail)
+      role           = params.dig(:role)
+      raise ArgumentError.new('missing loginOrEmail') if( login_or_email.nil? )
+      raise ArgumentError.new('missing role') if( role.nil? )
+      # Defaults to Viewer, other valid options are Admin and Editor and Read Only Editor
+      # valid_perms = ['Viewer','Editor','Read Only Editor','Admin']
+      raise ArgumentError.new( format( 'wrong role. only \'Admin\', \'Viewer\' or \'Editor\' allowed (\'%s\' giving)',role)) if( %w[Admin Viewer Editor].include?(role) == false )
+
+      org = current_organization_users
+      usr = user_by_name( login_or_email )
+
+      if( org )
+
+        org = org.dig('message')
+
+        return {
+          'status' => 404,
+          'message' => format('User \'%s\' are already in the organisation', login_or_email)
+        } if( org.select { |x| x.dig('email') == login_or_email }.count >= 1 )
+
+      end
+
+
+      return {
+        'status' => 404,
+        'message' => format('User \'%s\' not found', login_or_email)
+      } if( usr.nil? || usr.dig('status').to_i != 200 )
+
       endpoint = '/api/org/users'
       @logger.info("Adding user to current organization (POST #{endpoint})") if @debug
-      post(endpoint, properties)
+      post(endpoint, params.to_json)
     end
 
     # Updates the given user

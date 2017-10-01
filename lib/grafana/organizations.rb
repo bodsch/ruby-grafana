@@ -47,7 +47,10 @@ module Grafana
 
       org = organization_by_name( organization )
 
-      return { status: 404, message: format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
+      return {
+        'status' => 404,
+        'message' => format('Organization \'%s\' not found', organization)
+      } if( org.nil? || org.dig('status').to_i != 200 )
 
       org_id = org.dig('id')
 
@@ -89,11 +92,18 @@ module Grafana
       raise ArgumentError.new( format( 'wrong role. only \'Admin\', \'Viewer\' or \'Editor\' allowed (\'%s\' giving)',role)) if( %w[Admin Viewer Editor].include?(role) == false )
 
       org = organization_by_name( organization )
-      usr = user( login_or_email )
+      usr = user_by_name( login_or_email )
 #       org_usr = organization_users( organization )
 
-      return { status: 404, message: format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
-      return { status: 404, message: format('User \'%s\' not found', login_or_email) }       if( usr.nil? || usr.dig('status').to_i != 200 )
+      return {
+        'status' => 404,
+        'message' => format('Organization \'%s\' not found', organization)
+      } if( org.nil? || org.dig('status').to_i != 200 )
+
+      return {
+        'status' => 404,
+        'message' => format('User \'%s\' not found', login_or_email)
+      } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       org_id = org.dig('id')
 
@@ -120,10 +130,17 @@ module Grafana
       raise ArgumentError.new( format( 'wrong role. only \'Admin\', \'Viewer\' or \'Editor\' allowed (\'%s\' giving)',role)) if( %w[Admin Viewer Editor].include?(role) == false )
 
       org = organization_by_name( organization )
-      usr = user( login_or_email )
+      usr = user_by_name( login_or_email )
 
-      return { status: 404, message: format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
-      return { status: 404, message: format('User \'%s\' not found', login_or_email) }       if( usr.nil? || usr.dig('status').to_i != 200 )
+      return {
+        'status' => 404,
+        'message' => format('Organization \'%s\' not found', organization)
+      } if( org.nil? || org.dig('status').to_i != 200 )
+
+      return {
+        'status' => 404,
+        'message' => format('User \'%s\' not found', login_or_email)
+      } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       org_id = org.dig('id')
       usr_id = usr.dig('id')
@@ -147,10 +164,17 @@ module Grafana
       raise ArgumentError.new('missing loginOrEmail') if( login_or_email.nil? )
 
       org = organization_by_name( organization )
-      usr = user( login_or_email )
+      usr = user_by_name( login_or_email )
 
-      return { status: 404, message: format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
-      return { status: 404, message: format('User \'%s\' not found', login_or_email) }       if( usr.nil? || usr.dig('status').to_i != 200 )
+      return {
+        'status' => 404,
+        'message' => format('Organization \'%s\' not found', organization)
+      } if( org.nil? || org.dig('status').to_i != 200 )
+
+      return {
+        'status' => 404,
+        'message' => format('User \'%s\' not found', login_or_email)
+      } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       org_id = org.dig('id')
       usr_id = usr.dig('id')
@@ -198,22 +222,16 @@ module Grafana
 
       org = organization_by_name( name )
 
-      { status: 404, message: 'Organisation \'%s\' not found' } if( org.nil? || org.dig('status').to_i != 200 )
-      # if( org.dig('status').to_i == 200 )
+      return {
+        'status' => 404,
+        'message' => format('Organization \'%s\' not found', organization)
+      } if( org.nil? || org.dig('status').to_i != 200 )
 
-#      if( !organization.nil? || organization.dig('status').to_i == 200 )
+      org_id = org.dig('id')
 
-        org_id = org.dig('id')
-
-        endpoint = format( '/api/orgs/%d', org_id )
-        @logger.info("Deleting organization #{org_id} (DELETE #{endpoint})") if @debug
-        delete(endpoint)
-#      else
-#        {
-#          status: 404,
-#          message: 'Organisation not found'
-#        }
-#      end
+      endpoint = format( '/api/orgs/%d', org_id )
+      @logger.info("Deleting organization #{org_id} (DELETE #{endpoint})") if @debug
+      delete(endpoint)
     end
 
 

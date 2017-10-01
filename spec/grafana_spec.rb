@@ -30,56 +30,78 @@ describe Grafana do
     end
   end
 
-#   describe 'Admin' do
-#
-#     it 'admin_settings' do
-#       expect(@g.admin_settings()).to be_a(Hash)
-#     end
-#
-#   end
-#
-#   describe 'Organisation' do
-#
-#     it 'get current organisation' do
-#       puts @g.current_organization
-#     end
-#
-#     it 'getting users from current organisation' do
-#       puts @g.current_organization_users
-#     end
-#
-#
-# #     it 'check user' do
-# #       r = @g.user( 'foo@bar.com')
-# #       expect(r).to be_a(Hash)
-# #
-# #       puts r
-# #
-# #       status = r.dig('status')
-# #       id = r.dig('id')
-# #       name = r.dig('name')
-# #
-# #       expect(status).to be_a(Integer)
-# #       expect(id).to be_a(Integer)
-# #     end
-# #
-# #     it 'add user' do
-# #
-# # #       @g.login(user: 'admin', password: 'grafana_admin')
-# #       r = @g.add_user( user_name:'foo', email: 'foo@bar.com', password: 'pass' )
-# #       expect(r).to be_a(Hash)
-# #
-# #       status = r.dig('status')
-# #       id = r.dig('id')
-# #       message = r.dig('message')
-# #
-# #       expect(r).to be_a(Hash)
-# #       expect(status).to be_a(Integer)
-# #       expect(id).to be_a(Integer)
-# #
-# #     end
-#   end
-#
+  describe 'Admin' do
+
+    it 'admin settings' do
+      expect(@g.admin_settings()).to be_a(Hash)
+    end
+
+    it 'admin stats' do
+      r = @g.admin_stats
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'add user' do
+      r = @g.add_user(
+        user_name:'spec-test',
+        email: 'spec-test@bar.com',
+        password: 'pass'
+      )
+      expect(r).to be_a(Hash)
+
+      status = r.dig('status')
+      id = r.dig('id')
+      message = r.dig('message')
+      expect(r).to be_a(Hash)
+      expect(status).to be_a(Integer)
+      expect(id).to be_a(Integer)
+    end
+
+  end
+
+  describe 'Organisation' do
+
+    it 'Get current Organisation' do
+      r = @g.current_organization
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Get all users within the actual organisation' do
+      r = @g.current_organization_users
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Update current Organisation' do
+      r = @g.update_current_organization( name: 'foo')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Add a new user to the actual organisation' do
+
+      r = @g.add_user_to_current_organization(
+        role: 'Viewer',
+        loginOrEmail: 'spec-test@bar.com'
+      )
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+    end
+
+  end
+
 
   describe 'User' do
 
@@ -105,8 +127,6 @@ describe Grafana do
 
       r = @g.import_dashboards_from_directory('spec/dashboards')
       expect(r).to be_a(Hash)
-
-#       puts r.find { |x| x.dig('status') }
     end
 
     it 'Star a dashboard' do
@@ -196,7 +216,7 @@ describe Grafana do
       expect(r).to be_a(Array)
 
       r = @g.search_for_users_by( 'isAdmin': false )
-      expect(r).to be_a(FalseClass)
+      expect(r).to be_a(Array)
     end
 
     it 'Get Organisations for user' do
@@ -324,9 +344,7 @@ describe Grafana do
     end
 
     it 'Add User in Organisation' do
-
       r = @g.add_user_to_organization( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld', role: 'Viewer' )
-
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be == 200

@@ -38,7 +38,10 @@ module Grafana
 
       org = organization_by_name( organization )
 
-      return { status: 404, message: format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
+      return {
+        'status' => 404,
+        'message' => format('Organization \'%s\' not found', organization)
+      } if( org.nil? || org.dig('status').to_i != 200 )
 
       org_id = org.dig('id')
 
@@ -110,52 +113,6 @@ module Grafana
       @logger.info("Deleting star on dashboard ID #{dashboard_id} (GET #{endpoint})") if @debug
       delete( endpoint )
     end
-
-
-#     # return given user
-#     #
-#     def user( user_name )
-#
-#       # /api/users/lookup?loginOrEmail=user@mygraf.com
-#       raise ArgumentError.new('missing user_name') if( user_name.nil? )
-#
-#       get( format('/api/users/lookup?loginOrEmail=%s', user_name ) )
-#
-#       # result: {"id"=>2, "email"=>"foo@foo-bar.tld", "name"=>"foo", "login"=>"foo", "theme"=>"", "orgId"=>1, "isGrafanaAdmin"=>true, "status"=>200}
-#     end
-
-
-#     def add_user( params = {} )
-#
-#       user_name = params.dig(:user_name)
-#       email = params.dig(:email)
-#       login_name = params.dig(:login_name) || user_name
-#       password = params.dig(:password)
-#
-#       raise ArgumentError.new('missing user_name') if( user_name.nil? )
-#       raise ArgumentError.new('missing email') if( email.nil? )
-#       raise ArgumentError.new('missing login_name') if( login_name.nil? )
-#       raise ArgumentError.new('missing password') if( password.nil? )
-#
-#       raise format( 'user \'%s\' with email \'%s\' exists', user_name, email ) if( user(email) )
-#
-# #      { \"name\": \"${user}\", \"email\": \"${email}\", \"login\": \"${user}\", \"password\": \"${password}\" }
-#
-#       endpoint = '/api/admin/users'
-#       @logger.info("Creating user: #{params.dig('name')}")
-#       @logger.info("Data: #{params}")
-#
-#       post( endpoint, params.to_json)
-#     end
-#
-#     def delete_user()
-#
-#       # path=/api/org/users/:id
-#     end
-
-
-
-
 
   end
 

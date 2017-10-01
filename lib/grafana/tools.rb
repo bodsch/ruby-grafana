@@ -21,6 +21,7 @@ module Grafana
       text
     end
 
+
     def regenerate_template_ids( json )
 
       raise ArgumentError.new('json must be an Hash') unless( json.is_a?(Hash) )
