@@ -79,11 +79,11 @@ module Grafana
       end
 
       if( dashboard_id == 0 )
-        raise RuntimeError, format('Dashboard ID can not be 0')
+        raise RuntimeError, format('Dashboard id can not be 0')
       end
 
       endpoint = format( '/api/user/stars/dashboard/%d', dashboard_id )
-      @logger.info("Adding star to dashboard ID #{dashboard_id} (GET #{endpoint})") if @debug
+      @logger.info("Adding star to dashboard id #{dashboard_id} (GET #{endpoint})") if @debug
       post(endpoint, {}.to_json)
     end
 
@@ -106,11 +106,11 @@ module Grafana
       end
 
       if( dashboard_id == 0 )
-        raise RuntimeError, format('Dashboard ID can not be 0')
+        raise RuntimeError, format('Dashboard Id can not be 0')
       end
 
       endpoint = format( '/api/user/stars/dashboard/%d', dashboard_id )
-      @logger.info("Deleting star on dashboard ID #{dashboard_id} (GET #{endpoint})") if @debug
+      @logger.info("Deleting star on dashboard id #{dashboard_id} (GET #{endpoint})") if @debug
       delete( endpoint )
     end
 

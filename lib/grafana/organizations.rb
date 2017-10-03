@@ -55,7 +55,7 @@ module Grafana
       org_id = org.dig('id')
 
       endpoint = format( '/api/orgs/%s', org_id )
-      @logger.info("Update Organisation ID #{org_id} (PUT #{endpoint})") if @debug
+      @logger.info("Update Organisation id #{org_id} (PUT #{endpoint})") if @debug
 
       put( endpoint, { :name => name }.to_json )
     end
@@ -68,7 +68,7 @@ module Grafana
 
       endpoint = format( '/api/orgs/%s/users', org_id )
 
-      @logger.info("Getting users in Organisation ID #{org_id} (GET #{endpoint})") if @debug
+      @logger.info("Getting users in Organisation id #{org_id} (GET #{endpoint})") if @debug
       get(endpoint)
     end
 

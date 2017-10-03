@@ -1,8 +1,13 @@
 
 module Grafana
 
+  # http://docs.grafana.org/http_api/dashboard/
+  #
   module Dashboard
 
+
+    # Get dashboard
+    # GET /api/dashboards/db/:slug
     def dashboard( name )
 
       raise ArgumentError.new('name must be an String') unless( name.is_a?(String) )
@@ -14,7 +19,8 @@ module Grafana
       get( endpoint )
     end
 
-
+    # Create / Update dashboard
+    # POST /api/dashboards/db
     def create_dashboard( params )
 
       raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
@@ -34,7 +40,8 @@ module Grafana
       post( endpoint, dashboard )
     end
 
-
+    # Delete dashboard
+    # DELETE /api/dashboards/db/:slug
     def delete_dashboard( name )
 
       endpoint = format( '/api/dashboards/db/%s', slug(name) )
@@ -44,7 +51,8 @@ module Grafana
       delete(endpoint)
     end
 
-
+    # Gets the home dashboard
+    # GET /api/dashboards/home
     def home_dashboard
 
       endpoint = '/api/dashboards/home'
@@ -54,7 +62,8 @@ module Grafana
       get(endpoint)
     end
 
-
+    # Tags for Dashboard
+    # GET /api/dashboards/tags
     def dashboard_tags
 
       endpoint = '/api/dashboards/tags'
@@ -64,6 +73,9 @@ module Grafana
       get(endpoint)
     end
 
+    # Search Dashboards
+    # GET /api/search/
+    #
     #    searchDashboards( { :tags   => host } )
     #    searchDashboards( { :tags   => [ host, 'tag1' ] } )
     #    searchDashboards( { :tags   => [ 'tag2' ] } )

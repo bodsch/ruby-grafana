@@ -39,18 +39,18 @@ module Grafana
         return false
       end
 
-      logger.info("Updating user ID #{id} permissions")
+      logger.info("Updating user id #{id} permissions")
 
       if( perm.is_a?( Hash ) )
 
         endpoint = "/api/admin/users/#{id}/permissions"
-        logger.info("Updating user ID #{id} permissions (PUT #{endpoint})")
+        logger.info("Updating user id #{id} permissions (PUT #{endpoint})")
 
         return putRequest(endpoint, {'isGrafanaAdmin' => perm['isGrafanaAdmin']}.to_json)
       else
         org = current_org
         endpoint = "/api/orgs/#{org['id']}/users/#{id}"
-        logger.info("Updating user ID #{id} permissions (PUT #{endpoint})")
+        logger.info("Updating user id #{id} permissions (PUT #{endpoint})")
         user = {
           'name' => org['name'],
           'orgId' => org['id'],
@@ -64,11 +64,11 @@ module Grafana
     # DELETE /api/admin/users/:id
     def deleteUser(user_id)
       if user_id == 1
-        logger.warn("Can't delete user ID #{user_id} (admin user)")
+        logger.warn("Can't delete user id #{user_id} (admin user)")
         return false
       end
       endpoint = "/api/admin/users/#{user_id}"
-      logger.info("Deleting user ID #{user_id} (DELETE #{endpoint})")
+      logger.info("Deleting user id #{user_id} (DELETE #{endpoint})")
       deleteRequest(endpoint)
     end
 
@@ -100,8 +100,7 @@ module Grafana
         'message' => format( 'user \'%s\' with email \'%s\' exists', user_name, email )
       } if( usr.nil? || usr.dig('status').to_i == 200 )
 
-      puts usr
-
+#      puts usr
 #      raise format( 'user \'%s\' with email \'%s\' exists', user_name, email ) if( user_by_name(email) )
 
       endpoint = '/api/admin/users'
@@ -121,7 +120,7 @@ module Grafana
     def updateUserPass(user_id,password)
 
       endpoint = " /api/admin/users/#{user_id}/#{password}"
-      logger.info("Updating password for user ID #{user_id} (PUT #{endpoint})")
+      logger.info("Updating password for user id #{user_id} (PUT #{endpoint})")
       putRequest(endpoint,properties)
     end
 
