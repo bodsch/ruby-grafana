@@ -62,6 +62,66 @@ describe Grafana do
 
   end
 
+  describe 'Datasources' do
+
+    it 'Get all datasources' do
+      r = @g.data_sources
+      expect(r).to be_a(Hash)
+    end
+
+    it 'Get a single data sources by Id' do
+      r = @g.data_source(1)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Get a single data sources by Name' do
+      r = @g.data_source('graphite')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+
+    it 'Create data source' do
+      r = @g.create_datasource(
+        name: 'foo',
+        type: 'graphite',
+        database: 'foo',
+        access: 'proxy'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Update an existing data source' do
+      r = @g.update_datasource(
+        datasource: 'foo',
+        data: { url: 'http://localhost:2003' }
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Delete an existing data source by id' do
+      r = @g.delete_datasource('foo')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+  end
+
+
+
   describe 'Organisation' do
 
     it 'Get current Organisation' do

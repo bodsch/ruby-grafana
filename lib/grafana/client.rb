@@ -13,6 +13,7 @@ require_relative 'tools'
 require_relative 'admin'
 require_relative 'user'
 require_relative 'users'
+require_relative 'datasource'
 require_relative 'organization'
 require_relative 'organizations'
 require_relative 'dashboard'
@@ -32,6 +33,7 @@ module Grafana
     include Grafana::Admin
     include Grafana::User
     include Grafana::Users
+    include Grafana::Datasource
     include Grafana::Organization
     include Grafana::Organizations
 
