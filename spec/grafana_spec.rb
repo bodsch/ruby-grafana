@@ -60,6 +60,30 @@ describe Grafana do
       expect(id).to be_a(Integer)
     end
 
+    it 'delete admin user' do
+      r = @g.delete_user(0)
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 403
+    end
+
+    it 'set Password for User' do
+      r = @g.update_user_password( user_name: 'spec-test@bar.com', password: 'foor' )
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'delete user' do
+      r = @g.delete_user('spec-test@bar.com')
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
   end
 
   describe 'Datasources' do
@@ -271,11 +295,13 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-    it 'Search for Users by' do
+    it 'Search for Users by (admin == true)' do
       r = @g.search_for_users_by( 'isAdmin': true )
       expect(r).to be_a(Array)
+    end
 
-      r = @g.search_for_users_by( 'isAdmin': false )
+    it 'Search for Users by (login == foo)' do
+      r = @g.search_for_users_by( 'login': 'foo' )
       expect(r).to be_a(Array)
     end
 

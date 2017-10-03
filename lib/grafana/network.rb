@@ -61,7 +61,32 @@ module Grafana
         when 'PATCH'
           response = @api_instance[endpoint].patch( data, @headers )
         when 'PUT'
-          response = @api_instance[endpoint].put( data, @headers )
+          # response = @api_instance[endpoint].put( data, @headers )
+          @api_instance[endpoint].put( data, @headers ) { |response, request, result|
+
+            # @logger.debug( response.to_s )
+            # @logger.debug( request.to_s )
+            # @logger.debug( result.to_s )
+
+            case response.code
+            when 200
+              response_body = response.body
+              response_code = response.code.to_i
+              response_body = JSON.parse(response_body) if response_body.is_a?(String)
+
+              return {
+                'status' => response_code,
+                'message' => response_body.dig('message').nil? ? 'Successful' : response_body.dig('message')
+              }
+            when 400
+              response_body = response.body
+              response_code = response.code.to_i
+              raise RestClient::BadRequest
+            else
+              response.return!(request, result)
+            end
+        }
+
         when 'DELETE'
           response = @api_instance[endpoint].delete( @headers )
         else
@@ -69,11 +94,12 @@ module Grafana
           return false
         end
 
+#         @logger.debug( response.to_s )
+
         response_code    = response.code.to_i
         response_body    = response.body
         response_headers = response.headers
 
-#         @logger.debug( response.inspect )
 #        @logger.debug( response_code )
 #        @logger.debug( response_body )
 #        @logger.debug( JSON.pretty_generate( response_headers ) )
@@ -82,7 +108,7 @@ module Grafana
 
           result = JSON.parse( response_body )
 
-#           @logger.debug( JSON.pretty_generate( result ) )
+#          @logger.debug( JSON.pretty_generate( result ) )
 
           if( result.is_a?(Array) )
 
@@ -115,6 +141,15 @@ module Grafana
 
         return false
 
+      rescue RestClient::BadRequest => e
+
+        response_body = JSON.parse(response_body) if response_body.is_a?(String)
+
+        return {
+          'status' => 400,
+          'message' => response_body.dig('message').nil? ? 'Bad Request' : response_body.dig('message')
+        }
+
       rescue RestClient::NotFound => e
 
         return {
@@ -135,16 +170,6 @@ module Grafana
           'status' => 412,
           'message' => 'Precondition failed. The Object probably already exists.'
         }
-
-      rescue RestClient::Exception => e
-
-        @logger.error( "Error: #2 #{__method__} #{method_type.upcase} on #{endpoint} error: '#{e}'" )
-        @logger.error( e.to_s )
-        @logger.error( data )
-        @logger.error( @headers )
-        @logger.error( JSON.pretty_generate( response_headers ) )
-
-        return false
 
       rescue RestClient::ExceptionWithResponse => e
 
