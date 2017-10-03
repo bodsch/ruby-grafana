@@ -13,6 +13,7 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Grafana HTTP API Wrapper}
   spec.description   = %q{A simple wrapper for the Grafana HTTP API}
   spec.homepage      = 'http://github.com/bodsch/ruby-grafana'
+  spec.license     = 'MIT'
 
   spec.files         = Dir[
     'README.md',
@@ -51,7 +52,7 @@ Gem::Specification.new do |spec|
     end
 
     if( RUBY_VERSION < '2.3' )
-      spec.add_dependency('ruby_dig')
+      spec.add_dependency('ruby_dig', '~> 0')
     end
 
   rescue => e
@@ -59,12 +60,12 @@ Gem::Specification.new do |spec|
     exit!
   end
 
-  spec.add_development_dependency('rake')
-  spec.add_development_dependency('rake-notes')
-  spec.add_development_dependency('rubocop')
-  spec.add_development_dependency('rubocop-checkstyle_formatter')
-  spec.add_development_dependency('rspec')
-  spec.add_development_dependency('rspec_junit_formatter')
+  spec.add_development_dependency('rake', '~> 0')
+  spec.add_development_dependency('rake-notes', '~> 0')
+  spec.add_development_dependency('rubocop', '~> 0')
+  spec.add_development_dependency('rubocop-checkstyle_formatter', '~> 0')
+  spec.add_development_dependency('rspec', '~> 0')
+  spec.add_development_dependency('rspec_junit_formatter', '~> 0')
   spec.add_development_dependency('rspec-nc', '~> 0')
   spec.add_development_dependency('guard', '~> 0')
   spec.add_development_dependency('guard-rspec', '~> 0')
