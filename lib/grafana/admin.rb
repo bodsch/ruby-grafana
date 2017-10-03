@@ -8,14 +8,14 @@ module Grafana
     # Settings
     # GET /api/admin/settings
     def admin_settings
-      @logger.info('Getting admin settings') if @debug
+      @logger.debug('Getting admin settings') if @debug
       get('/api/admin/settings')
     end
 
     # Grafana Stats
     # GET /api/admin/stats
     def admin_stats
-      @logger.info('Getting admin statistics') if @debug
+      @logger.debug('Getting admin statistics') if @debug
       get('/api/admin/stats')
     end
 
@@ -74,18 +74,21 @@ module Grafana
         user_id = usr.dig('id')
       end
 
-      return {
-        'status' => 404,
-        'message' => format( 'No User \'%s\' found', id)
-      } if( user_id.nil? )
+      if( user_id.nil? )
+        return {
+          'status' => 404,
+          'message' => format( 'No User \'%s\' found', id)
+        }
+      end
 
-      return {
-        'status' => 403,
-        'message' => format( 'Can\'t delete user id %d (admin user)', id )
-      } if( id == 0 )
-
+      if( id.is_a?(Integer) && id.to_i.zero? )
+        return {
+          'status' => 403,
+          'message' => format( 'Can\'t delete user id %d (admin user)', id )
+        }
+      end
       endpoint = format('/api/admin/users/%d', user_id )
-      @logger.info( format('Deleting user id %d (DELETE #{endpoint})', user_id ) ) if @debug
+      @logger.debug( "Deleting user id #{user_id} (DELETE #{endpoint})" ) if @debug
 
       delete( endpoint )
     end
@@ -109,21 +112,23 @@ module Grafana
 
       usr = user_by_name(email)
 
-      return {
-        'status' => 404,
-        'id' => usr.dig('id'),
-        'email' => usr.dig('email'),
-        'name' => usr.dig('name'),
-        'login' => usr.dig('login'),
-        'message' => format( 'user \'%s\' with email \'%s\' exists', user_name, email )
-      } if( usr.nil? || usr.dig('status').to_i == 200 )
+      if  usr.nil? || usr.dig('status').to_i == 200
+        return {
+          'status' => 404,
+          'id' => usr.dig('id'),
+          'email' => usr.dig('email'),
+          'name' => usr.dig('name'),
+          'login' => usr.dig('login'),
+          'message' => format( 'user \'%s\' with email \'%s\' exists', user_name, email )
+        }
+      end
 
 #      puts usr
 #      raise format( 'user \'%s\' with email \'%s\' exists', user_name, email ) if( user_by_name(email) )
 
       endpoint = '/api/admin/users'
-      @logger.info("Create user #{user_name} (PUT #{endpoint})") if @debug
-      @logger.info( format( 'Data: %s', params.to_s ) ) if @debug
+      @logger.debug("Create user #{user_name} (PUT #{endpoint})") if @debug
+      @logger.debug( format( 'Data: %s', params.to_s ) ) if @debug
       post( endpoint, params.to_json)
     end
 
@@ -134,7 +139,6 @@ module Grafana
 
       raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
 
-      user_id   = params.dig(:user_id)
       user_name = params.dig(:user_name)
       password  = params.dig(:password)
 
@@ -143,17 +147,19 @@ module Grafana
 
       usr = user_by_name(user_name)
 
-      return {
-        'status' => 404,
-        'message' => format('User \'%s\' not found', user_name)
-      } if( usr.nil? || usr.dig('status').to_i != 200 )
+      if  usr.nil? || usr.dig('status').to_i != 200
+        return {
+          'status' => 404,
+          'message' => format('User \'%s\' not found', user_name)
+        }
+      end
 
       user_id = usr.dig('id')
 
       endpoint = format( '/api/admin/users/%d/password', user_id )
-      @logger.info("Updating password for user id #{user_id} (PUT #{endpoint})") if @debug
+      @logger.debug("Updating password for user id #{user_id} (PUT #{endpoint})") if @debug
 
-      put( endpoint, { :password => password }.to_json )
+      put( endpoint, { password: password }.to_json )
     end
 
     # Pause all alerts

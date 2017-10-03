@@ -15,10 +15,12 @@ module Grafana
 
       data_sources = get( endpoint )
 
-      return {
-        'status' => 404,
-        'message' => 'No Datasources found'
-      } if( data_sources.nil? || data_sources.dig('status').to_i != 200 )
+      if  data_sources.nil? || data_sources.dig('status').to_i != 200
+        return {
+          'status' => 404,
+          'message' => 'No Datasources found'
+        }
+      end
 
       data_sources = data_sources.dig('message')
 
@@ -42,19 +44,19 @@ module Grafana
 
       if(id.is_a?(String))
 
-        data = data_sources.select { |k,v| v['name'] == id }
+        data = data_sources.select { |_k,v| v['name'] == id }
 
-        if( data )
-          data_source_id = data.keys.first
-        end
+        data_source_id = data.keys.first if  data
       end
 
-      return {
-        'status' => 404,
-        'message' => format( 'No Datasource \'%s\' found', id)
-      } if( data_source_id.nil? )
+      if( data_source_id.nil? )
+        return {
+          'status' => 404,
+          'message' => format( 'No Datasource \'%s\' found', id)
+        }
+      end
 
-      raise RuntimeError, format('Data Source Id can not be 0') if( data_source_id == 0 )
+      raise format('Data Source Id can not be 0') if( data_source_id.zero? )
 
       endpoint = format('/api/datasources/%d', data_source_id )
       @logger.debug("Attempting to get existing data source Id #{data_source_id} (GET #{endpoint})") if  @debug
@@ -132,19 +134,19 @@ module Grafana
 
       if(id.is_a?(String))
 
-        data = data_sources.select { |k,v| v['name'] == id }
+        data = data_sources.select { |_k,v| v['name'] == id }
 
-        if( data )
-          data_source_id = data.keys.first
-        end
+        data_source_id = data.keys.first if  data
       end
 
-      return {
-        'status' => 404,
-        'message' => format( 'No Datasource \'%s\' found', id)
-      } if( data_source_id.nil? )
+      if( data_source_id.nil? )
+        return {
+          'status' => 404,
+          'message' => format( 'No Datasource \'%s\' found', id)
+        }
+      end
 
-      raise RuntimeError, format('Data Source Id can not be 0') if( data_source_id == 0 )
+      raise format('Data Source Id can not be 0') if( data_source_id.zero? )
 
       endpoint = format('/api/datasources/%d', data_source_id)
       @logger.debug("Deleting data source Id #{data_source_id} (DELETE #{endpoint})") if @debug

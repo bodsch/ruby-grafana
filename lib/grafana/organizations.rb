@@ -9,7 +9,7 @@ module Grafana
     # GET /api/orgs
     def all_organizations
       endpoint = '/api/orgs'
-      @logger.info("Getting all organizations (GET #{endpoint})") if @debug
+      @logger.debug("Getting all organizations (GET #{endpoint})") if @debug
       get( endpoint )
     end
 
@@ -20,15 +20,15 @@ module Grafana
       raise ArgumentError.new('id must be an Integer') unless( id.is_a?(Integer) )
 
       endpoint = format( '/api/orgs/%d', id )
-      @logger.info("Get Organisation by Id (GET #{endpoint}})") if @debug
+      @logger.debug("Get Organisation by Id (GET #{endpoint}})") if @debug
       get( endpoint )
     end
 
     # Get Organisation by Name
     # GET /api/orgs/name/:orgName
     def organization_by_name( name )
-      endpoint = format( '/api/orgs/name/%s', URI::escape( name ) )
-      @logger.info("Get Organisation by Name (GET #{endpoint})") if @debug
+      endpoint = format( '/api/orgs/name/%s', URI.escape( name ) )
+      @logger.debug("Get Organisation by Name (GET #{endpoint})") if @debug
       get( endpoint )
     end
 
@@ -47,17 +47,19 @@ module Grafana
 
       org = organization_by_name( organization )
 
-      return {
-        'status' => 404,
-        'message' => format('Organization \'%s\' not found', organization)
-      } if( org.nil? || org.dig('status').to_i != 200 )
+      if  org.nil? || org.dig('status').to_i != 200
+        return {
+          'status' => 404,
+          'message' => format('Organization \'%s\' not found', organization)
+        }
+      end
 
       org_id = org.dig('id')
 
       endpoint = format( '/api/orgs/%s', org_id )
-      @logger.info("Update Organisation id #{org_id} (PUT #{endpoint})") if @debug
+      @logger.debug("Update Organisation id #{org_id} (PUT #{endpoint})") if @debug
 
-      put( endpoint, { :name => name }.to_json )
+      put( endpoint, { name: name }.to_json )
     end
 
     # Get Users in Organisation
@@ -68,7 +70,7 @@ module Grafana
 
       endpoint = format( '/api/orgs/%s/users', org_id )
 
-      @logger.info("Getting users in Organisation id #{org_id} (GET #{endpoint})") if @debug
+      @logger.debug("Getting users in Organisation id #{org_id} (GET #{endpoint})") if @debug
       get(endpoint)
     end
 
@@ -95,22 +97,26 @@ module Grafana
       usr = user_by_name( login_or_email )
 #       org_usr = organization_users( organization )
 
-      return {
-        'status' => 404,
-        'message' => format('Organization \'%s\' not found', organization)
-      } if( org.nil? || org.dig('status').to_i != 200 )
+      if( org.nil? || org.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('Organization \'%s\' not found', organization)
+        }
+      end
 
-      return {
-        'status' => 404,
-        'message' => format('User \'%s\' not found', login_or_email)
-      } if( usr.nil? || usr.dig('status').to_i != 200 )
+      if( usr.nil? || usr.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('User \'%s\' not found', login_or_email)
+        }
+      end
 
       org_id = org.dig('id')
 
       endpoint = format( '/api/orgs/%d/users', org_id )
-      @logger.info("Adding user '#{login_or_email}' to organisation '#{organization}' (POST #{endpoint})") if @debug
+      @logger.debug("Adding user '#{login_or_email}' to organisation '#{organization}' (POST #{endpoint})") if @debug
 
-      post( endpoint, { :loginOrEmail => login_or_email, :role => role }.to_json )
+      post( endpoint, { loginOrEmail: login_or_email, role: role }.to_json )
     end
 
     # Update Users in Organisation
@@ -132,23 +138,27 @@ module Grafana
       org = organization_by_name( organization )
       usr = user_by_name( login_or_email )
 
-      return {
-        'status' => 404,
-        'message' => format('Organization \'%s\' not found', organization)
-      } if( org.nil? || org.dig('status').to_i != 200 )
+      if( org.nil? || org.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('Organization \'%s\' not found', organization)
+        }
+      end
 
-      return {
-        'status' => 404,
-        'message' => format('User \'%s\' not found', login_or_email)
-      } if( usr.nil? || usr.dig('status').to_i != 200 )
+      if( usr.nil? || usr.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('User \'%s\' not found', login_or_email)
+        }
+      end
 
       org_id = org.dig('id')
       usr_id = usr.dig('id')
 
       endpoint = format( '/api/orgs/%d/users/%d', org_id, usr_id )
 
-      @logger.info("Updating user '#{login_or_email}' in organization '#{organization}' (PATCH #{endpoint})") if @debug
-      patch( endpoint, { :role => role }.to_json )
+      @logger.debug("Updating user '#{login_or_email}' in organization '#{organization}' (PATCH #{endpoint})") if @debug
+      patch( endpoint, { role: role }.to_json )
     end
 
     # Delete User in Organisation
@@ -166,22 +176,26 @@ module Grafana
       org = organization_by_name( organization )
       usr = user_by_name( login_or_email )
 
-      return {
-        'status' => 404,
-        'message' => format('Organization \'%s\' not found', organization)
-      } if( org.nil? || org.dig('status').to_i != 200 )
+      if( org.nil? || org.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('Organization \'%s\' not found', organization)
+        }
+      end
 
-      return {
-        'status' => 404,
-        'message' => format('User \'%s\' not found', login_or_email)
-      } if( usr.nil? || usr.dig('status').to_i != 200 )
+      if( usr.nil? || usr.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('User \'%s\' not found', login_or_email)
+        }
+      end
 
       org_id = org.dig('id')
       usr_id = usr.dig('id')
 
       endpoint = format( '/api/orgs/%d/users/%d', org_id, usr_id )
 
-      @logger.info("Deleting user '#{login_or_email}' in organization '#{organization}' (DELETE #{endpoint})") if @debug
+      @logger.debug("Deleting user '#{login_or_email}' in organization '#{organization}' (DELETE #{endpoint})") if @debug
       delete(endpoint)
     end
 
@@ -199,12 +213,18 @@ module Grafana
       raise ArgumentError.new('missing name for Organisation') if( name.nil? )
 
       org = organization_by_name( name )
-      { status: 409, message: 'Organisation \'%s\' exists' } if( org.nil? || org.dig('status').to_i != 200 )
-      # if( organization.dig('status').to_i == 200 )
+
+      if( org.nil? || org.dig('status').to_i == 200 )
+        return {
+          'status' => 409,
+          'message' => format('Organisation \'%s\' already exists', name )
+        }
+      end
 
       endpoint = '/api/orgs'
-      @logger.info("Create Organisation (POST #{endpoint})") if @debug
-      post( endpoint, { :name => name }.to_json )
+      @logger.debug("Create Organisation (POST #{endpoint})") if @debug
+
+      post( endpoint, { name: name }.to_json )
     end
 
     # Delete Organisation
@@ -222,15 +242,18 @@ module Grafana
 
       org = organization_by_name( name )
 
-      return {
-        'status' => 404,
-        'message' => format('Organization \'%s\' not found', organization)
-      } if( org.nil? || org.dig('status').to_i != 200 )
+      if( org.nil? || org.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('Organization \'%s\' not found', organization)
+        }
+      end
 
       org_id = org.dig('id')
 
       endpoint = format( '/api/orgs/%d', org_id )
-      @logger.info("Deleting organization #{org_id} (DELETE #{endpoint})") if @debug
+      @logger.debug("Deleting organization #{org_id} (DELETE #{endpoint})") if @debug
+
       delete(endpoint)
     end
 

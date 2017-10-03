@@ -9,7 +9,7 @@ module Grafana
     # GET /api/user
     def current_user
       endpoint = '/api/user'
-      @logger.info("Getting user current user (GET #{endpoint})") if @debug
+      @logger.debug("Getting user current user (GET #{endpoint})") if @debug
       get(endpoint)
     end
 
@@ -26,7 +26,7 @@ module Grafana
       raise ArgumentError.new('missing new_password for update') if( new_password.nil? )
 
       endpoint = '/api/user/password'
-      @logger.info("Updating current user password (PUT #{endpoint})") if @debug
+      @logger.debug("Updating current user password (PUT #{endpoint})") if @debug
       put( endpoint, { oldPassword: old_password, newPassword: new_password, confirmNew: new_password }.to_json )
     end
 
@@ -38,15 +38,17 @@ module Grafana
 
       org = organization_by_name( organization )
 
-      return {
-        'status' => 404,
-        'message' => format('Organization \'%s\' not found', organization)
-      } if( org.nil? || org.dig('status').to_i != 200 )
+      if  org.nil? || org.dig('status').to_i != 200
+        return {
+          'status' => 404,
+          'message' => format('Organization \'%s\' not found', organization)
+        }
+      end
 
       org_id = org.dig('id')
 
       endpoint = format( '/api/user/using/%d', org_id )
-      @logger.info("Switching current user to Organization #{organization} (GET #{endpoint})") if @debug
+      @logger.debug("Switching current user to Organization #{organization} (GET #{endpoint})") if @debug
 
       post( endpoint, {} )
     end
@@ -56,7 +58,7 @@ module Grafana
     def current_user_oganizations
 
       endpoint = '/api/user/orgs'
-      @logger.info("Getting current user organizations (GET #{endpoint})") if @debug
+      @logger.debug("Getting current user organizations (GET #{endpoint})") if @debug
       get(endpoint)
     end
 
@@ -72,18 +74,16 @@ module Grafana
 
       if(dashboard.is_a?(String))
 
-        search = { :query => dashboard }
+        search = { query: dashboard }
         r = search_dashboards( search )
         message = r.dig('message')
         dashboard_id = message.first.dig('id')
       end
 
-      if( dashboard_id == 0 )
-        raise RuntimeError, format('Dashboard id can not be 0')
-      end
+      raise format('Dashboard id can not be 0') if  dashboard_id.zero?
 
       endpoint = format( '/api/user/stars/dashboard/%d', dashboard_id )
-      @logger.info("Adding star to dashboard id #{dashboard_id} (GET #{endpoint})") if @debug
+      @logger.debug("Adding star to dashboard id #{dashboard_id} (GET #{endpoint})") if @debug
       post(endpoint, {}.to_json)
     end
 
@@ -99,18 +99,16 @@ module Grafana
 
       if(dashboard.is_a?(String))
 
-        search = { :query => dashboard }
+        search = { query: dashboard }
         r = search_dashboards( search )
         message = r.dig('message')
         dashboard_id = message.first.dig('id')
       end
 
-      if( dashboard_id == 0 )
-        raise RuntimeError, format('Dashboard Id can not be 0')
-      end
+      raise format('Dashboard Id can not be 0') if  dashboard_id.zero?
 
       endpoint = format( '/api/user/stars/dashboard/%d', dashboard_id )
-      @logger.info("Deleting star on dashboard id #{dashboard_id} (GET #{endpoint})") if @debug
+      @logger.debug("Deleting star on dashboard id #{dashboard_id} (GET #{endpoint})") if @debug
       delete( endpoint )
     end
 

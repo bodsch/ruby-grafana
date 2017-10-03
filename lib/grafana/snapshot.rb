@@ -12,7 +12,7 @@ module Grafana
       raise ArgumentError.new('key must be an String') unless( key.is_a?(String) )
 
       endpoint = format('/api/snapshot/%s', key)
-      @logger.info("Get Snapshot by Id #{key} (GET #{endpoint})") if @debug
+      @logger.debug("Get Snapshot by Id #{key} (GET #{endpoint})") if @debug
 
       get(endpoint)
     end
@@ -24,7 +24,7 @@ module Grafana
       raise ArgumentError.new('dashboard must be an Hash') unless( dashboard.is_a?(String) )
 
       endpoint = '/api/snapshot'
-      @logger.info("Creating dashboard snapshot (POST #{endpoint})") if @debug
+      @logger.debug("Creating dashboard snapshot (POST #{endpoint})") if @debug
 
       post(endpoint, dashboard)
     end
@@ -37,7 +37,7 @@ module Grafana
       raise ArgumentError.new('key must be an String') unless( key.is_a?(String) )
 
       endpoint = format( '/api/snapshots-delete/%s', key)
-      @logger.info("Deleting snapshot id #{key} (GET #{endpoint})") if @debug
+      @logger.debug("Deleting snapshot id #{key} (GET #{endpoint})") if @debug
 
       delete(endpoint)
     end

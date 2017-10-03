@@ -6,7 +6,7 @@ module Grafana
     # major part of version
     MAJOR = 0
     # minor part of version
-    MINOR = 3
+    MINOR = 5
     # tiny part of version
     TINY  = 0
   end

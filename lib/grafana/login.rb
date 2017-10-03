@@ -14,9 +14,12 @@ module Grafana
 
       begin
 
-        @logger.info("Initializing API client #{@url}") if @debug
-        @logger.info("Headers: #{@http_headers}") if @debug
-        @logger.info( sprintf( 'try to connect our grafana endpoint ... ' ) )  if @debug
+        if( @debug )
+
+          @logger.debug("Initializing API client #{@url}")
+          @logger.debug("Headers: #{@http_headers}")
+          @logger.debug( sprintf( 'try to connect our grafana endpoint ... ' ) )
+        end
 
         @api_instance = RestClient::Resource.new(
           @url,
@@ -28,8 +31,8 @@ module Grafana
         )
       rescue => e
 
-        @logger.error( e )
-        @logger.debug( e.backtrace.join("\n") )
+        @logger.error( e ) if @debug
+        @logger.debug( e.backtrace.join("\n") ) if @debug
         false
       end
 
@@ -46,24 +49,24 @@ module Grafana
         max_retries = 2
 
         response_cookies  = ''
-        response_code     = 0
-        response_body     = ''
-        response_header   = ''
+        # response_code     = 0
+        # response_body     = ''
+        # response_header   = ''
         @headers          = {}
 
         begin
 
-          @logger.info("Attempting to establish user session") if @debug
+          @logger.debug('Attempting to establish user session') if @debug
 
           response = @api_instance['/login'].post(
             request_data.to_json,
-            :content_type => 'application/json; charset=UTF-8'
+            content_type: 'application/json; charset=UTF-8'
           )
 
           response_cookies  = response.cookies
           response_code     = response.code.to_i
-          response_body     = response.body
-          response_header   = response.headers
+          # response_body     = response.body
+          # response_header   = response.headers
 
           if( response_code == 200 )
 
@@ -74,16 +77,16 @@ module Grafana
             }
           end
 
-        rescue RestClient::Unauthorized => e
+        rescue RestClient::Unauthorized
 
-          @logger.debug( request_data.to_json )
-          raise RuntimeError, format( 'Not authorized to connect \'%s\' - wrong username or password?', @url )
+          @logger.debug( request_data.to_json ) if @debug
+          raise format( 'Not authorized to connect \'%s\' - wrong username or password?', @url )
 
-        rescue Errno::ECONNREFUSED => e
+        rescue Errno::ECONNREFUSED
 
           if( retried < max_retries )
             retried += 1
-            @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) )
+            @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( 5 )
             retry
           else
@@ -91,11 +94,11 @@ module Grafana
             raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
           end
 
-        rescue Errno::EHOSTUNREACH => e
+        rescue Errno::EHOSTUNREACH
 
           if( retried < max_retries )
             retried += 1
-            @logger.debug( format( 'cannot login, host unreachable (retry %d / %d)', retried, max_retries ) )
+            @logger.debug( format( 'cannot login, host unreachable (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( 5 )
             retry
           else
@@ -104,7 +107,7 @@ module Grafana
           end
         end
 
-        @logger.info("User session initiated") if @debug
+        @logger.debug('User session initiated') if @debug
 
 #         if( @debug )
 #           @logger.debug(@headers)
@@ -116,7 +119,7 @@ module Grafana
         return true
       end
 
-      return false
+      false
     end
 
 
@@ -124,11 +127,11 @@ module Grafana
 
       endpoint = '/api/login/ping'
 
-      @logger.info( "Pinging current session (GET #{endpoint})" )
+      @logger.debug( "Pinging current session (GET #{endpoint})" ) if @debug
 
-      result = getRequest( endpoint )
+      result = get( endpoint )
 
-      @logger.debug( result )
+      @logger.debug( result ) if @debug
 
       result
     end

@@ -26,47 +26,37 @@ module Grafana
 
       raise ArgumentError.new('json must be an Hash') unless( json.is_a?(Hash) )
 
-      if( valid_json?( json ) )
+      rows = json.dig('dashboard','rows')
 
-        json = JSON.parse( json ) if( json.is_a?(String) )
+      if( rows.nil? )
 
-        rows = json.dig('dashboard','rows')
+        # counter = 1
+        id_counter = 10
+        rows.each_with_index do |r, _counter|
 
-        if( rows.nil? )
+          panel = r.dig('panels')
 
-          counter = 1
-          idCounter = 10
-          rows.each_with_index do |r, counter|
+          next if( panel.nil? )
 
-            panel = r.dig('panels')
-
-            next if( panel.nil? )
-
-            panel.each do |p|
-              p['id']   = idCounter
-              idCounter = idCounter+1 # idCounter +=1 ??
-            end
+          panel.each do |p|
+            p['id']   = id_counter
+            id_counter = id_counter +=1 # id_counter+1 # id_counter +=1 ??
           end
         end
-
-        JSON.generate( json )
-      else
-
-        return false
       end
+
+      JSON.generate( json )
 
     end
 
 
     def valid_json?( json )
 
-      begin
         JSON.parse( json ) if( json.is_a?(String) )
         return true
       rescue JSON::ParserError => e
         @logger.error("json parse error: #{e}") if @debug
         return false
-      end
 
     end
 

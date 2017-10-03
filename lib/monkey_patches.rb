@@ -15,12 +15,12 @@ class Object
 
   def deep_symbolize_keys
 
-    if( self.is_a?( Hash ) )
-      return self.inject({}) do |memo, (k, v)|
+    if( is_a?( Hash ) )
+      return inject({}) do |memo, (k, v)|
         memo.tap { |m| m[k.to_sym] = v.deep_string_keys }
       end
-    elsif( self.is_a?( Array ) )
-      return self.map { |memo| memo.deep_string_keys }
+    elsif( is_a?( Array ) )
+      return map(&:deep_string_keys)
     end
 
     self
@@ -28,12 +28,12 @@ class Object
 
   def deep_string_keys
 
-    if( self.is_a?( Hash ) )
-      return self.inject({}) do |memo, (k, v)|
+    if( is_a?( Hash ) )
+      return inject({}) do |memo, (k, v)|
         memo.tap { |m| m[k.to_s] = v.deep_string_keys }
       end
-    elsif( self.is_a?( Array ) )
-      return self.map { |memo| memo.deep_string_keys }
+    elsif( is_a?( Array ) )
+      return map(&:deep_string_keys)
     end
 
     self
@@ -59,12 +59,10 @@ end
 class Hash
   def filter( *args )
     if( args.size == 1 )
-      if( args[0].is_a?( Symbol ) )
-        args[0] = args[0].to_s
-      end
-      self.select { |key| key.to_s.match( args.first ) }
+      args[0] = args[0].to_s if  args[0].is_a?( Symbol ) 
+      select { |key| key.to_s.match( args.first ) }
     else
-      self.select { |key| args.include?( key ) }
+      select { |key| args.include?( key ) }
     end
   end
 end
@@ -72,7 +70,7 @@ end
 # -----------------------------------------------------------------------------
 
 class Time
-  def addMinutes(m)
+  def add_minutes(m)
     self + (60 * m)
   end
 end

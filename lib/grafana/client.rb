@@ -17,7 +17,7 @@ require_relative 'datasource'
 require_relative 'organization'
 require_relative 'organizations'
 require_relative 'dashboard'
-require_relwative 'snapshot'
+require_relative 'snapshot'
 
 module Grafana
   # Abstract base class for the API calls.

@@ -12,7 +12,7 @@ module Grafana
     #
     def current_organization
       endpoint = '/api/org'
-      @logger.info("Get current Organisation (GET #{endpoint})") if @debug
+      @logger.debug("Get current Organisation (GET #{endpoint})") if @debug
       get(endpoint)
     end
 
@@ -28,7 +28,7 @@ module Grafana
       raise ArgumentError.new('missing name') if( name.nil? )
 
       endpoint = '/api/org'
-      @logger.info("Updating current organization (PUT #{endpoint})") if @debug
+      @logger.debug("Updating current organization (PUT #{endpoint})") if @debug
       put(endpoint, params.to_json)
     end
 
@@ -39,7 +39,7 @@ module Grafana
     #
     def current_organization_users
       endpoint = '/api/org/users'
-      @logger.info("Getting organization users (GET #{endpoint})") if @debug
+      @logger.debug("Getting organization users (GET #{endpoint})") if @debug
       get(endpoint)
     end
 
@@ -66,21 +66,23 @@ module Grafana
 
         org = org.dig('message')
 
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' are already in the organisation', login_or_email)
-        } if( org.select { |x| x.dig('email') == login_or_email }.count >= 1 )
-
+        if( org.select { |x| x.dig('email') == login_or_email }.count >= 1 )
+          return {
+            'status' => 404,
+            'message' => format('User \'%s\' are already in the organisation', login_or_email)
+          }
+        end
       end
 
-
-      return {
-        'status' => 404,
-        'message' => format('User \'%s\' not found', login_or_email)
-      } if( usr.nil? || usr.dig('status').to_i != 200 )
+      if( usr.nil? || usr.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('User \'%s\' not found', login_or_email)
+        }
+      end
 
       endpoint = '/api/org/users'
-      @logger.info("Adding user to current organization (POST #{endpoint})") if @debug
+      @logger.debug("Adding user to current organization (POST #{endpoint})") if @debug
       post(endpoint, params.to_json)
     end
 

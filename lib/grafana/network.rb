@@ -28,28 +28,13 @@ module Grafana
       request( 'DELETE', endpoint )
     end
 
-    def request( method_type = 'GET', endpoint = '/', data = {} )
+    def request(method_type='GET',endpoint='/',data={})
 
-#       @logger.debug( "request( #{method_type}, #{endpoint}, data )" )
-#       @logger.debug( "#{@headers}" )
-
-      if( @api_instance.nil? )
-        raise 'try first login()'
-      end
-
-      result_codes = {
-        200 => 'created',
-        400 => 'Errors (invalid json, missing or invalid fields, etc)',
-        401 => 'Unauthorized',
-        403 => 'Forbidden',
-        412 => 'Precondition failed'
-      }
+      raise 'try first login()' if  @api_instance.nil?
 
       response             = nil
       response_code        = 404
       response_body        = ''
-      response_headers     = ''
-      response_raw_headers = ''
 
       begin
 
@@ -62,11 +47,7 @@ module Grafana
           response = @api_instance[endpoint].patch( data, @headers )
         when 'PUT'
           # response = @api_instance[endpoint].put( data, @headers )
-          @api_instance[endpoint].put( data, @headers ) { |response, request, result|
-
-            # @logger.debug( response.to_s )
-            # @logger.debug( request.to_s )
-            # @logger.debug( result.to_s )
+          @api_instance[endpoint].put( data, @headers ) do |response, request, result|
 
             case response.code
             when 200
@@ -85,7 +66,7 @@ module Grafana
             else
               response.return!(request, result)
             end
-        }
+          end
 
         when 'DELETE'
           response = @api_instance[endpoint].delete( @headers )
@@ -94,35 +75,25 @@ module Grafana
           return false
         end
 
-#         @logger.debug( response.to_s )
-
         response_code    = response.code.to_i
         response_body    = response.body
         response_headers = response.headers
-
-#        @logger.debug( response_code )
-#        @logger.debug( response_body )
-#        @logger.debug( JSON.pretty_generate( response_headers ) )
 
         if( ( response_code >= 200 && response_code <= 299 ) || ( response_code >= 400 && response_code <= 499 ) )
 
           result = JSON.parse( response_body )
 
-#          @logger.debug( JSON.pretty_generate( result ) )
-
           if( result.is_a?(Array) )
-
             r_result= {
               'status' => response_code,
               'message' => result
             }
-
             return r_result
           end
 
           result_status = result.dig('status') if( result.is_a?( Hash ) )
 
-          result['message'] = result_status if( result_status != nil )
+          result['message'] = result_status unless( result_status.nil? )
           result['status']  = response_code
 
           return result
@@ -135,13 +106,7 @@ module Grafana
           return JSON.parse( response_body )
         end
 
-      rescue RestClient::Unauthorized => e
-
-        @logger.error( 'Not authorized to connect \'%s/%s\' - wrong username or password?', @url, endpoint )
-
-        return false
-
-      rescue RestClient::BadRequest => e
+      rescue RestClient::BadRequest
 
         response_body = JSON.parse(response_body) if response_body.is_a?(String)
 
@@ -150,21 +115,28 @@ module Grafana
           'message' => response_body.dig('message').nil? ? 'Bad Request' : response_body.dig('message')
         }
 
-      rescue RestClient::NotFound => e
+      rescue RestClient::Unauthorized
+
+        return {
+          'status' => 401,
+          'message' => format('Not authorized to connect \'%s/%s\' - wrong username or password?', @url, endpoint)
+        }
+
+      rescue RestClient::NotFound
 
         return {
           'status' => 404,
           'message' => 'Not Found'
         }
 
-      rescue RestClient::Conflict => e
+      rescue RestClient::Conflict
 
         return {
           'status' => 409,
           'message' => 'Conflict with the current state of the target resource'
         }
 
-      rescue RestClient::PreconditionFailed => e
+      rescue RestClient::PreconditionFailed
 
         return {
           'status' => 412,
