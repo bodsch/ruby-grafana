@@ -40,10 +40,15 @@ module Grafana
     include Grafana::Dashboard
     include Grafana::Snapshot
 
+    attr_accessor :debug
+
     def initialize( settings )
 
       raise ArgumentError.new('only Hash are allowed') unless( settings.is_a?(Hash) )
       raise ArgumentError.new('missing settings') if( settings.size.zero? )
+
+      @logger = Logger.new(STDOUT)
+      @logger.debug( "Grafana.initialize( #{settings} )" )
 
       host                = settings.dig(:grafana, :host)          || 'localhost'
       port                = settings.dig(:grafana, :port)          || 3000
@@ -54,11 +59,9 @@ module Grafana
       @http_headers       = settings.dig(:grafana, :http_headers)  || {}
       @debug              = settings.dig(:debug)                   || false
 
-      protocoll               = ssl == true ? 'https' : 'http'
+      protocoll           = ssl == true ? 'https' : 'http'
 
       @url = format( '%s://%s:%d%s', protocoll, host, port, url_path )
-
-      @logger = Logger.new(STDOUT)
 
       raise ArgumentError.new('missing hostname') if( host.nil? )
       raise ArgumentError.new('wrong type. port must be an Integer') unless( port.is_a?(Integer) )

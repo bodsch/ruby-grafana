@@ -60,7 +60,7 @@ module Grafana
       user_name   = params.dig(:user_name)
 
       if( !user_name.is_a?(String) && !user_name.is_a?(Integer) )
-        raise ArgumentError.new('user_name must be an String (for an Dashboard name) or an Integer (for an Dashboard ID)')
+        raise ArgumentError.new('user_name must be an String (for an Username) or an Integer (for an User Id)')
       end
 
       usr = user_by_id(user_name) if(user_name.is_a?(Integer))

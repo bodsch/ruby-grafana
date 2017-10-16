@@ -27,6 +27,9 @@ module Grafana
     # Get Organisation by Name
     # GET /api/orgs/name/:orgName
     def organization_by_name( name )
+
+      raise ArgumentError.new('name must be an String') unless( name.is_a?(String) )
+
       endpoint = format( '/api/orgs/name/%s', URI.escape( name ) )
       @logger.debug("Get Organisation by Name (GET #{endpoint})") if @debug
       get( endpoint )
