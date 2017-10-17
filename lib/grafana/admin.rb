@@ -21,41 +21,86 @@ module Grafana
 
     # Permissions
     # PUT /api/admin/users/:id/permissions
-#     def update_user_permissions( id, perm )
-#
-#       valid_perms = ['Viewer','Editor','Read Only Editor','Admin']
-#
-#       if( perm.is_a?( String ) && !valid_perms.include?(perm) )
-#         logger.warn("Basic user permissions include: #{valid_perms.join(',')}")
-#         return false
-#       elsif( perm.is_a?( Hash ) &&
-#         ( !perm.key?('isGrafanaAdmin') || ![true,false].include?(perm['isGrafanaAdmin']) ) )
-#
-#         logger.warn('Grafana admin permission must be either true or false')
-#
-#         return false
-#       end
-#
-#       logger.info("Updating user id #{id} permissions")
-#
-#       if( perm.is_a?( Hash ) )
-#
-#         endpoint = "/api/admin/users/#{id}/permissions"
-#         logger.info("Updating user id #{id} permissions (PUT #{endpoint})")
-#
-#         return putRequest(endpoint, {'isGrafanaAdmin' => perm['isGrafanaAdmin']}.to_json)
-#       else
-#         org = current_org
-#         endpoint = "/api/orgs/#{org['id']}/users/#{id}"
-#         logger.info("Updating user id #{id} permissions (PUT #{endpoint})")
-#         user = {
-#           'name' => org['name'],
-#           'orgId' => org['id'],
-#           'role' => perm.downcase.capitalize
-#         }
-#         return patchRequest(endpoint, user.to_json)
-#       end
-#     end
+    def update_user_permissions( params ) # id, perm )
+
+      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+
+      user_name  = params.dig(:name)
+      permissions  = params.dig(:permissions)
+
+      raise ArgumentError.new('missing user_name') if( user_name.nil? )
+      raise ArgumentError.new( format( 'permission must be an String or Hash, given %s', permissions.class.to_s ) ) unless( permissions.is_a?(String) || permissions.is_a?(Hash) )
+
+      valid_perms = ['Viewer','Editor','Read Only Editor','Admin']
+
+      if( permissions.is_a?( String ) && !valid_perms.include?(permissions) )
+
+        message = format( 'user permissions must be one of %s, given \'%s\'', valid_perms.join(', '), permissions )
+        logger.warn( message )
+
+        return {
+          'status' => 404,
+          'name' => user_name,
+          'permissions' => permissions,
+          'message' => message
+        }
+
+      elsif( permissions.is_a?(Hash) && !permissions.dig(:grafana_admin).nil? )
+
+        grafana_admin = permissions.dig(:grafana_admin)
+
+        unless( grafana_admin.is_a?(Boolean) )
+
+          message = 'Grafana admin permission must be either true or false'
+          logger.warn( message )
+
+          return {
+            'status' => 404,
+            'name' => user_name,
+            'permissions' => permissions,
+            'message' => message
+          }
+        end
+      end
+
+      usr = user_by_name(user_name)
+
+      if( usr.nil? || usr.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('User \'%s\' not found', user_name)
+        }
+      end
+
+      user_id = usr.dig('id')
+
+      if( permissions.is_a?(Hash) )
+
+        endpoint = format( '/api/admin/users/%s/permissions', user_id )
+
+        logger.debug("Updating user id #{user_id} permissions (PUT #{endpoint})") if @debug
+
+        grafana_admin = permissions.dig(:grafana_admin)
+
+        return put(endpoint, { 'isGrafanaAdmin' => grafana_admin }.to_json )
+      else
+
+        org = current_organization
+
+        endpoint = format( '/api/orgs/%s/users/%s', org['id'], user_id )
+        logger.debug( format( 'Updating user id %s permissions', user_id ) ) if @debug
+
+        user = {
+          'name' => org.dig('name'),
+          'orgId' => org.dig('id'),
+          'role' => permissions.downcase.capitalize
+        }
+
+        logger.debug("Updating user id #{user_id} permissions (PATCH #{endpoint})") if @debug
+
+        return patch( endpoint, user.to_json )
+      end
+    end
 
     # Delete global User
     # DELETE /api/admin/users/:id
@@ -100,19 +145,19 @@ module Grafana
 
       raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
 
-      user_name = params.dig(:user_name)
-      email = params.dig(:email)
-      login_name = params.dig(:login_name) || user_name
-      password = params.dig(:password)
+      user_name  = params.dig(:name)
+      email      = params.dig(:email)
+      login_name = params.dig(:login) || user_name
+      password   = params.dig(:password)
 
-      raise ArgumentError.new('missing user_name') if( user_name.nil? )
-      raise ArgumentError.new('missing email') if( email.nil? )
-      raise ArgumentError.new('missing login_name') if( login_name.nil? )
+      raise ArgumentError.new('missing name')     if( user_name.nil? )
+      raise ArgumentError.new('missing email')    if( email.nil? )
+      raise ArgumentError.new('missing login')    if( login_name.nil? )
       raise ArgumentError.new('missing password') if( password.nil? )
 
-      usr = user_by_name(email)
+      usr = user_by_name(user_name)
 
-      if  usr.nil? || usr.dig('status').to_i == 200
+      if( usr.nil? || usr.dig('status').to_i == 200 )
         return {
           'status' => 404,
           'id' => usr.dig('id'),

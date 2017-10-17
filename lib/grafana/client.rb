@@ -4,7 +4,6 @@ require 'ruby_dig' if RUBY_VERSION < '2.3'
 require 'rest-client'
 require 'json'
 require 'timeout'
-require 'logger'
 
 require_relative 'version'
 require_relative 'login'
@@ -27,6 +26,8 @@ module Grafana
   #
   class Client
 
+    include Logging
+
     include Grafana::Version
     include Grafana::Login
     include Grafana::Network
@@ -40,7 +41,6 @@ module Grafana
     include Grafana::Dashboard
     include Grafana::Snapshot
 
-    attr_accessor :logger
     attr_accessor :debug
 
     def initialize( settings )
@@ -48,8 +48,11 @@ module Grafana
       raise ArgumentError.new('only Hash are allowed') unless( settings.is_a?(Hash) )
       raise ArgumentError.new('missing settings') if( settings.size.zero? )
 
-      @logger = Logger.new(STDOUT)
-      @logger.debug( "Grafana.initialize( #{settings} )" ) if( @debug )
+#       @logger       = Logger.new(STDOUT)
+#       @logger.level = Logger::UNKNOWN
+#
+#       @logger.level = Logger::DEBUG  if( @debug )
+#       @logger.debug( "Grafana.initialize( #{settings} )" ) if( @debug )
 
       host                = settings.dig(:grafana, :host)          || 'localhost'
       port                = settings.dig(:grafana, :port)          || 3000
@@ -74,6 +77,13 @@ module Grafana
 
     end
 
+    def self.logger
+      @@logger ||= defined?(Logging) ? Logging.logger : Logger.new(STDOUT)
+    end
+
+    def self.logger=(logger)
+      @@logger = logger
+    end
 
   end
 

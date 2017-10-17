@@ -10,6 +10,7 @@ module Grafana
 
       user                = params.dig(:user)
       password            = params.dig(:password)
+      max_retries         = params.dig(:max_retries) || 2
 
       raise ArgumentError.new('wrong type. user must be an String') if( user.nil? )
       raise ArgumentError.new('wrong type. password must be an String') if( password.nil? )
@@ -19,7 +20,7 @@ module Grafana
         if( @debug )
           @logger.debug("Initializing API client #{@url}")
           @logger.debug("Headers: #{@http_headers}")
-          @logger.debug( sprintf( 'try to connect our grafana endpoint ... ' ) )
+          @logger.info( sprintf( 'try to connect our grafana endpoint ... ' ) )
         end
 
         @api_instance = RestClient::Resource.new(
@@ -27,8 +28,7 @@ module Grafana
           timeout: @timeout.to_i,
           open_timeout: @open_timeout.to_i,
           headers: @http_headers,
-          verify_ssl: false,
-          log: @logger
+          verify_ssl: false
         )
       rescue => e
         @logger.error( e ) if @debug
@@ -44,7 +44,6 @@ module Grafana
       if( @api_instance )
 
         retried ||= 0
-        max_retries = 2
 
         response_cookies  = ''
         @headers          = {}
@@ -75,12 +74,24 @@ module Grafana
           @logger.debug( request_data.to_json ) if @debug
           raise format( 'Not authorized to connect \'%s\' - wrong username or password?', @url )
 
+        rescue RestClient::BadGateway
+
+          if( retried < max_retries )
+            retried += 1
+            @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
+            sleep( 5 )
+            retry
+          else
+
+            raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
+          end
+
         rescue Errno::ECONNREFUSED
 
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( 2 )
+            sleep( 5 )
             retry
           else
 
