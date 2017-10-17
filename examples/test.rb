@@ -18,7 +18,7 @@ grafana_user = 'admin'
 grafana_password = 'grafana_admin'
 
 config = {
-  debug: true,
+  debug: false,
   grafana: {
     host: grafana_host,
     port: grafana_port
@@ -31,7 +31,16 @@ g  = Grafana::Client.new( config )
 
 unless( g.nil? )
 
-  g.login(user: grafana_user, password: grafana_password)
+  login = nil
+  begin
+
+    login = g.login(user: grafana_user, password: grafana_password)
+  rescue
+    grafana_password = 'admin'
+    login = g.login(user: grafana_user, password: grafana_password)
+  end
+
+  puts login
 
   puts g.admin_settings
 

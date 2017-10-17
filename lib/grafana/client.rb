@@ -49,7 +49,7 @@ module Grafana
       raise ArgumentError.new('missing settings') if( settings.size.zero? )
 
       @logger = Logger.new(STDOUT)
-      @logger.debug( "Grafana.initialize( #{settings} )" )
+      @logger.debug( "Grafana.initialize( #{settings} )" ) if( @debug )
 
       host                = settings.dig(:grafana, :host)          || 'localhost'
       port                = settings.dig(:grafana, :port)          || 3000

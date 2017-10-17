@@ -6,7 +6,7 @@ module Grafana
 
     def login( params )
 
-      @logger.debug( "Grafana::Login.login( #{params} )"  )
+      @logger.debug( "Grafana::Login.login( #{params} )" ) if( @debug )
 
       user                = params.dig(:user)
       password            = params.dig(:password)
