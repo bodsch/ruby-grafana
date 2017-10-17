@@ -40,6 +40,7 @@ module Grafana
     include Grafana::Dashboard
     include Grafana::Snapshot
 
+    attr_accessor :logger
     attr_accessor :debug
 
     def initialize( settings )

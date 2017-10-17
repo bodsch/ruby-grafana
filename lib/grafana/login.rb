@@ -17,7 +17,6 @@ module Grafana
       begin
 
         if( @debug )
-
           @logger.debug("Initializing API client #{@url}")
           @logger.debug("Headers: #{@http_headers}")
           @logger.debug( sprintf( 'try to connect our grafana endpoint ... ' ) )
@@ -32,7 +31,6 @@ module Grafana
           log: @logger
         )
       rescue => e
-
         @logger.error( e ) if @debug
         @logger.debug( e.backtrace.join("\n") ) if @debug
         false
@@ -45,15 +43,10 @@ module Grafana
 
       if( @api_instance )
 
-#         @logger.debug( @api_instance.inspect ) if @debug
-
         retried ||= 0
         max_retries = 2
 
         response_cookies  = ''
-        # response_code     = 0
-        # response_body     = ''
-        # response_header   = ''
         @headers          = {}
 
         begin
@@ -67,8 +60,6 @@ module Grafana
 
           response_cookies  = response.cookies
           response_code     = response.code.to_i
-          # response_body     = response.body
-          # response_header   = response.headers
 
           if( response_code == 200 )
 
@@ -89,7 +80,7 @@ module Grafana
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( 5 )
+            sleep( 2 )
             retry
           else
 
@@ -110,13 +101,6 @@ module Grafana
         end
 
         @logger.debug('User session initiated') if @debug
-
-#         if( @debug )
-#           @logger.debug(@headers)
-#           @logger.debug( response_code )
-#           @logger.debug( response_body )
-#           @logger.debug( response_header )
-#         end
 
         return true
       end

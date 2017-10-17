@@ -7,6 +7,7 @@ Gem::Specification.new do |spec|
 
   spec.name          = 'grafana'
   spec.version       = Grafana::VERSION
+  spec.date          = '2017-10-17'
   spec.authors       = ['Bodo Schulz']
   spec.email         = ['bodo@boone-schulz.de']
 
@@ -19,8 +20,7 @@ Gem::Specification.new do |spec|
     'README.md',
     'LICENSE',
     'lib/**/*',
-    'doc/*',
-    'examples/*.rb'
+    'doc/*'
   ]
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
@@ -36,8 +36,11 @@ Gem::Specification.new do |spec|
 #  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency('rest-client', '~> 2.0')
-  spec.add_dependency('json', '~> 2.1')
+  spec.add_runtime_dependency 'json',         '~> 1.7'
+  spec.add_runtime_dependency 'rest-client',  '~> 1.8'
+
+#  spec.add_dependency('rest-client', '~> 2.0')
+#  spec.add_dependency('json', '~> 2.1')
 
   begin
 
