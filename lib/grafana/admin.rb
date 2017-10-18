@@ -165,9 +165,20 @@ module Grafana
       delete( endpoint )
     end
 
-
-    # Global Users
-    # POST /api/admin/users
+    # add an global user
+    #
+    # @param [Hash] params
+    # @option params [String] :name login or email for user
+    # @option params [String] :email
+    # @option params [String] :login
+    # @option params [String] :password
+    #
+    # @example
+    #
+    #
+    #
+    # @return [Hash]
+    #
     def add_user( params = {} )
 
       raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
@@ -194,9 +205,6 @@ module Grafana
           'message' => format( 'user \'%s\' with email \'%s\' exists', user_name, email )
         }
       end
-
-#      puts usr
-#      raise format( 'user \'%s\' with email \'%s\' exists', user_name, email ) if( user_by_name(email) )
 
       endpoint = '/api/admin/users'
       @logger.debug("Create user #{user_name} (PUT #{endpoint})") if @debug
