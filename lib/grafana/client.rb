@@ -17,8 +17,15 @@ require_relative 'organization'
 require_relative 'organizations'
 require_relative 'dashboard'
 require_relative 'snapshot'
-
+# -------------------------------------------------------------------------------------------------------------------
+#
+# @abstract # Namespace for classes and modules that handle all Grafana API calls
+#
+# @author Bodo Schulz <bodo@boone-schulz.de>
+#
+#
 module Grafana
+
   # Abstract base class for the API calls.
   # Provides some helper methods
   #
@@ -43,16 +50,37 @@ module Grafana
 
     attr_accessor :debug
 
+    # Create a new instance of Class
+    #
+    # @param [Hash, #read] settings the settings for Grafana
+    # @option settings [String] :host ('localhost') the Grafana Hostname
+    # @option settings [Integer] :port (3000) the Grafana HTTP Port
+    # @option settings [String] :url_path ('')
+    # @option settings [Bool] :ssl (false)
+    # @option settings [Integer] :timeout (5)
+    # @option settings [Integer] :open_timeout (5)
+    # @option settings [Hash] :http_headers ({})
+    # @option settings [Bool] :debug (false)
+    #
+    # @example to create an new Instance
+    #    config = {
+    #      grafana: {
+    #        host: '192.168.33.5',
+    #        port: 3000,
+    #        url_path: '/grafana',
+    #        ssl: false,
+    #        timeout: 10,
+    #        open_timeout: 10,
+    #        debug: true
+    #    }
+    #
+    #    @grafana = Grafana::Client.new(config)
+    #
+    #
     def initialize( settings )
 
       raise ArgumentError.new('only Hash are allowed') unless( settings.is_a?(Hash) )
       raise ArgumentError.new('missing settings') if( settings.size.zero? )
-
-#       @logger       = Logger.new(STDOUT)
-#       @logger.level = Logger::UNKNOWN
-#
-#       @logger.level = Logger::DEBUG  if( @debug )
-#       @logger.debug( "Grafana.initialize( #{settings} )" ) if( @debug )
 
       host                = settings.dig(:grafana, :host)          || 'localhost'
       port                = settings.dig(:grafana, :port)          || 3000

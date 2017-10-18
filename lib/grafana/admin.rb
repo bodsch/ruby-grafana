@@ -1,27 +1,45 @@
 
 module Grafana
 
-  # http://docs.grafana.org/http_api/admin/
+  # All Admin API Calls found under http://docs.grafana.org/http_api/admin/
+  #
+  # The Admin HTTP API does not currently work with an API Token. API Tokens are currently only linked to an organization and an organization role. They cannot be given the permission of server admin, only users can be given that permission. So in order to use these API calls you will have to use Basic Auth and the Grafana user must have the Grafana Admin permission. (The default admin user is called admin and has permission to use this API.)
   #
   module Admin
 
-    # Settings
-    # GET /api/admin/settings
+    # get all admin settings
+    #
+    # @return [Hash]
+    #
     def admin_settings
       @logger.debug('Getting admin settings') if @debug
       get('/api/admin/settings')
     end
 
-    # Grafana Stats
-    # GET /api/admin/stats
+    # get all grafana statistics
+    #
+    # @return [Hash]
+    #
     def admin_stats
       @logger.debug('Getting admin statistics') if @debug
       get('/api/admin/stats')
     end
 
-    # Permissions
-    # PUT /api/admin/users/:id/permissions
-    def update_user_permissions( params ) # id, perm )
+    # change user permissions
+    #
+    # @param [Hash] params
+    # @option params [String] :name login or email for user
+    # @option params [Mixed] :permissions string or hash to change permissions
+    #  [String] only 'Viewer', 'Editor', 'Read Only Editor' or 'Admin' allowed
+    #  [Hash] grafana_admin: true or false
+    #
+    # @example
+    #    update_user_permissions( name: 'admin', permissions: 'Viewer' )
+    #    update_user_permissions( name: 'admin', permissions: { grafana_admin: true } )
+    #
+    # @return [Hash]
+    #
+    def update_user_permissions( params )
 
       raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
 
@@ -102,8 +120,17 @@ module Grafana
       end
     end
 
-    # Delete global User
-    # DELETE /api/admin/users/:id
+    # delete an global user
+    #
+    # @param [Mixed] id Username or Userid for delete User
+    #   The Admin User can't be delete!
+    #
+    # @example
+    #    delete_user( 1 )
+    #    delete_user( 'foo' )
+    #
+    # @return [Hash]
+    #
     def delete_user( id )
 
       if( id.is_a?(String) && id.is_a?(Integer) )
