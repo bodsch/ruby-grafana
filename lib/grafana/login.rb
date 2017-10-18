@@ -6,6 +6,9 @@ module Grafana
 
     def login( params )
 
+      raise ArgumentError.new('only Hash are allowed') unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing params') if( params.size.zero? )
+
       @logger.debug( "Grafana::Login.login( #{params} )" ) if( @debug )
 
       user                = params.dig(:user)
