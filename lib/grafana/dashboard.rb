@@ -23,17 +23,25 @@ module Grafana
     # POST /api/dashboards/db
     def create_dashboard( params )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. params must be an Hash, given %s', params.class.to_s ) ) unless( params.is_a?(Hash) )
 
       title     = params.dig(:title)
       dashboard = params.dig(:dashboard)
 
-      raise ArgumentError.new('missing title') if( title.nil? )
+      # raise ArgumentError.new('missing title') if( title.nil? )
       raise ArgumentError.new('missing dashboard') if( dashboard.nil? )
+      raise ArgumentError.new(format('wrong type. dashboard must be an Hash, given %s', dashboard.class.to_s ) ) unless( dashboard.is_a?(Hash) )
 
       endpoint = '/api/dashboards/db'
-      title     = slug(title)
+      # title     = slug(title)
+
+      # dashboard = JSON.parse( dashboard ) if( dashboard.is_a?(String) )
       dashboard = regenerate_template_ids( dashboard )
+
+      if( title.nil? )
+        db = JSON.parse( dashboard ) if( dashboard.is_a?(String) )
+        title = db.dig('dashboard','title')
+      end
 
       @logger.debug("Creating dashboard: #{title} (POST /api/dashboards/db)") if @debug
 

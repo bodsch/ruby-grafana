@@ -24,11 +24,11 @@ module Grafana
 
     def regenerate_template_ids( json )
 
-      raise ArgumentError.new('json must be an Hash') unless( json.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. json must be an Hash, given %s', json.class.to_s ) ) unless( json.is_a?(Hash) )
 
       rows = json.dig('dashboard','rows')
 
-      if( rows.nil? )
+      unless( rows.nil? )
 
         # counter = 1
         id_counter = 10
@@ -45,8 +45,7 @@ module Grafana
         end
       end
 
-      JSON.generate( json )
-
+      return JSON.generate( json )
     end
 
 
