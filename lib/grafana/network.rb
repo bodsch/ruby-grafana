@@ -64,7 +64,9 @@ module Grafana
               response_code = response.code.to_i
               raise RestClient::BadRequest
             else
-              response.return!(request, result)
+              logger.error( response.code )
+              logger.error( response.body )
+              response.return! # (request, result)
             end
           end
 
