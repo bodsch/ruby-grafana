@@ -17,7 +17,7 @@ module Grafana
     # PUT /api/user/password
     def update_current_user_password( params )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       old_password = params.dig(:old_password)
       new_password = params.dig(:new_password)

@@ -3,7 +3,12 @@ module Grafana
 
   # All Admin API Calls found under http://docs.grafana.org/http_api/admin/
   #
-  # The Admin HTTP API does not currently work with an API Token. API Tokens are currently only linked to an organization and an organization role. They cannot be given the permission of server admin, only users can be given that permission. So in order to use these API calls you will have to use Basic Auth and the Grafana user must have the Grafana Admin permission. (The default admin user is called admin and has permission to use this API.)
+  # The Admin HTTP API does not currently work with an API Token.
+  # API Tokens are currently only linked to an organization and an organization role.
+  # They cannot be given the permission of server admin, only users can be given that permission.
+  # So in order to use these API calls you will have to use Basic Auth and the Grafana user must
+  # have the Grafana Admin permission.
+  # (The default admin user is called admin and has permission to use this API.)
   #
   module Admin
 
@@ -41,13 +46,13 @@ module Grafana
     #
     def update_user_permissions( params )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
-      user_name  = params.dig(:name)
+      name  = params.dig(:name)
       permissions  = params.dig(:permissions)
 
-      raise ArgumentError.new('missing user_name') if( user_name.nil? )
-      raise ArgumentError.new( format( 'permission must be an String or Hash, given %s', permissions.class.to_s ) ) unless( permissions.is_a?(String) || permissions.is_a?(Hash) )
+      raise ArgumentError.new('missing \'name\'') if( name.nil? )
+      raise ArgumentError.new(format('wrong type. \'permissions\' must be an String or Hash, given %s', permissions.class.to_s ) ) unless( permissions.is_a?(String) || permissions.is_a?(Hash) )
 
       valid_perms = ['Viewer','Editor','Read Only Editor','Admin']
 
@@ -58,7 +63,7 @@ module Grafana
 
         return {
           'status' => 404,
-          'name' => user_name,
+          'name' => name,
           'permissions' => permissions,
           'message' => message
         }
@@ -74,19 +79,19 @@ module Grafana
 
           return {
             'status' => 404,
-            'name' => user_name,
+            'name' => name,
             'permissions' => permissions,
             'message' => message
           }
         end
       end
 
-      usr = user_by_name(user_name)
+      usr = user_by_name(name)
 
       if( usr.nil? || usr.dig('status').to_i != 200 )
         return {
           'status' => 404,
-          'message' => format('User \'%s\' not found', user_name)
+          'message' => format('User \'%s\' not found', name)
         }
       end
 
@@ -133,9 +138,7 @@ module Grafana
     #
     def delete_user( id )
 
-      if( id.is_a?(String) && id.is_a?(Integer) )
-        raise ArgumentError.new('user id must be an String (for an User name) or an Integer (for an User Id)')
-      end
+      raise ArgumentError.new('user id must be an String (for an User name) or an Integer (for an User Id)') if( id.is_a?(String) && id.is_a?(Integer) )
 
       if(id.is_a?(Integer))
         user_id = id if user_by_id(id).size >= 0
@@ -159,6 +162,7 @@ module Grafana
           'message' => format( 'Can\'t delete user id %d (admin user)', id )
         }
       end
+
       endpoint = format('/api/admin/users/%d', user_id )
       @logger.debug( "Deleting user id #{user_id} (DELETE #{endpoint})" ) if @debug
 
@@ -179,21 +183,26 @@ module Grafana
     #
     # @return [Hash]
     #
-    def add_user( params = {} )
+    def add_user( params )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
-      user_name  = params.dig(:name)
-      email      = params.dig(:email)
-      login_name = params.dig(:login) || user_name
-      password   = params.dig(:password)
+#       name  = params.dig(:name)
+#       email      = params.dig(:email)
+#       login_name = params.dig(:login) || name
+#       password   = params.dig(:password)
 
-      raise ArgumentError.new('missing name')     if( user_name.nil? )
-      raise ArgumentError.new('missing email')    if( email.nil? )
-      raise ArgumentError.new('missing login')    if( login_name.nil? )
-      raise ArgumentError.new('missing password') if( password.nil? )
+      name    = validate( params, required: true, var: 'name', type: String )
+      email    = validate( params, required: true, var: 'email', type: String )
+      login_name    = validate( params, required: true, var: 'login_name', type: String ) || name
+      password    = validate( params, required: true, var: 'password', type: String )
 
-      usr = user_by_name(user_name)
+#       raise ArgumentError.new('missing name')     if( name.nil? )
+#       raise ArgumentError.new('missing email')    if( email.nil? )
+#       raise ArgumentError.new('missing login')    if( login_name.nil? )
+#       raise ArgumentError.new('missing password') if( password.nil? )
+
+      usr = user_by_name(name)
 
       if( usr.nil? || usr.dig('status').to_i == 200 )
         return {
@@ -202,12 +211,12 @@ module Grafana
           'email' => usr.dig('email'),
           'name' => usr.dig('name'),
           'login' => usr.dig('login'),
-          'message' => format( 'user \'%s\' with email \'%s\' exists', user_name, email )
+          'message' => format( 'user \'%s\' with email \'%s\' exists', name, email )
         }
       end
 
       endpoint = '/api/admin/users'
-      @logger.debug("Create user #{user_name} (PUT #{endpoint})") if @debug
+      @logger.debug("Create user #{name} (PUT #{endpoint})") if @debug
       @logger.debug( format( 'Data: %s', params.to_s ) ) if @debug
       post( endpoint, params.to_json)
     end
@@ -217,7 +226,7 @@ module Grafana
     # PUT /api/admin/users/:id/password
     def update_user_password( params ) #user_id,password)
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       user_name = params.dig(:user_name)
       password  = params.dig(:password)

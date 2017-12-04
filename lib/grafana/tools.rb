@@ -7,26 +7,23 @@ module Grafana
 
       raise ArgumentError.new('text must be an String') unless( text.is_a?(String) )
 
-      if( text =~ /\s/ )
-
-        text = if( text =~ /-/ )
-          text.gsub( /\s+/, '' )
+      if( text =~ /\s/ && text =~ /-/ )
+#        if( text =~ /-/ )
+          text = text.gsub( /\s+/, '' )
         else
-          text.gsub( /\s+/, '-' )
-        end
-
-        return text.downcase
+          text = text.gsub( /\s+/, '-' )
+#        end
       end
 
-      text
+      text.downcase
     end
 
 
-    def regenerate_template_ids( json )
+    def regenerate_template_ids( params )
 
-      raise ArgumentError.new(format('wrong type. json must be an Hash, given %s', json.class.to_s ) ) unless( json.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
-      rows = json.dig('dashboard','rows')
+      rows = params.dig('dashboard','rows')
 
       unless( rows.nil? )
 
@@ -45,18 +42,18 @@ module Grafana
         end
       end
 
-      return JSON.generate( json )
+      JSON.generate( params )
     end
 
 
     def valid_json?( json )
-
-        JSON.parse( json ) if( json.is_a?(String) )
+      begin
+        JSON.parse( json )
         return true
       rescue JSON::ParserError => e
         @logger.error("json parse error: #{e}") if @debug
         return false
-
+      end
     end
 
   end

@@ -6,6 +6,7 @@ require 'json'
 require 'timeout'
 
 require_relative 'version'
+require_relative 'validator'
 require_relative 'login'
 require_relative 'network'
 require_relative 'tools'
@@ -36,6 +37,7 @@ module Grafana
     include Logging
 
     include Grafana::Version
+    include Grafana::Validator
     include Grafana::Login
     include Grafana::Network
     include Grafana::Tools
@@ -91,18 +93,17 @@ module Grafana
       @http_headers       = settings.dig(:grafana, :http_headers)  || {}
       @debug              = settings.dig(:debug)                   || false
 
-      protocoll           = ssl == true ? 'https' : 'http'
+      raise ArgumentError.new('missing \'host\'') if( host.nil? )
 
-      @url = format( '%s://%s:%d%s', protocoll, host, port, url_path )
+      raise ArgumentError.new(format('wrong type. \'port\' must be an Integer, given \'%s\'', port.class.to_s)) unless( port.is_a?(Integer) )
+      raise ArgumentError.new(format('wrong type. \'url_path\' must be an String, given \'%s\'', url_path.class.to_s)) unless( url_path.is_a?(String) )
+      raise ArgumentError.new(format('wrong type. \'ssl\' must be an Boolean, given \'%s\'', ssl.class.to_s)) unless( ssl.is_a?(Boolean) )
+      raise ArgumentError.new(format('wrong type. \'timeout\' must be an Integer, given \'%s\'', @timeout.class.to_s)) unless( @timeout.is_a?(Integer) )
+      raise ArgumentError.new(format('wrong type. \'open_timeout\' must be an Integer, given \'%s\'', @open_timeout.class.to_s)) unless( @open_timeout.is_a?(Integer) )
+      raise ArgumentError.new(format('wrong \'protocoll\'. only \'http\' or \'https\' allowed, given \'%s\'', protocoll)) if( %w[http https].include?(protocoll.downcase) == false )
 
-      raise ArgumentError.new('missing hostname') if( host.nil? )
-      raise ArgumentError.new('wrong type. port must be an Integer') unless( port.is_a?(Integer) )
-      raise ArgumentError.new('wrong type. url_path must be an String') unless( url_path.is_a?(String) )
-      raise ArgumentError.new('wrong type. ssl must be an Boolean') unless( ssl.is_a?(TrueClass) || ssl.is_a?(FalseClass) )
-      raise ArgumentError.new("wrong protocoll type. only 'http' or 'https' allowed ('#{protocoll}' giving)") if( %w[http https].include?(protocoll.downcase) == false )
-      raise ArgumentError.new('wrong type. timeout must be an Integer') unless( @timeout.is_a?(Integer) )
-      raise ArgumentError.new('wrong type. open_timeout must be an Integer') unless( @open_timeout.is_a?(Integer) )
-
+      protocoll = ssl == true ? 'https' : 'http'
+      @url      = format( '%s://%s:%d%s', protocoll, host, port, url_path )
     end
 
     def self.logger

@@ -28,7 +28,7 @@ module Grafana
       request( 'DELETE', endpoint )
     end
 
-    def request(method_type='GET',endpoint='/',data={})
+    def request( method_type = 'GET', endpoint = '/', data = {} )
 
       raise 'try first login()' if  @api_instance.nil?
 

@@ -23,7 +23,7 @@ module Grafana
     #
     def update_current_organization( params = {} )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       name = params.dig(:name)
       raise ArgumentError.new('missing name') if( name.nil? )
 
@@ -50,7 +50,7 @@ module Grafana
     #
     def add_user_to_current_organization( params = {} )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       login_or_email = params.dig(:loginOrEmail)
       role           = params.dig(:role)
       raise ArgumentError.new('missing loginOrEmail') if( login_or_email.nil? )

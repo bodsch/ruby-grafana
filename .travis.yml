@@ -14,7 +14,7 @@ rvm:
 before_install:
   - gem install bundler
   - gem update bundler
-  - docker pull bodsch/docker-grafana:1709.1
+  - docker pull bodsch/docker-grafana:4.6.2-r3
   - |
     docker run \
     --rm \
@@ -22,7 +22,7 @@ before_install:
     --publish=3000:3000 \
     --env URL_PATH=/ \
     --hostname=grafana \
-    bodsch/docker-grafana:1709.1
+    bodsch/docker-grafana:4.6.2-r3
   - docker ps
   - sleep 20s
 

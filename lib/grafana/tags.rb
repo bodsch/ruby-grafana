@@ -8,7 +8,7 @@ module Grafana
     #
     def expand_tags( params )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       dashboard        = params.dig(:dashboard)
       additional_tags  = params.dig(:additional_tags) || []

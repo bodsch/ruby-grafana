@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 
   spec.name          = 'grafana'
   spec.version       = Grafana::VERSION
-  spec.date          = '2017-10-17'
+  spec.date          = '2017-12-04'
   spec.authors       = ['Bodo Schulz']
   spec.email         = ['bodo@boone-schulz.de']
 
@@ -43,7 +43,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency('json', '~> 2.1')
 
   begin
-
     if( RUBY_VERSION >= '2.0' )
       spec.required_ruby_version = '~> 2.0'
     elsif( RUBY_VERSION <= '2.1' )
@@ -54,9 +53,7 @@ Gem::Specification.new do |spec|
       spec.required_ruby_version = '~> 2.3'
     end
 
-    if( RUBY_VERSION < '2.3' )
-      spec.add_dependency('ruby_dig', '~> 0')
-    end
+    spec.add_dependency('ruby_dig', '~> 0') if( RUBY_VERSION < '2.3' )
 
   rescue => e
     warn "#{$0}: #{e}"

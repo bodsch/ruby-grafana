@@ -5,7 +5,7 @@ module Grafana
 
     def login( params )
 
-      raise ArgumentError.new('only Hash are allowed') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing params') if( params.size.zero? )
 
       @logger.debug( "Grafana::Login.login( #{params} )" ) if( @debug )
@@ -19,7 +19,6 @@ module Grafana
       raise ArgumentError.new('wrong type. password must be an String') if( password.nil? )
 
       begin
-
         if( @debug )
           @logger.debug("Initializing API client #{@url}")
           @logger.debug("Headers: #{@http_headers}")
@@ -45,14 +44,11 @@ module Grafana
       }
 
       if( @api_instance )
-
         retried ||= 0
-
         response_cookies  = ''
         @headers          = {}
 
         begin
-
           @logger.debug('Attempting to establish user session') if @debug
 
           response = @api_instance['/login'].post(
@@ -72,56 +68,47 @@ module Grafana
             }
           end
 
-        rescue SocketError => e
-
+        rescue SocketError
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, socket error (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( sleep_between_retries )
             retry
           else
-
             raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
           end
 
         rescue RestClient::Unauthorized
-
           @logger.debug( request_data.to_json ) if @debug
           raise format( 'Not authorized to connect \'%s\' - wrong username or password?', @url )
 
         rescue RestClient::BadGateway
-
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( sleep_between_retries )
             retry
           else
-
             raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
           end
 
         rescue Errno::ECONNREFUSED
-
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( sleep_between_retries )
             retry
           else
-
             raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
           end
 
         rescue Errno::EHOSTUNREACH
-
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, host unreachable (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( sleep_between_retries )
             retry
           else
-
             raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
           end
         end

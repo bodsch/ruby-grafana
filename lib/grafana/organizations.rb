@@ -40,7 +40,7 @@ module Grafana
     # -> Update Organisation, fields Adress 1, Adress 2, City are not implemented yet.
     def update_organization( params )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       organization = params.dig(:organization)
       name     = params.dig(:name)
@@ -84,7 +84,7 @@ module Grafana
     #
     def add_user_to_organization( params = {} )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       organization   = params.dig(:organization)
       login_or_email = params.dig(:loginOrEmail)
@@ -126,7 +126,7 @@ module Grafana
     # PATCH /api/orgs/:orgId/users/:userId
     def update_organization_user( params ) #org_id, user_id, properties={} )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       organization   = params.dig(:organization)
       login_or_email = params.dig(:loginOrEmail)
@@ -168,7 +168,7 @@ module Grafana
     # DELETE /api/orgs/:orgId/users/:userId
     def delete_user_from_organization( params ) # org_id, user_id)
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       organization   = params.dig(:organization)
       login_or_email = params.dig(:loginOrEmail)
@@ -209,7 +209,7 @@ module Grafana
     #
     def create_organisation( params )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       name = params.dig(:name)
 
@@ -237,7 +237,7 @@ module Grafana
     #
     def delete_organisation( params )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       name = params.dig(:name)
 

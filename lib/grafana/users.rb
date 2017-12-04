@@ -35,12 +35,12 @@ module Grafana
 
     #
     #
-    def search_for_users_by( search = {} )
+    def search_for_users_by( params )
 
-      raise ArgumentError.new('search must be an Hash') unless( search.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       all_users = self.all_users()
-      key, value = search.first
+      key, value = params.first
 
       @logger.debug("Searching for users matching '#{key}' = '#{value}'") if @debug
       users = []
@@ -55,7 +55,7 @@ module Grafana
     # PUT /api/users/:id
     def update_user( params = {} )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       user_name   = params.dig(:user_name)
 

@@ -91,6 +91,8 @@ module Grafana
     #    searchDashboards( { :starred => true } )
     def search_dashboards( params = {} )
 
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+
       query   = params.dig(:query)
       starred = params.dig(:starred)
       tags    = params.dig(:tags)

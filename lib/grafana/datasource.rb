@@ -74,7 +74,7 @@ module Grafana
     # PUT /api/datasources/:datasourceId
     def update_datasource( params = {} )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       datasource = params.dig(:datasource)
       data       = params.dig(:data)
@@ -104,43 +104,39 @@ module Grafana
     # POST /api/datasources
     def create_datasource( params = {} )
 
-      raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
-      datasource_type   = params.dig(:type)
-      datasource_name   = params.dig(:name)
-      datasource_dba    = params.dig(:database)
-      datasource_access = params.dig(:access)
-      datasource_default = params.dig(:default)
+      type         = params.dig(:type)
+      name         = params.dig(:name)
+      dba          = params.dig(:database)
+      access       = params.dig(:access)
+      default      = params.dig(:default)
+      user         = params.dig(:user)
+      password     = params.dig(:password)
+      url          = params.dig(:url)
+      json_data    = params.dig(:jsonData)
+      json_secure  = params.dig(:secureJsonData)
+      ba_user      = params.dig(:basic_auth_user)
+      ba_password  = params.dig(:basic_auth_password)
 
-      datasource_user         = params.dig(:user)
-      datasource_password     = params.dig(:password)
-      datasource_url          = params.dig(:url)
-      datasource_json_data    = params.dig(:jsonData)
-      datasource_json_secure  = params.dig(:secureJsonData)
-#      datasource_basic_auth   = params.dig(:basic_auth)
-      datasource_ba_user      = params.dig(:basic_auth_user)
-      datasource_ba_password  = params.dig(:basic_auth_password)
+      default      = default.to_s.eql?('true') ? true : false
 
-      datasource_default       = datasource_default.to_s.eql?('true') ? true : false
+      raise ArgumentError.new('datasource name must be an String') unless( name.is_a?(String) )
+      raise ArgumentError.new('datasource database must be an String') unless( dba.is_a?(String) )
+      raise ArgumentError.new('datasource type must be an String') unless( type.is_a?(String) )
+      raise ArgumentError.new('datasource access must be an String') unless( access.is_a?(String) )
+      raise ArgumentError.new(format('datasource default must be an Boolean give \'%s\' (%s)', default, default.class.to_s) ) unless( default.is_a?(Boolean) )
+      raise ArgumentError.new('datasource url must be an String') unless( url.is_a?(String) )
 
-      raise ArgumentError.new('datasource name must be an String') unless( datasource_name.is_a?(String) )
-      raise ArgumentError.new('datasource database must be an String') unless( datasource_dba.is_a?(String) )
-      raise ArgumentError.new('datasource type must be an String') unless( datasource_type.is_a?(String) )
-      raise ArgumentError.new('datasource access must be an String') unless( datasource_access.is_a?(String) )
-      raise ArgumentError.new(format('datasource default must be an Boolean give \'%s\' (%s)', datasource_default, datasource_default.class.to_s) ) unless( datasource_default.is_a?(Boolean) )
-      raise ArgumentError.new('datasource url must be an String') unless( datasource_url.is_a?(String) )
+#       raise ArgumentError.new('datasource jsonData must be an String') unless( json_data.is_a?(String) )
 
-#       raise ArgumentError.new('datasource jsonData must be an String') unless( datasource_json_data.is_a?(String) )
+      params['isDefault'] = true if( default == true )
 
-      if( datasource_default == true )
-        params['isDefault'] = true
-      end
-
-      if( !datasource_ba_user.nil? && !datasource_ba_password.nil? )
+      if( !ba_user.nil? && !ba_password.nil? )
 
         params['basicAuth'] = true
-        params['basicAuthUser'] = datasource_ba_user
-        params['basicAuthPassword'] = datasource_ba_password
+        params['basicAuthUser'] = ba_user
+        params['basicAuthPassword'] = ba_password
 
         params.delete(:basic_auth_user)
         params.delete(:basic_auth_password)
@@ -148,7 +144,7 @@ module Grafana
 
       params.delete('default')
 
-      @logger.debug("Creating data source: #{datasource_name} (database: #{datasource_dba})")
+      @logger.debug("Creating data source: #{name} (database: #{dba})")
       @logger.debug( params )
 
       endpoint = '/api/datasources'
