@@ -14,6 +14,7 @@ module Grafana
       user                = params.dig(:user)
       password            = params.dig(:password)
       max_retries         = params.dig(:max_retries) || 2
+      sleep_between_retries = params.dig(:sleep_between_retries) || 5
 
       raise ArgumentError.new('wrong type. user must be an String') if( user.nil? )
       raise ArgumentError.new('wrong type. password must be an String') if( password.nil? )
@@ -77,7 +78,7 @@ module Grafana
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, socket error (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( 5 )
+            sleep( sleep_between_retries )
             retry
           else
 
@@ -94,7 +95,7 @@ module Grafana
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( 5 )
+            sleep( sleep_between_retries )
             retry
           else
 
@@ -106,7 +107,7 @@ module Grafana
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( 5 )
+            sleep( sleep_between_retries )
             retry
           else
 
@@ -118,7 +119,7 @@ module Grafana
           if( retried < max_retries )
             retried += 1
             @logger.debug( format( 'cannot login, host unreachable (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( 5 )
+            sleep( sleep_between_retries )
             retry
           else
 

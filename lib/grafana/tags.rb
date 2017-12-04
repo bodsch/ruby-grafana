@@ -6,18 +6,18 @@ module Grafana
     #
     #
     #
-    def expand_tags( params = {} )
+    def expand_tags( params )
 
       raise ArgumentError.new('params must be an Hash') unless( params.is_a?(Hash) )
 
       dashboard        = params.dig(:dashboard)
       additional_tags  = params.dig(:additional_tags) || []
 
-      raise ArgumentError.new('dashboard must be am Hash') unless( dashboard.is_a?(Hash) )
-      raise ArgumentError.new('additional_tags must be an Array') unless( additional_tags.is_a?(Array) )
+      raise ArgumentError.new(format('wrong type. \'dashboard\' must be an Hash, given \'%s\'', dashboard.class.to_s)) unless( dashboard.is_a?(Hash) )
+      raise ArgumentError.new(format('wrong type. \'additional_tags\' must be an Array, given \'%s\'', additional_tags.class.to_s)) unless( additional_tags.is_a?(Array) )
 
       # add tags
-      dashboard = JSON.parse( dashboard ) if( dashboard.is_a?( String ) )
+      # dashboard = JSON.parse( dashboard ) if( dashboard.is_a?( String ) )
 
       additional_tags = additional_tags.values if( additional_tags.is_a?( Hash ) )
 
