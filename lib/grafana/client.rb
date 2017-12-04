@@ -100,9 +100,10 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'ssl\' must be an Boolean, given \'%s\'', ssl.class.to_s)) unless( ssl.is_a?(Boolean) )
       raise ArgumentError.new(format('wrong type. \'timeout\' must be an Integer, given \'%s\'', @timeout.class.to_s)) unless( @timeout.is_a?(Integer) )
       raise ArgumentError.new(format('wrong type. \'open_timeout\' must be an Integer, given \'%s\'', @open_timeout.class.to_s)) unless( @open_timeout.is_a?(Integer) )
-      raise ArgumentError.new(format('wrong \'protocoll\'. only \'http\' or \'https\' allowed, given \'%s\'', protocoll)) if( %w[http https].include?(protocoll.downcase) == false )
 
       protocoll = ssl == true ? 'https' : 'http'
+      raise ArgumentError.new(format('wrong \'protocoll\'. only \'http\' or \'https\' allowed, given \'%s\'', protocoll)) if( %w[http https].include?(protocoll.downcase) == false )
+
       @url      = format( '%s://%s:%d%s', protocoll, host, port, url_path )
     end
 

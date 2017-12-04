@@ -144,9 +144,10 @@ module Grafana
 
       params.delete('default')
 
-      @logger.debug("Creating data source: #{name} (database: #{dba})")
-      @logger.debug( params )
-
+      if( @debug )
+        logger.debug("Creating data source: #{name} (database: #{dba})")
+        logger.debug( params )
+      end
       endpoint = '/api/datasources'
       post(endpoint, params.to_json)
     end
@@ -178,7 +179,7 @@ module Grafana
       raise format('Data Source Id can not be 0') if( data_source_id.zero? )
 
       endpoint = format('/api/datasources/%d', data_source_id)
-      @logger.debug("Deleting data source Id #{data_source_id} (DELETE #{endpoint})") if @debug
+      logger.debug("Deleting data source Id #{data_source_id} (DELETE #{endpoint})") if @debug
 
       delete(endpoint)
     end

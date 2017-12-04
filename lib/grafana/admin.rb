@@ -187,20 +187,20 @@ module Grafana
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
-#       name  = params.dig(:name)
-#       email      = params.dig(:email)
-#       login_name = params.dig(:login) || name
-#       password   = params.dig(:password)
+      name       = params.dig(:name)
+      email      = params.dig(:email)
+      login_name = params.dig(:login) || name
+      password   = params.dig(:password)
 
-      name    = validate( params, required: true, var: 'name', type: String )
-      email    = validate( params, required: true, var: 'email', type: String )
-      login_name    = validate( params, required: true, var: 'login_name', type: String ) || name
-      password    = validate( params, required: true, var: 'password', type: String )
+#       name    = validate( params, required: true, var: 'name', type: String )
+#       email    = validate( params, required: true, var: 'email', type: String )
+#       login_name    = validate( params, required: true, var: 'login_name', type: String ) || name
+#       password    = validate( params, required: true, var: 'password', type: String )
 
-#       raise ArgumentError.new('missing name')     if( name.nil? )
-#       raise ArgumentError.new('missing email')    if( email.nil? )
-#       raise ArgumentError.new('missing login')    if( login_name.nil? )
-#       raise ArgumentError.new('missing password') if( password.nil? )
+      raise ArgumentError.new('missing name')     if( name.nil? )
+      raise ArgumentError.new('missing email')    if( email.nil? )
+      raise ArgumentError.new('missing login')    if( login_name.nil? )
+      raise ArgumentError.new('missing password') if( password.nil? )
 
       usr = user_by_name(name)
 

@@ -153,10 +153,10 @@ module Grafana
 
       rescue RestClient::ExceptionWithResponse => e
 
-        @logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{e}'" )
-        @logger.error( data )
-        @logger.error( @headers )
-        @logger.error( JSON.pretty_generate( response_headers ) )
+        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{e}'" )
+        logger.error( data )
+        logger.error( @headers )
+        logger.error( JSON.pretty_generate( response_headers ) )
 
         return false
 

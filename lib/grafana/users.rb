@@ -42,12 +42,13 @@ module Grafana
       all_users = self.all_users()
       key, value = params.first
 
-      @logger.debug("Searching for users matching '#{key}' = '#{value}'") if @debug
+      logger.debug("Searching for users matching '#{key}' = '#{value}'") if @debug
       users = []
 
       all_users.dig('message').each do |u|
         users.push(u) if u.select { |_k,v| v == value }.count >= 1
       end
+
       (users.length >= 1 ? users : false)
     end
 
@@ -58,6 +59,8 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       user_name   = params.dig(:user_name)
+
+      raise ArgumentError.new('missing \'user_name\'') if( user_name.nil? )
 
       if( !user_name.is_a?(String) && !user_name.is_a?(Integer) )
         raise ArgumentError.new('user_name must be an String (for an Username) or an Integer (for an User Id)')

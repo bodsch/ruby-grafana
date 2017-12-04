@@ -7,12 +7,17 @@ module Grafana
 
       raise ArgumentError.new('text must be an String') unless( text.is_a?(String) )
 
+      begin
       if( text =~ /\s/ && text =~ /-/ )
 #        if( text =~ /-/ )
           text = text.gsub( /\s+/, '' )
         else
           text = text.gsub( /\s+/, '-' )
 #        end
+      end
+
+      rescue => e
+        puts e
       end
 
       text.downcase
