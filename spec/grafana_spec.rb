@@ -209,19 +209,174 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-    it 'Add a new user to the actual organisation' do
 
+    it 'Restore current Organisation' do
+      r = @g.update_current_organization( name: 'Docker')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+
+    it 'Add a new user to the actual organisation' do
       r = @g.add_user_to_current_organization(
         role: 'Viewer',
         loginOrEmail: 'spec-test@bar.com'
       )
-
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
     end
 
   end
+
+  describe 'Organisations' do
+
+    it 'Create Organisation' do
+      r = @g.create_organisation( name: 'Spec Test' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      org_id  = r.dig('orgId')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+      expect(org_id).to be_a(Integer)
+    end
+
+    it 'Search all Organisations' do
+      r = @g.all_organizations
+
+      expect(r).to be_a(Hash)
+
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+   it 'Get Organisation by Id' do
+
+     r = @g.organization_by_id( 1 )
+
+     expect(r).to be_a(Hash)
+
+     status  = r.dig('status')
+     id      = r.dig('id')
+     name    = r.dig('name')
+
+     expect(status).to be_a(Integer)
+     expect(status).to be == 200
+     expect(id).to be_a(Integer)
+     expect(name).to be_a(String)
+   end
+
+    it 'Get Organisation by Name' do
+      r = @g.organization_by_name( 'Spec Test' )
+
+      expect(r).to be_a(Hash)
+
+      status  = r.dig('status')
+      id      = r.dig('id')
+      name    = r.dig('name')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+      expect(id).to be_a(Integer)
+      expect(name).to be_a(String)
+      expect(name).to be == 'Spec Test'
+
+    end
+
+    it 'Update Organisation' do
+
+      org = @g.organization_by_name('Spec Test')
+      id   = org.dig('id')
+      name = org.dig('name')
+
+      r = @g.update_organization( organization: 'Spec Test', name: 'Spec+Test' )
+      expect(r).to be_a(Hash)
+
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+
+      r = @g.update_organization( organization: 'Spec+Test', name: 'Spec Test' )
+    end
+
+    it 'Get Users in Organisation' do
+
+      org = @g.organization_by_name('Spec Test')
+      id   = org.dig('id')
+      name = org.dig('name')
+
+      r = @g.organization_users(id)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.size).to be >= 1
+    end
+
+    it 'Add temporary User for Organisation' do
+      r = @g.add_user(
+        name:'foo',
+        email: 'foo@foo-bar.tld',
+        password: 'pass'
+      )
+      expect(r).to be_a(Hash)
+
+      status = r.dig('status')
+      id = r.dig('id')
+      message = r.dig('message')
+      expect(r).to be_a(Hash)
+      expect(status).to be_a(Integer)
+      expect(id).to be_a(Integer)
+    end
+
+
+    it 'Add User in Organisation' do
+      r = @g.add_user_to_organization( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld', role: 'Viewer' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'Update Users in Organisation' do
+      r = @g.update_organization_user( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld', role: 'Editor' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'Delete User in Organisation' do
+      r = @g.delete_user_from_organization( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'Delete Organisation' do
+      r = @g.delete_organisation( name: 'Spec Test' )
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      message = r.dig('message')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+      expect(message).to be_a(String)
+    end
+
+    it 'delete temporary User for Organisation' do
+      r = @g.delete_user('foo@foo-bar.tld')
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+  end
+
+
 
 
   describe 'User' do
@@ -411,153 +566,6 @@ describe Grafana do
   end
 
 
-  describe 'Organisations' do
-
-    it 'Create Organisation' do
-      r = @g.create_organisation( name: 'Spec Test' )
-
-      expect(r).to be_a(Hash)
-
-      status  = r.dig('status')
-      org_id  = r.dig('orgId')
-
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-      expect(org_id).to be_a(Integer)
-    end
-
-    it 'Search all Organisations' do
-      r = @g.all_organizations
-
-      expect(r).to be_a(Hash)
-
-      status  = r.dig('status')
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-    end
-
-   it 'Get Organisation by Id' do
-
-     r = @g.organization_by_id( 1 )
-
-     expect(r).to be_a(Hash)
-
-     status  = r.dig('status')
-     id      = r.dig('id')
-     name    = r.dig('name')
-
-     expect(status).to be_a(Integer)
-     expect(status).to be == 200
-     expect(id).to be_a(Integer)
-     expect(name).to be_a(String)
-   end
-
-    it 'Get Organisation by Name' do
-      r = @g.organization_by_name( 'Spec Test' )
-
-      expect(r).to be_a(Hash)
-
-      status  = r.dig('status')
-      id      = r.dig('id')
-      name    = r.dig('name')
-
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-      expect(id).to be_a(Integer)
-      expect(name).to be_a(String)
-      expect(name).to be == 'Spec Test'
-
-    end
-
-    it 'Update Organisation' do
-
-      org = @g.organization_by_name('Spec Test')
-      id   = org.dig('id')
-      name = org.dig('name')
-
-      r = @g.update_organization( organization: 'Spec Test', name: 'Spec+Test' )
-      expect(r).to be_a(Hash)
-
-      status  = r.dig('status')
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-
-      r = @g.update_organization( organization: 'Spec+Test', name: 'Spec Test' )
-    end
-
-    it 'Get Users in Organisation' do
-
-      org = @g.organization_by_name('Spec Test')
-      id   = org.dig('id')
-      name = org.dig('name')
-
-      r = @g.organization_users(id)
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-      message = r.dig('message')
-      expect(message).to be_a(Array)
-      expect(message.size).to be >= 1
-    end
-
-    it 'Add temporary User for Organisation' do
-      r = @g.add_user(
-        name:'foo',
-        email: 'foo@foo-bar.tld',
-        password: 'pass'
-      )
-      expect(r).to be_a(Hash)
-
-      status = r.dig('status')
-      id = r.dig('id')
-      message = r.dig('message')
-      expect(r).to be_a(Hash)
-      expect(status).to be_a(Integer)
-      expect(id).to be_a(Integer)
-    end
-
-
-    it 'Add User in Organisation' do
-      r = @g.add_user_to_organization( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld', role: 'Viewer' )
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      expect(status).to be == 200
-    end
-
-    it 'Update Users in Organisation' do
-      r = @g.update_organization_user( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld', role: 'Editor' )
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      expect(status).to be == 200
-    end
-
-    it 'Delete User in Organisation' do
-      r = @g.delete_user_from_organization( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld' )
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      expect(status).to be == 200
-    end
-
-    it 'Delete Organisation' do
-      r = @g.delete_organisation( name: 'Spec Test' )
-      expect(r).to be_a(Hash)
-      status = r.dig('status')
-      message = r.dig('message')
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-      expect(message).to be_a(String)
-    end
-
-    it 'delete temporary User for Organisation' do
-      r = @g.delete_user('foo@foo-bar.tld')
-      expect(r).to be_a(Hash)
-      status = r.dig('status')
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-    end
-
-  end
 
 
   describe 'Dashborads' do
