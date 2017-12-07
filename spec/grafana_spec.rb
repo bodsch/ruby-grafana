@@ -400,7 +400,6 @@ describe Grafana do
     end
 
     it 'import dashboards from directory' do
-
       r = @g.import_dashboards_from_directory('spec/dashboards')
       expect(r).to be_a(Hash)
     end
@@ -571,11 +570,10 @@ describe Grafana do
   describe 'Dashborads' do
 
     it 'import dashboards from directory' do
-
       r = @g.import_dashboards_from_directory('spec/dashboards')
       expect(r).to be_a(Hash)
-
-      puts r.find { |x| x.dig('status') }
+      expect(r.count).to be == 2
+      expect(r.select { |k, v| v['status'] == 200 }.count).to be 2
     end
 
     it 'dashboards tags' do
