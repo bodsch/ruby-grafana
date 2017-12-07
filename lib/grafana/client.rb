@@ -11,13 +11,16 @@ require_relative 'login'
 require_relative 'network'
 require_relative 'tools'
 require_relative 'admin'
+require_relative 'annotations'
 require_relative 'user'
 require_relative 'users'
 require_relative 'datasource'
 require_relative 'organization'
 require_relative 'organizations'
 require_relative 'dashboard'
+require_relative 'dashboard_versions'
 require_relative 'snapshot'
+
 # -------------------------------------------------------------------------------------------------------------------
 #
 # @abstract # Namespace for classes and modules that handle all Grafana API calls
@@ -42,12 +45,14 @@ module Grafana
     include Grafana::Network
     include Grafana::Tools
     include Grafana::Admin
+    include Grafana::Annotations
     include Grafana::User
     include Grafana::Users
     include Grafana::Datasource
     include Grafana::Organization
     include Grafana::Organizations
     include Grafana::Dashboard
+    include Grafana::DashboardVersions
     include Grafana::Snapshot
 
     attr_accessor :debug
