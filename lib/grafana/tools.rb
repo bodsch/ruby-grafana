@@ -5,7 +5,7 @@ module Grafana
 
     def slug( text )
 
-      raise ArgumentError.new('text must be an String') unless( text.is_a?(String) )
+      raise ArgumentError.new(format('wrong type. \'text\' must be an String, given \'%s\'', text.class.to_s)) unless( text.is_a?(String) )
 
       begin
       if( text =~ /\s/ && text =~ /-/ )
