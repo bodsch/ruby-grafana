@@ -62,7 +62,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency('rake', '~> 0')
   spec.add_development_dependency('rake-notes', '~> 0')
-  spec.add_development_dependency('rubocop', '~> 0')
+  spec.add_development_dependency('rubocop', '~> 0.49.0')
   spec.add_development_dependency('rubocop-checkstyle_formatter', '~> 0')
   spec.add_development_dependency('rspec', '~> 0')
   spec.add_development_dependency('rspec_junit_formatter', '~> 0')
