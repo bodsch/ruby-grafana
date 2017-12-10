@@ -43,7 +43,7 @@ module Grafana
         false
       end
 
-      request_data = { 'User': username, 'Password': password }
+      request_data = { 'User' => username, 'Password' => password }
 
       if( @api_instance )
         retried ||= 0
