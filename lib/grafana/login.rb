@@ -1,30 +1,35 @@
 
 module Grafana
 
+  # Abstract base class for Login.
+  #
   module Login
 
+    # Login into Grafana
+    #
+    # @param [Hash] params
+    # @option params [String] username username for the login
+    # @option params [String] password password for the login
+    # @option params [Integer] max_retries (2) maximum retries
+    # @option params [Integer] sleep_between_retries (5) sleep seconds between retries
+    #
+    # @example
+    #    login( username: 'admin', password: 'admin' )
+    #    login( username: 'admin', password: 'admin', max_retries: 10, sleep_between_retries: 8 )
+    #
+    # @return [Hash]
+    #
     def login( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing params') if( params.size.zero? )
 
-      logger.debug( "Grafana::Login.login( #{params} )" ) if( @debug )
-
-      user                = params.dig(:user)
-      password            = params.dig(:password)
-      max_retries         = params.dig(:max_retries) || 2
-      sleep_between_retries = params.dig(:sleep_between_retries) || 5
-
-      raise ArgumentError.new('wrong type. user must be an String') if( user.nil? )
-      raise ArgumentError.new('wrong type. password must be an String') if( password.nil? )
+      username = validate( params, required: true, var: 'username', type: String )
+      password = validate( params, required: true, var: 'password', type: String )
+      max_retries = validate( params, required: false, var: 'max_retries', type: Integer ) || 2
+      sleep_between_retries = validate( params, required: false, var: 'sleep_between_retries', type: Integer ) || 5
 
       begin
-        if( @debug )
-          @logger.debug("Initializing API client #{@url}")
-          @logger.debug("Headers: #{@http_headers}")
-          @logger.info( sprintf( 'try to connect our grafana endpoint ... ' ) )
-        end
-
         @api_instance = RestClient::Resource.new(
           @url,
           timeout: @timeout.to_i,
@@ -33,15 +38,12 @@ module Grafana
           verify_ssl: false
         )
       rescue => e
-        @logger.error( e ) if @debug
-        @logger.debug( e.backtrace.join("\n") ) if @debug
+        logger.error( e ) if @debug
+        logger.debug( e.backtrace.join("\n") ) if @debug
         false
       end
 
-      request_data = {
-        'User'     => user,
-        'Password' => password
-      }
+      request_data = { 'User': username, 'Password': password }
 
       if( @api_instance )
         retried ||= 0
@@ -49,7 +51,7 @@ module Grafana
         @headers          = {}
 
         begin
-          @logger.debug('Attempting to establish user session') if @debug
+          logger.debug('Attempting to establish user session') if @debug
 
           response = @api_instance['/login'].post(
             request_data.to_json,
@@ -60,7 +62,6 @@ module Grafana
           response_code     = response.code.to_i
 
           if( response_code == 200 )
-
             @headers = {
               content_type: 'application/json',
               accept: 'application/json',
@@ -71,7 +72,7 @@ module Grafana
         rescue SocketError
           if( retried < max_retries )
             retried += 1
-            @logger.debug( format( 'cannot login, socket error (retry %d / %d)', retried, max_retries ) ) if @debug
+            logger.debug( format( 'cannot login, socket error (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( sleep_between_retries )
             retry
           else
@@ -79,13 +80,13 @@ module Grafana
           end
 
         rescue RestClient::Unauthorized
-          @logger.debug( request_data.to_json ) if @debug
+          logger.debug( request_data.to_json ) if @debug
           raise format( 'Not authorized to connect \'%s\' - wrong username or password?', @url )
 
         rescue RestClient::BadGateway
           if( retried < max_retries )
             retried += 1
-            @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
+            logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( sleep_between_retries )
             retry
           else
@@ -95,7 +96,7 @@ module Grafana
         rescue Errno::ECONNREFUSED
           if( retried < max_retries )
             retried += 1
-            @logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
+            logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( sleep_between_retries )
             retry
           else
@@ -105,7 +106,7 @@ module Grafana
         rescue Errno::EHOSTUNREACH
           if( retried < max_retries )
             retried += 1
-            @logger.debug( format( 'cannot login, host unreachable (retry %d / %d)', retried, max_retries ) ) if @debug
+            logger.debug( format( 'cannot login, host unreachable (retry %d / %d)', retried, max_retries ) ) if @debug
             sleep( sleep_between_retries )
             retry
           else
@@ -113,7 +114,7 @@ module Grafana
           end
         end
 
-        @logger.debug('User session initiated') if @debug
+        logger.debug('User session initiated') if @debug
 
         return true
       end
@@ -121,18 +122,17 @@ module Grafana
       false
     end
 
-
+    # Renew session based on remember cookie
+    #
+    # @example
+    #    ping_session
+    #
+    # @return [Hash]
+    #
     def ping_session
-
       endpoint = '/api/login/ping'
-
-      @logger.debug( "Pinging current session (GET #{endpoint})" ) if @debug
-
-      result = get( endpoint )
-
-      @logger.debug( result ) if @debug
-
-      result
+      logger.debug( "Pinging current session (GET #{endpoint})" ) if @debug
+      get( endpoint )
     end
   end
 

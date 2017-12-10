@@ -82,9 +82,9 @@ module Grafana
         response_headers = response.headers
 
         if( @debug )
-          @logger.debug("response_code : #{response_code}" )
-          @logger.debug("response_body : #{response_body}" )
-          @logger.debug("response_headers : #{response_headers}" )
+          logger.debug("response_code : #{response_code}" )
+          logger.debug("response_body : #{response_body}" )
+          logger.debug("response_headers : #{response_headers}" )
         end
 
         if( ( response_code >= 200 && response_code <= 299 ) || ( response_code >= 400 && response_code <= 499 ) )

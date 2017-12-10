@@ -21,46 +21,100 @@ describe Grafana do
     }
 
     @g  = Grafana::Client.new( config )
-    @g.login(user: 'admin', password: 'admin')
+    @g.login(username: 'admin', password: 'admin')
   end
 
   describe 'Instance' do
 
     it 'login' do
-      expect(@g.login(user: 'admin', password: 'admin')).to be_truthy
-      #ping_session).to be_a(Hash)
+      expect(@g.login(username: 'admin', password: 'admin')).to be_truthy
     end
   end
 
   describe 'Admin' do
 
-    it 'admin settings' do
-      expect(@g.admin_settings()).to be_a(Hash)
+    it 'ping session' do
+      r = @g.ping_session
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message  = r.dig('message')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+      expect(message).to be_a(String)
+      expect(message).to be == 'Logged in'
     end
 
-    it 'admin stats' do
-      r = @g.admin_stats
+    it 'admin settings' do
+      r = @g.admin_settings
+
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
       expect(status).to be == 200
     end
 
-    it 'add user' do
+    it 'admin stats' do
+      r = @g.admin_stats
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'add user \'spec-test-1\'' do
 
       r = @g.add_user(
-        name:'spec-test',
-        email: 'spec-test@bar.com',
+        user_name:'spec-test-1',
+        email: 'spec-test-1@bar.com',
         password: 'pass'
       )
       expect(r).to be_a(Hash)
 
-      status = r.dig('status')
       id = r.dig('id')
+      status = r.dig('status')
       message = r.dig('message')
       expect(r).to be_a(Hash)
       expect(status).to be_a(Integer)
       expect(id).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'add user \'spec-test-2\'' do
+
+      r = @g.add_user(
+        user_name:'spec-test-2',
+        email: 'spec-test-2@bar.com',
+        password: 'pass'
+      )
+      expect(r).to be_a(Hash)
+
+      id = r.dig('id')
+      status = r.dig('status')
+      message = r.dig('message')
+      expect(r).to be_a(Hash)
+      expect(status).to be_a(Integer)
+      expect(id).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'add user \'spec-test-1\' (again)' do
+
+      r = @g.add_user(
+        user_name:'spec-test-1',
+        email: 'spec-test-1@bar.com',
+        password: 'pass'
+      )
+      expect(r).to be_a(Hash)
+
+      id = r.dig('id')
+      status = r.dig('status')
+      message = r.dig('message')
+      expect(r).to be_a(Hash)
+      expect(status).to be_a(Integer)
+      expect(id).to be_a(Integer)
+      expect(status).to be == 404
     end
 
     it 'delete admin user' do
@@ -71,16 +125,67 @@ describe Grafana do
       expect(status).to be == 403
     end
 
-    it 'set Password for User' do
-      r = @g.update_user_password( user_name: 'spec-test@bar.com', password: 'foor' )
+    it 'set Password for User \'spec-test-1\'' do
+
+      r = @g.update_user_password( user_name: 'spec-test-1', password: 'foor' )
+
       expect(r).to be_a(Hash)
       status = r.dig('status')
       expect(status).to be_a(Integer)
       expect(status).to be == 200
     end
 
-    it 'delete user' do
-      r = @g.delete_user('spec-test@bar.com')
+    it 'update user permissions (\'spec-test-1\')' do
+
+      params = {
+        user_name: 'spec-test-1@bar.com',
+        permissions: 'Viewer'
+      }
+      r = @g.update_user_permissions( params )
+
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'update user permissions (\'spec-test-2\')' do
+
+      params = {
+        user_name: 'spec-test-2',
+        permissions: { grafana_admin: true }
+      }
+      r = @g.update_user_permissions( params )
+
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'delete user with id (\'spec-test-1\')' do
+
+      usr = @g.user_by_name('spec-test-1@bar.com')
+      id = usr['id']
+
+      r = @g.delete_user(id)
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'delete user with username (\'spec-test-2\')' do
+      r = @g.delete_user('spec-test-2@bar.com')
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'pause all alerts' do
+      r = @g.pause_all_alerts
+
       expect(r).to be_a(Hash)
       status = r.dig('status')
       expect(status).to be_a(Integer)
@@ -89,13 +194,27 @@ describe Grafana do
 
   end
 
+
   describe 'Datasources' do
 
-    it 'Create data source foo' do
+    it 'Create \'graphite\' data source' do
       r = @g.create_datasource(
-        name: 'foo',
+        name: 'graphite',
         type: 'graphite',
-        database: 'foo',
+        database: 'graphite',
+        url: 'http://localhost:8080'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Create \'cloudwatch\' data source' do
+      r = @g.create_datasource(
+        name: 'cloudwatch',
+        type: 'cloudwatch',
+        database: 'cloudwatch',
         access: 'proxy',
         url: 'http://localhost:8080'
       )
@@ -105,9 +224,107 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-    it 'Update an existing data source foo' do
+    it 'Create \'elasticsearch\' data source' do
+      r = @g.create_datasource(
+        name: 'elasticsearch',
+        type: 'elasticsearch',
+        database: 'elasticsearch',
+        access: 'proxy',
+        url: 'http://localhost:8080'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Create \'prometheus\' data source' do
+      r = @g.create_datasource(
+        name: 'prometheus',
+        type: 'prometheus',
+        database: 'prometheus',
+        access: 'proxy',
+        url: 'http://localhost:8080'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Create \'influxdb\' data source' do
+      r = @g.create_datasource(
+        name: 'influxdb',
+        type: 'influxdb',
+        database: 'influxdb',
+        access: 'proxy',
+        url: 'http://localhost:8080'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Create \'mysql\' data source' do
+      r = @g.create_datasource(
+        name: 'mysql',
+        type: 'mysql',
+        database: 'mysql',
+        access: 'proxy',
+        url: 'http://localhost:8080'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Create \'opentsdb\' data source' do
+      r = @g.create_datasource(
+        name: 'opentsdb',
+        type: 'opentsdb',
+        database: 'opentsdb',
+        access: 'proxy',
+        url: 'http://localhost:8080'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Create \'postgres\' data source' do
+      r = @g.create_datasource(
+        name: 'postgres',
+        type: 'postgres',
+        database: 'postgres',
+        access: 'proxy',
+        url: 'http://localhost:8080'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Create \'grafana\' data source' do
+      r = @g.create_datasource(
+        name: 'grafana',
+        type: 'grafana',
+        database: 'grafana',
+        access: 'proxy',
+        url: 'http://localhost:8080'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Update an existing data source \'graphite\'' do
       r = @g.update_datasource(
-        datasource: 'foo',
+        datasource: 'graphite',
         data: { url: 'http://localhost:2003' }
       )
       expect(r).to be_a(Hash)
@@ -117,28 +334,30 @@ describe Grafana do
     end
 
     it 'Get all datasources' do
-      r = @g.data_sources
+      r = @g.datasources
       expect(r).to be_a(Hash)
-    end
-
-    it 'Get a single data sources by Id' do
-      r = @g.data_source(1)
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
+      expect(r.keys.count).to be == 9
     end
 
     it 'Get a single data sources by Name' do
-      r = @g.data_source('foo')
+      r = @g.datasource('graphite')
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
       expect(status).to be == 200
     end
 
+    it 'Get a single data sources by Id' do
+      r = @g.datasources
+      id = r.keys.first
+      r = @g.datasource(id)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
 
-    it 'Create data source foo-2' do
+    it 'Create data source \'foo-2\'' do
       r = @g.create_datasource(
         name: 'foo-2',
         type: 'graphite',
@@ -152,9 +371,9 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-    it 'Update an existing data source foo-2' do
+    it 'Update an existing data source \'foo-2\'' do
       r = @g.update_datasource(
-        datasource: 'foo',
+        datasource: 'foo-2',
         data: { url: 'http://localhost:2003' }
       )
       expect(r).to be_a(Hash)
@@ -163,15 +382,7 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-    it 'Delete an existing data source foo (by name)' do
-      r = @g.delete_datasource('foo')
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-    end
-
-    it 'Delete an existing data source foo-2 (by name)' do
+    it 'Delete an existing data source \'foo-2\' (by name)' do
       r = @g.delete_datasource('foo-2')
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -179,8 +390,16 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-  end
+    it 'delete all created datasources' do
 
+      %w[grafana graphite cloudwatch elasticsearch prometheus influxdb mysql opentsdb postgres].each do |d|
+      r = @g.delete_datasource(d)
+      expect(r).to be_a(Hash)
+
+      end
+    end
+
+  end
 
 
   describe 'Organisation' do
@@ -192,6 +411,32 @@ describe Grafana do
       expect(status).to be_a(Integer)
       expect(status).to be == 200
     end
+
+    it 'Get all Organisations' do
+      r = @g.organizations
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Get Organisation by Id' do
+      r = @g.organization(1)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'Get Organisation by Name' do
+      r = @g.organization('Docker')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+
 
     it 'Get all users within the actual organisation' do
       r = @g.current_organization_users
@@ -231,6 +476,7 @@ describe Grafana do
 
   end
 
+
   describe 'Organisations' do
 
     it 'Create Organisation' do
@@ -244,7 +490,7 @@ describe Grafana do
     end
 
     it 'Search all Organisations' do
-      r = @g.all_organizations
+      r = @g.organizations
 
       expect(r).to be_a(Hash)
 
@@ -255,7 +501,7 @@ describe Grafana do
 
    it 'Get Organisation by Id' do
 
-     r = @g.organization_by_id( 1 )
+     r = @g.organization( 1 )
 
      expect(r).to be_a(Hash)
 
@@ -270,7 +516,7 @@ describe Grafana do
    end
 
     it 'Get Organisation by Name' do
-      r = @g.organization_by_name( 'Spec Test' )
+      r = @g.organization( 'Spec Test' )
 
       expect(r).to be_a(Hash)
 
@@ -288,7 +534,7 @@ describe Grafana do
 
     it 'Update Organisation' do
 
-      org = @g.organization_by_name('Spec Test')
+      org = @g.organization('Spec Test')
       id   = org.dig('id')
       name = org.dig('name')
 
@@ -304,7 +550,7 @@ describe Grafana do
 
     it 'Get Users in Organisation' do
 
-      org = @g.organization_by_name('Spec Test')
+      org = @g.organization('Spec Test')
       id   = org.dig('id')
       name = org.dig('name')
 
@@ -320,7 +566,7 @@ describe Grafana do
 
     it 'Add temporary User for Organisation' do
       r = @g.add_user(
-        name:'foo',
+        user_name:'foo',
         email: 'foo@foo-bar.tld',
         password: 'pass'
       )
@@ -492,7 +738,7 @@ describe Grafana do
 
     it 'Add temporary User' do
       r = @g.add_user(
-        name:'foo',
+        user_name:'foo',
         email: 'foo@foo-bar.tld',
         password: 'pass'
       )
@@ -658,3 +904,4 @@ describe Grafana do
   end
 
 end
+

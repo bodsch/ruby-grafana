@@ -1,65 +1,72 @@
 
 module Grafana
 
-  # http://docs.grafana.org/http_api/data_source/
+  # http://docs.grafana.org/http_api/datasource/
   #
   module Datasource
 
     # Get all datasources
-    # GET /api/datasources
-    def data_sources
+    #
+    # @example
+    #    datasources
+    #
+    # @return [Hash]
+    #
+    def datasources
 
       endpoint = '/api/datasources'
 
       @logger.debug("Attempting to get all existing data sources (GET #{endpoint})") if @debug
 
-      data_sources = get( endpoint )
+      datasources = get( endpoint )
 
-      if  data_sources.nil? || data_sources.dig('status').to_i != 200
+      if  datasources.nil? || datasources.dig('status').to_i != 200
         return {
           'status' => 404,
           'message' => 'No Datasources found'
         }
       end
 
-      data_sources = data_sources.dig('message')
+      datasources = datasources.dig('message')
 
-      data_source_map = {}
-      data_sources.each do |ds|
-        data_source_map[ds['id']] = ds
+      datasource_map = {}
+      datasources.each do |ds|
+        datasource_map[ds['id']] = ds
       end
 
-      data_source_map
+      datasource_map
     end
 
-    # Get a single data sources by Id
-    # GET /api/datasources/:datasourceId
-    def data_source( id )
+    # Get a single datasources by Id or Name
+    #
+    # @example
+    #    datasource( 1 )
+    #    datasource( 'foo' )
+    #
+    # @return [Hash]
+    #
+    def datasource( datasource_id )
 
-      if( id.is_a?(String) && id.is_a?(Integer) )
-        raise ArgumentError.new('data source id must be an String (for an Data Source name) or an Integer (for an Data Source Id)')
+      raise ArgumentError.new(format('wrong type. user \'datasource_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', datasource_id.class.to_s)) if( datasource_id.is_a?(String) && datasource_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'datasource_id\'') if( datasource_id.size.zero? )
+
+      if(datasource_id.is_a?(String))
+        data = datasources.select { |_k,v| v['name'] == datasource_id }
+        datasource_id = data.keys.first if( data )
       end
 
-      data_source_id = id if(id.is_a?(Integer))
-
-      if(id.is_a?(String))
-
-        data = data_sources.select { |_k,v| v['name'] == id }
-
-        data_source_id = data.keys.first if  data
-      end
-
-      if( data_source_id.nil? )
+      if( datasource_id.nil? )
         return {
           'status' => 404,
-          'message' => format( 'No Datasource \'%s\' found', id)
+          'message' => format( 'No Datasource \'%s\' found', datasource_id)
         }
       end
 
-      raise format('Data Source Id can not be 0') if( data_source_id.zero? )
+      raise format('DataSource Id can not be 0') if( datasource_id.zero? )
 
-      endpoint = format('/api/datasources/%d', data_source_id )
-      @logger.debug("Attempting to get existing data source Id #{data_source_id} (GET #{endpoint})") if  @debug
+      endpoint = format('/api/datasources/%d', datasource_id )
+
+      @logger.debug("Attempting to get existing data source Id #{datasource_id} (GET #{endpoint})") if  @debug
 
       get(endpoint)
     end
@@ -71,115 +78,180 @@ module Grafana
     # GET /api/datasources/id/:name
 
     # Update an existing data source
-    # PUT /api/datasources/:datasourceId
-    def update_datasource( params = {} )
+    #
+    # merge an current existing datasource configuration with the new values
+    #
+    # @param [Hash] params
+    # @option params [Hash] data
+    # @option params [Mixed] datasource Datasource Name (String) or Datasource Id (Integer)
+    #
+    # @example
+    #    update_datasource(
+    #      datasource: 'graphite',
+    #      data: { url: 'http://localhost:2003' }
+    #    )
+    #
+    # @return [Hash]
+    #
+    def update_datasource( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      datasource = params.dig(:datasource)
-      data       = params.dig(:data)
+      data       = validate( params, required: true, var: 'data', type: Hash )
+      datasource = validate( params, required: true, var: 'datasource' )
 
-      if( !datasource.is_a?(String) && !datasource.is_a?(Integer) )
-        raise ArgumentError.new('datasource must be an String (for an Data Source name) or an Integer (for an Data Source Id)')
-      end
+      raise ArgumentError.new(format('wrong type. user \'datasource\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', datasource.class.to_s)) if( datasource.is_a?(String) && datasource.is_a?(Integer) )
 
-      raise ArgumentError.new('data must be an Hash') unless( data.is_a?(Hash) )
-
-      existing_ds = data_source(datasource)
+      existing_ds = datasource(datasource)
 
       existing_ds.reject! { |x| x == 'status' }
-      data_source_id = existing_ds.dig('id')
-
       existing_ds = existing_ds.deep_string_keys
-      data        = data.deep_string_keys
 
-      ds = existing_ds.merge(data)
+      datasource_id = existing_ds.dig('id')
 
-      endpoint = format('/api/datasources/%d', data_source_id )
-      @logger.debug("Updating data source Id #{data_source_id} (GET #{endpoint})") if  @debug
-      put( endpoint, ds.to_json )
+      payload = data.deep_string_keys
+      payload = existing_ds.merge(payload).deep_symbolize_keys
+
+      endpoint = format('/api/datasources/%d', datasource_id )
+      @logger.debug("Updating data source Id #{datasource_id} (GET #{endpoint})") if  @debug
+      logger.debug(payload.to_json) if(@debug)
+
+      put( endpoint, payload.to_json )
     end
 
     # Create data source
-    # POST /api/datasources
-    def create_datasource( params = {} )
+    #
+    # @param [Hash] params
+    # @option params [String] type Datasource Type - (required) (grafana graphite cloudwatch elasticsearch prometheus influxdb mysql opentsdb postgres)
+    # @option params [String] name  Datasource Name - (required)
+    # @option params [String] database  Datasource Database - (required)
+    # @option params [String] access (proxy) Acess Type - (required) (proxy or direct)
+    # @option params [Boolean] default (false)
+    # @option params [String] user
+    # @option params [String] password
+    # @option params [String] url Datasource URL - (required)
+    # @option params [Hash] json_data
+    # @option params [Hash] json_secure
+    # @option params [String] basic_user
+    # @option params [String] basic_password
+    #
+    # @example
+    #    params = {
+    #      name: 'graphite',
+    #      type: 'graphite',
+    #      database: 'graphite',
+    #      url: 'http://localhost:8080'
+    #    }
+    #    create_datasource(params)
+    #
+    #    params = {
+    #      name: 'graphite',
+    #      type: 'graphite',
+    #      database: 'graphite',
+    #      default: true,
+    #      url: 'http://localhost:8080',
+    #      json_data: { graphiteVersion: '1.1' }
+    #    }
+    #    create_datasource(params)
+    #
+    #    params = {
+    #      name: 'test_datasource',
+    #      type: 'cloudwatch',
+    #      url: 'http://monitoring.us-west-1.amazonaws.com',
+    #      json_data: {
+    #        authType: 'keys',
+    #        defaultRegion: 'us-west-1'
+    #      },
+    #      json_secure: {
+    #        accessKey: 'Ol4pIDpeKSA6XikgOl4p',
+    #        secretKey: 'dGVzdCBrZXkgYmxlYXNlIGRvbid0IHN0ZWFs'
+    #      }
+    #    }
+    #    create_datasource(params)
+    #
+    # @return [Hash]
+    #
+    def create_datasource( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      type         = params.dig(:type)
-      name         = params.dig(:name)
-      dba          = params.dig(:database)
-      access       = params.dig(:access)
-      default      = params.dig(:default)
-      user         = params.dig(:user)
-      password     = params.dig(:password)
-      url          = params.dig(:url)
-      json_data    = params.dig(:jsonData)
-      json_secure  = params.dig(:secureJsonData)
-      ba_user      = params.dig(:basic_auth_user)
-      ba_password  = params.dig(:basic_auth_password)
+      type        = validate( params, required: true, var: 'type', type: String )
+      name        = validate( params, required: true, var: 'name', type: String )
+      database    = validate( params, required: true, var: 'database', type: String )
+      access      = validate( params, required: false, var: 'access', type: String ) || 'proxy'
+      default     = validate( params, required: false, var: 'default', type: Boolean ) || false
+      user        = validate( params, required: false, var: 'user', type: String )
+      password    = validate( params, required: false, var: 'password', type: String )
+      url         = validate( params, required: true, var: 'url', type: String )
+      json_data   = validate( params, required: false, var: 'json_data', type: Hash )
+      json_secure = validate( params, required: false, var: 'json_secure', type: Hash )
+      ba_user     = validate( params, required: false, var: 'basic_user', type: String )
+      ba_password = validate( params, required: false, var: 'basic_password', type: String )
 
-      default      = default.to_s.eql?('true') ? true : false
+      basic_auth  = false
+      basic_auth  = true unless( ba_user.nil? && ba_password.nil? )
 
-      raise ArgumentError.new('datasource name must be an String') unless( name.is_a?(String) )
-      raise ArgumentError.new('datasource database must be an String') unless( dba.is_a?(String) )
-      raise ArgumentError.new('datasource type must be an String') unless( type.is_a?(String) )
-      raise ArgumentError.new('datasource access must be an String') unless( access.is_a?(String) )
-      raise ArgumentError.new(format('datasource default must be an Boolean give \'%s\' (%s)', default, default.class.to_s) ) unless( default.is_a?(Boolean) )
-      raise ArgumentError.new('datasource url must be an String') unless( url.is_a?(String) )
+      valid_types = %w[grafana graphite cloudwatch elasticsearch prometheus influxdb mysql opentsdb postgres]
 
-#       raise ArgumentError.new('datasource jsonData must be an String') unless( json_data.is_a?(String) )
+      raise ArgumentError.new(format('wrong datasource type. only %s allowed, given \%s\'', valid_types.join(', '), type)) if( valid_types.include?(type.downcase) == false )
 
-      params['isDefault'] = true if( default == true )
+      payload = {
+        isDefault: default,
+        basicAuth: basic_auth,
+        basicAuthUser: ba_user,
+        basicAuthPassword: ba_password,
+        name: name,
+        type: type,
+        url: url,
+        access: access,
+        jsonData: json_data,
+        secureJsonData: json_secure
+      }
 
-      if( !ba_user.nil? && !ba_password.nil? )
-
-        params['basicAuth'] = true
-        params['basicAuthUser'] = ba_user
-        params['basicAuthPassword'] = ba_password
-
-        params.delete(:basic_auth_user)
-        params.delete(:basic_auth_password)
-      end
-
-      params.delete('default')
+      payload.reject!{ |_k, v| v.nil? }
 
       if( @debug )
-        logger.debug("Creating data source: #{name} (database: #{dba})")
-        logger.debug( params )
+        logger.debug("Creating data source: #{name} (database: #{database})")
+        logger.debug( payload.to_json )
       end
+
       endpoint = '/api/datasources'
-      post(endpoint, params.to_json)
+      post(endpoint, payload.to_json)
     end
 
     # Delete an existing data source by id
-    # DELETE /api/datasources/:datasourceId
-    def delete_datasource(id)
+    #
+    # @param [Mixed] datasource_id Datasource Name (String) or Datasource Id (Integer) for delete Datasource
+    #
+    # @example
+    #    delete_datasource( 1 )
+    #    delete_datasource( 'foo' )
+    #
+    # @return [Hash]
+    #
+    def delete_datasource( datasource_id )
 
-      if( id.is_a?(String) && id.is_a?(Integer) )
-        raise ArgumentError.new('data source id must be an String (for an Data Source name) or an Integer (for an Data Source Id)')
+      raise ArgumentError.new(format('wrong type. user \'datasource_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', datasource_id.class.to_s)) if( datasource_id.is_a?(String) && datasource_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'datasource_id\'') if( datasource_id.size.zero? )
+
+      if(datasource_id.is_a?(String))
+        data = datasources.select { |_k,v| v['name'] == datasource_id }
+        datasource_id = data.keys.first if( data )
       end
 
-      data_source_id = id if(id.is_a?(Integer))
-
-      if(id.is_a?(String))
-
-        data = data_sources.select { |_k,v| v['name'] == id }
-
-        data_source_id = data.keys.first if  data
-      end
-
-      if( data_source_id.nil? )
+      if( datasource_id.nil? )
         return {
           'status' => 404,
-          'message' => format( 'No Datasource \'%s\' found', id)
+          'message' => format( 'No Datasource \'%s\' found', datasource_id)
         }
       end
 
-      raise format('Data Source Id can not be 0') if( data_source_id.zero? )
+      raise format('Data Source Id can not be 0') if( datasource_id.zero? )
 
-      endpoint = format('/api/datasources/%d', data_source_id)
-      logger.debug("Deleting data source Id #{data_source_id} (DELETE #{endpoint})") if @debug
+      endpoint = format('/api/datasources/%d', datasource_id)
+      logger.debug("Deleting data source Id #{datasource_id} (DELETE #{endpoint})") if @debug
 
       delete(endpoint)
     end

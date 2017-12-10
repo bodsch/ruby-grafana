@@ -7,33 +7,55 @@ module Grafana
 
     # Search all Organisations
     # GET /api/orgs
-    def all_organizations
+    def organizations
       endpoint = '/api/orgs'
       @logger.debug("Getting all organizations (GET #{endpoint})") if @debug
       get( endpoint )
     end
 
-    # Get Organisation by Id
-    # GET /api/orgs/:orgId
-    def organization_by_id( id )
 
-      raise ArgumentError.new('id must be an Integer') unless( id.is_a?(Integer) )
+    # Get a single data sources by Id or Name
+    #
+    # @example
+    #    organisation( 1 )
+    #    organisation( 'foo' )
+    #
+    # @return [Hash]
+    #
+    def organization( organisation_id )
 
-      endpoint = format( '/api/orgs/%d', id )
-      @logger.debug("Get Organisation by Id (GET #{endpoint}})") if @debug
-      get( endpoint )
+      raise ArgumentError.new(format('wrong type. user \'organisation_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', organisation_id.class.to_s)) if( organisation_id.is_a?(String) && organisation_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'organisation_id\'') if( organisation_id.size.zero? )
+
+      endpoint = format( '/api/orgs/%d', organisation_id ) if(organisation_id.is_a?(Integer))
+      endpoint = format( '/api/orgs/name/%s', URI.escape( organisation_id ) ) if(organisation_id.is_a?(String))
+
+      @logger.debug("Attempting to get existing data source Id #{organisation_id} (GET #{endpoint})") if  @debug
+
+      get(endpoint)
     end
 
-    # Get Organisation by Name
-    # GET /api/orgs/name/:orgName
-    def organization_by_name( name )
-
-      raise ArgumentError.new('name must be an String') unless( name.is_a?(String) )
-
-      endpoint = format( '/api/orgs/name/%s', URI.escape( name ) )
-      @logger.debug("Get Organisation by Name (GET #{endpoint})") if @debug
-      get( endpoint )
-    end
+#     # Get Organisation by Id
+#     # GET /api/orgs/:orgId
+#     def organization_by_id( id )
+#
+#       raise ArgumentError.new('id must be an Integer') unless( id.is_a?(Integer) )
+#
+#       endpoint = format( '/api/orgs/%d', id )
+#       @logger.debug("Get Organisation by Id (GET #{endpoint}})") if @debug
+#       get( endpoint )
+#     end
+#
+#     # Get Organisation by Name
+#     # GET /api/orgs/name/:orgName
+#     def organization_by_name( name )
+#
+#       raise ArgumentError.new('name must be an String') unless( name.is_a?(String) )
+#
+#       endpoint = format( '/api/orgs/name/%s', URI.escape( name ) )
+#       @logger.debug("Get Organisation by Name (GET #{endpoint})") if @debug
+#       get( endpoint )
+#     end
 
     # Update Organisation
     # PUT /api/orgs/:orgId
@@ -48,7 +70,7 @@ module Grafana
       raise ArgumentError.new('missing organization for update') if( organization.nil? )
       raise ArgumentError.new('missing name for update') if( name.nil? )
 
-      org = organization_by_name( organization )
+      org = organization( organization )
 
       if  org.nil? || org.dig('status').to_i != 200
         return {
@@ -96,7 +118,7 @@ module Grafana
       # Defaults to Viewer, other valid options are Admin and Editor and Read Only Editor
       raise ArgumentError.new( format( 'wrong role. only \'Admin\', \'Viewer\' or \'Editor\' allowed (\'%s\' giving)',role)) if( %w[Admin Viewer Editor].include?(role) == false )
 
-      org = organization_by_name( organization )
+      org = organization( organization )
       usr = user_by_name( login_or_email )
 #       org_usr = organization_users( organization )
 
@@ -138,7 +160,7 @@ module Grafana
       # Defaults to Viewer, other valid options are Admin and Editor and Read Only Editor
       raise ArgumentError.new( format( 'wrong role. only \'Admin\', \'Viewer\' or \'Editor\' allowed (\'%s\' giving)',role)) if( %w[Admin Viewer Editor].include?(role) == false )
 
-      org = organization_by_name( organization )
+      org = organization( organization )
       usr = user_by_name( login_or_email )
 
       if( org.nil? || org.dig('status').to_i != 200 )
@@ -176,7 +198,7 @@ module Grafana
       raise ArgumentError.new('missing organization') if( organization.nil? )
       raise ArgumentError.new('missing loginOrEmail') if( login_or_email.nil? )
 
-      org = organization_by_name( organization )
+      org = organization( organization )
       usr = user_by_name( login_or_email )
 
       if( org.nil? || org.dig('status').to_i != 200 )
@@ -215,7 +237,7 @@ module Grafana
 
       raise ArgumentError.new('missing name for Organisation') if( name.nil? )
 
-      org = organization_by_name( name )
+      org = organization( name )
 
       if( org.nil? || org.dig('status').to_i == 200 )
         return {
@@ -243,7 +265,7 @@ module Grafana
 
       raise ArgumentError.new('missing name for Organisation') if( name.nil? )
 
-      org = organization_by_name( name )
+      org = organization( name )
 
       if( org.nil? || org.dig('status').to_i != 200 )
         return {
