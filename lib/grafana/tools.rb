@@ -27,19 +27,18 @@ module Grafana
     def regenerate_template_ids( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       rows = params.dig('dashboard','rows')
+      # name   = validate( params, required: true, var: 'name', type: String )
 
       unless( rows.nil? )
 
         # counter = 1
         id_counter = 10
         rows.each_with_index do |r, _counter|
-
           panel = r.dig('panels')
-
           next if( panel.nil? )
-
           panel.each do |p|
             p['id']   = id_counter
             id_counter = id_counter +=1 # id_counter+1 # id_counter +=1 ??

@@ -9,12 +9,10 @@ module Grafana
     def expand_tags( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      dashboard        = params.dig(:dashboard)
-      additional_tags  = params.dig(:additional_tags) || []
-
-      raise ArgumentError.new(format('wrong type. \'dashboard\' must be an Hash, given \'%s\'', dashboard.class.to_s)) unless( dashboard.is_a?(Hash) )
-      raise ArgumentError.new(format('wrong type. \'additional_tags\' must be an Array, given \'%s\'', additional_tags.class.to_s)) unless( additional_tags.is_a?(Array) )
+      dashboard       = validate( params, required: true, var: 'dashboard', type: Hash )
+      additional_tags = validate( params, required: true, var: 'additional_tags', type: Array )
 
       # add tags
       # dashboard = JSON.parse( dashboard ) if( dashboard.is_a?( String ) )
@@ -24,12 +22,9 @@ module Grafana
       current_tags = dashboard.dig( 'dashboard', 'tags' )
 
       if( !current_tags.nil? && additional_tags.count > 0 )
-
         current_tags << additional_tags
-
         current_tags.flatten!
         current_tags.sort!
-
         dashboard['dashboard']['tags'] = current_tags
       end
 

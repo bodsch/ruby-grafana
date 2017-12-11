@@ -78,22 +78,17 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      organization   = validate( params, required: true, var: 'organization', type: String )
-      name = validate( params, required: true, var: 'name', type: String )
+      organization = validate( params, required: true, var: 'organization', type: String )
+      name         = validate( params, required: true, var: 'name', type: String )
+      org          = organization( organization )
 
-      org = organization( organization )
+      return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
 
-      if( org.nil? || org.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('Organization \'%s\' not found', organization)
-        }
-      end
       org_id = org.dig('id')
 
+      endpoint = format( '/api/orgs/%s', org_id )
       payload = { name: name }
 
-      endpoint = format( '/api/orgs/%s', org_id )
       @logger.debug("Update Organisation id #{org_id} (PUT #{endpoint})") if @debug
 
       put( endpoint, payload.to_json )
@@ -116,12 +111,8 @@ module Grafana
 
       if(org_id.is_a?(String))
         org = organization(org_id)
-        if( org.nil? || org.dig('status').to_i != 200 )
-          return {
-            'status' => 404,
-            'message' => format('Organization \'%s\' not found', organization)
-          }
-        end
+        return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
+
         org_id = org.dig('id')
       end
 
@@ -163,12 +154,12 @@ module Grafana
       login_or_email = usr.dig('name')
       role = data.dig(:role)
 
+      endpoint = format( '/api/orgs/%d/users', org_id )
       payload = {
         loginOrEmail: login_or_email,
         role: role
       }
 
-      endpoint = format( '/api/orgs/%d/users', org_id )
       @logger.debug("Adding user '#{login_or_email}' to organisation '#{organization}' (POST #{endpoint})") if @debug
 
       post( endpoint, payload.to_json )
@@ -207,11 +198,10 @@ module Grafana
       login_or_email = usr.dig('name')
       role = data.dig(:role)
 
+      endpoint = format( '/api/orgs/%d/users/%d', org_id, usr_id )
       payload = {
         role: role
       }
-
-      endpoint = format( '/api/orgs/%d/users/%d', org_id, usr_id )
 
       @logger.debug("Updating user '#{login_or_email}' in organization '#{organization}' (PATCH #{endpoint})") if @debug
       patch( endpoint, payload.to_json )
@@ -245,19 +235,8 @@ module Grafana
       org = organization( organization )
       usr = user_by_name( login_or_email )
 
-      if( org.nil? || org.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('Organization \'%s\' not found', organization)
-        }
-      end
-
-      if( usr.nil? || usr.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' not found', login_or_email)
-        }
-      end
+      return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
+      return { 'status' => 404, 'message' => format('User \'%s\' not found', login_or_email) } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       org_id = org.dig('id')
       usr_id = usr.dig('id')
@@ -287,15 +266,9 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       name   = validate( params, required: true, var: 'name', type: String )
+      org    = organization( name )
 
-      org = organization( name )
-
-      if( org.nil? || org.dig('status').to_i == 200 )
-        return {
-          'status' => 409,
-          'message' => format('Organisation \'%s\' already exists', name )
-        }
-      end
+      return { 'status' => 409, 'message' => format('Organisation \'%s\' already exists', name ) } if( org.nil? || org.dig('status').to_i == 200 )
 
       endpoint = '/api/orgs'
       payload = {
@@ -330,12 +303,7 @@ module Grafana
         organisation_id = organisation_map.select { |x,y| y == organisation_id }.keys.first if( organisation_map )
       end
 
-      if( organisation_id.nil? )
-        return {
-          'status' => 404,
-          'message' => format( 'No Organisation \'%s\' found', organisation_id)
-        }
-      end
+      return { 'status' => 404, 'message' => format( 'No Organisation \'%s\' found', organisation_id) } if( organisation_id.nil? )
 
       endpoint = format( '/api/orgs/%d', organisation_id )
       @logger.debug("Deleting organization #{organisation_id} (DELETE #{endpoint})") if @debug
@@ -346,7 +314,6 @@ module Grafana
 
     private
     def validate_organisation_user( params )
-
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
@@ -360,33 +327,19 @@ module Grafana
       # Do this once, or each time the array changes
       downcased = Set.new valid_roles.map(&:downcase)
       unless( downcased.include?( role.downcase ) )
-
-        message = format( 'wrong role. Role must be one of %s, given \'%s\'', valid_roles.join(', '), role )
-
         return {
           'status' => 404,
           'login_or_email' => login_or_email,
           'role' => role,
-          'message' => message
+          'message' => format( 'wrong role. Role must be one of %s, given \'%s\'', valid_roles.join(', '), role )
         }
       end
 
       org = organization( organization )
       usr = user_by_name( login_or_email )
 
-      if( org.nil? || org.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('Organization \'%s\' not found', organization)
-        }
-      end
-
-      if( usr.nil? || usr.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' not found', login_or_email)
-        }
-      end
+      return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
+      return { 'status' => 404, 'message' => format('User \'%s\' not found', login_or_email) } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       {
         'status' => 200,

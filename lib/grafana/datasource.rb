@@ -20,12 +20,7 @@ module Grafana
 
       datasources = get( endpoint )
 
-      if  datasources.nil? || datasources == false || datasources.dig('status').to_i != 200
-        return {
-          'status' => 404,
-          'message' => 'No Datasources found'
-        }
-      end
+      return { 'status' => 404, 'message' => 'No Datasources found' } if( datasources.nil? || datasources == false || datasources.dig('status').to_i != 200 )
 
       datasources = datasources.dig('message')
 
@@ -55,12 +50,7 @@ module Grafana
         datasource_id = data.keys.first if( data )
       end
 
-      if( datasource_id.nil? )
-        return {
-          'status' => 404,
-          'message' => format( 'No Datasource \'%s\' found', datasource_id)
-        }
-      end
+      return { 'status' => 404, 'message' => format( 'No Datasource \'%s\' found', datasource_id) } if( datasource_id.nil? )
 
       raise format('DataSource Id can not be 0') if( datasource_id.zero? )
 
@@ -114,6 +104,7 @@ module Grafana
       payload = existing_ds.merge(payload).deep_symbolize_keys
 
       endpoint = format('/api/datasources/%d', datasource_id )
+
       @logger.debug("Updating data source Id #{datasource_id} (GET #{endpoint})") if  @debug
       logger.debug(payload.to_json) if(@debug)
 
@@ -241,12 +232,7 @@ module Grafana
         datasource_id = data.keys.first if( data )
       end
 
-      if( datasource_id.nil? )
-        return {
-          'status' => 404,
-          'message' => format( 'No Datasource \'%s\' found', datasource_id)
-        }
-      end
+      return { 'status' => 404, 'message' => format( 'No Datasource \'%s\' found', datasource_id) } if( datasource_id.nil? )
 
       raise format('Data Source Id can not be 0') if( datasource_id.zero? )
 

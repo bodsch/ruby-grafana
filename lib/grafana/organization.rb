@@ -21,15 +21,20 @@ module Grafana
     #
     #
     #
-    def update_current_organization( params = {} )
+    def update_current_organization( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
-      name = params.dig(:name)
-      raise ArgumentError.new('missing name') if( name.nil? )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      name         = validate( params, required: true, var: 'name', type: String )
 
       endpoint = '/api/org'
+      payload = {
+        name: name
+      }
+
       @logger.debug("Updating current organization (PUT #{endpoint})") if @debug
-      put(endpoint, params.to_json)
+      put(endpoint, payload.to_json)
     end
 
     # Get all users within the actual organisation
@@ -48,42 +53,45 @@ module Grafana
     #
     #
     #
-    def add_user_to_current_organization( params = {} )
+    def add_user_to_current_organization( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
-      login_or_email = params.dig(:loginOrEmail)
-      role           = params.dig(:role)
-      raise ArgumentError.new('missing loginOrEmail') if( login_or_email.nil? )
-      raise ArgumentError.new('missing role') if( role.nil? )
-      # Defaults to Viewer, other valid options are Admin and Editor and Read Only Editor
-      # valid_perms = ['Viewer','Editor','Read Only Editor','Admin']
-      raise ArgumentError.new( format( 'wrong role. only \'Admin\', \'Viewer\' or \'Editor\' allowed (\'%s\' giving)',role)) if( %w[Admin Viewer Editor].include?(role) == false )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      login_or_email = validate( params, required: true, var: 'login_or_email', type: String )
+      role           = validate( params, required: true, var: 'role', type: String )
+      valid_roles    = ['Viewer', 'Editor', 'Read Only Editor', 'Admin']
+
+      # https://stackoverflow.com/questions/9333952/case-insensitive-arrayinclude?answertab=votes#tab-top
+      # Do this once, or each time the array changes
+      downcased = Set.new valid_roles.map(&:downcase)
+      unless( downcased.include?( role.downcase ) )
+        return {
+          'status' => 404,
+          'login_or_email' => login_or_email,
+          'role' => role,
+          'message' => format( 'wrong role. Role must be one of %s, given \'%s\'', valid_roles.join(', '), role )
+        }
+      end
 
       org = current_organization_users
       usr = user_by_name( login_or_email )
 
-      if( org )
+      return { 'status' => 404, 'message' => format('User \'%s\' not found', login_or_email) } if( usr.nil? || usr.dig('status').to_i != 200 )
 
+      if( org.is_a?(Hash) && org.dig('status').to_i == 200 )
         org = org.dig('message')
-
-        if( org.select { |x| x.dig('email') == login_or_email }.count >= 1 )
-          return {
-            'status' => 404,
-            'message' => format('User \'%s\' are already in the organisation', login_or_email)
-          }
-        end
-      end
-
-      if( usr.nil? || usr.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' not found', login_or_email)
-        }
+        return { 'status' => 404, 'message' => format('User \'%s\' are already in the organisation', login_or_email) } if( org.select { |x| x.dig('email') == login_or_email || x.dig('login') == login_or_email }.count >= 1 )
       end
 
       endpoint = '/api/org/users'
+      payload = {
+        loginOrEmail: login_or_email,
+        role: role
+      }
+
       @logger.debug("Adding user to current organization (POST #{endpoint})") if @debug
-      post(endpoint, params.to_json)
+      post(endpoint, payload.to_json)
     end
 
     # Updates the given user

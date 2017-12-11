@@ -18,32 +18,30 @@ module Grafana
     def update_current_user_password( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      old_password = params.dig(:old_password)
-      new_password = params.dig(:new_password)
-
-      raise ArgumentError.new('missing old_password for update') if( old_password.nil? )
-      raise ArgumentError.new('missing new_password for update') if( new_password.nil? )
+      old_password   = validate( params, required: true, var: 'old_password', type: String )
+      new_password   = validate( params, required: true, var: 'new_password', type: String )
 
       endpoint = '/api/user/password'
+      payload = {
+        oldPassword: old_password,
+        newPassword: new_password,
+        confirmNew: new_password
+      }
       @logger.debug("Updating current user password (PUT #{endpoint})") if @debug
-      put( endpoint, { oldPassword: old_password, newPassword: new_password, confirmNew: new_password }.to_json )
+      put( endpoint, payload.to_json )
     end
 
     # Switch user context for signed in user
     # POST /api/user/using/:organizationId
     def switch_current_user_organization( organization )
 
-      raise ArgumentError.new('organization must be an String') unless( params.is_a?(String) )
+      raise ArgumentError.new(format('wrong type. \'organization\' must be an String, given \'%s\'', organization.class.to_s)) unless( organization.is_a?(String) )
 
       org = organization_by_name( organization )
 
-      if  org.nil? || org.dig('status').to_i != 200
-        return {
-          'status' => 404,
-          'message' => format('Organization \'%s\' not found', organization)
-        }
-      end
+      return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
 
       org_id = org.dig('id')
 
@@ -64,42 +62,37 @@ module Grafana
 
     # Star a dashboard
     # POST /api/user/stars/dashboard/:dashboardId
-    def add_dashboard_star( dashboard )
+    def add_dashboard_star( dashboard_id )
 
-      if( !dashboard.is_a?(String) && !dashboard.is_a?(Integer) )
-        raise ArgumentError.new('dashboard must be an String (for an Dashboard name) or an Integer (for an Dashboard ID)')
-      end
+      raise ArgumentError.new(format('wrong type. user \'dashboard_id\' must be an String (for an Dashboard name) or an Integer (for an Dashboard Id), given \'%s\'', dashboard_id.class.to_s)) if( dashboard_id.is_a?(String) && dashboard_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'dashboard_id\'') if( dashboard_id.size.zero? )
 
-      dashboard_id = dashboard if(dashboard.is_a?(Integer))
+      dashboard_id = dashboard if(dashboard_id.is_a?(Integer))
 
-      if(dashboard.is_a?(String))
-        search = { query: dashboard }
-        r = search_dashboards( search )
+      if(dashboard_id.is_a?(String))
+        r = search_dashboards( query: dashboard_id )
         message = r.dig('message')
         dashboard_id = message.first.dig('id')
       end
 
-      raise format('Dashboard id can not be 0') if  dashboard_id.zero?
+      raise format('Dashboard Id can not be 0') if( dashboard_id.zero? )
 
       endpoint = format( '/api/user/stars/dashboard/%d', dashboard_id )
       @logger.debug("Adding star to dashboard id #{dashboard_id} (GET #{endpoint})") if @debug
-      post(endpoint, {}.to_json)
+      post( endpoint, {}.to_json )
     end
 
     # Unstar a dashboard
     # DELETE /api/user/stars/dashboard/:dashboardId
-    def remove_dashboard_star( dashboard )
+    def remove_dashboard_star( dashboard_id )
 
-      if( !dashboard.is_a?(String) && !dashboard.is_a?(Integer) )
-        raise ArgumentError.new('dashboard must be an String (for an Dashboard name) or an Integer (for an Dashboard ID)')
-      end
+      raise ArgumentError.new(format('wrong type. user \'dashboard_id\' must be an String (for an Dashboard name) or an Integer (for an Dashboard Id), given \'%s\'', dashboard_id.class.to_s)) if( dashboard_id.is_a?(String) && dashboard_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'dashboard_id\'') if( dashboard_id.size.zero? )
 
-      dashboard_id = dashboard if(dashboard.is_a?(Integer))
+      dashboard_id = dashboard( dashboard_id ) if(dashboard_id.is_a?(Integer))
 
-      if(dashboard.is_a?(String))
-
-        search = { query: dashboard }
-        r = search_dashboards( search )
+      if(dashboard_id.is_a?(String))
+        r = search_dashboards( query: dashboard_id )
         message = r.dig('message')
         dashboard_id = message.first.dig('id')
       end

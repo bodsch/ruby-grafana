@@ -31,6 +31,7 @@ describe Grafana do
     end
   end
 
+
   describe 'Admin' do
 
     it 'ping session' do
@@ -436,8 +437,6 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-
-
     it 'Get all users within the actual organisation' do
       r = @g.current_organization_users
       expect(r).to be_a(Hash)
@@ -467,7 +466,7 @@ describe Grafana do
     it 'Add a new user to the actual organisation' do
       r = @g.add_user_to_current_organization(
         role: 'Viewer',
-        loginOrEmail: 'spec-test@bar.com'
+        login_or_email: 'spec-test@bar.com'
       )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -499,21 +498,21 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-   it 'Get Organisation by Id' do
+    it 'Get Organisation by Id' do
 
-     r = @g.organization( 1 )
+      r = @g.organization( 1 )
 
-     expect(r).to be_a(Hash)
+      expect(r).to be_a(Hash)
 
-     status  = r.dig('status')
-     id      = r.dig('id')
-     name    = r.dig('name')
+      status  = r.dig('status')
+      id      = r.dig('id')
+      name    = r.dig('name')
 
-     expect(status).to be_a(Integer)
-     expect(status).to be == 200
-     expect(id).to be_a(Integer)
-     expect(name).to be_a(String)
-   end
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+      expect(id).to be_a(Integer)
+      expect(name).to be_a(String)
+    end
 
     it 'Get Organisation by Name' do
       r = @g.organization( 'Spec Test' )
