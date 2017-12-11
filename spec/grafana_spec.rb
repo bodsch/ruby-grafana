@@ -548,7 +548,18 @@ describe Grafana do
       r = @g.update_organization( organization: 'Spec+Test', name: 'Spec Test' )
     end
 
-    it 'Get Users in Organisation' do
+    it 'Get Users in Organisation with Organisation Name' do
+      r = @g.organization_users('Spec Test')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.size).to be >= 1
+    end
+
+    it 'Get Users in Organisation with Organisation Id' do
 
       org = @g.organization('Spec Test')
       id   = org.dig('id')
@@ -580,30 +591,43 @@ describe Grafana do
       expect(id).to be_a(Integer)
     end
 
-
-    it 'Add User in Organisation' do
-      r = @g.add_user_to_organization( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld', role: 'Viewer' )
+    it 'Add User in Organisation - successful' do
+      r = @g.add_user_to_organization( organization: 'Spec Test', login_or_email: 'foo@foo-bar.tld', role: 'Editor' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be == 200
     end
 
-    it 'Update Users in Organisation' do
-      r = @g.update_organization_user( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld', role: 'Editor' )
+    it 'Add User in Organisation - failed' do
+      r = @g.add_user_to_organization( organization: 'Spec Test', login_or_email: 'foo-2@foo-bar.tld', role: 'Foo' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
+
+    it 'Update Users in Organisation - successful' do
+      r = @g.update_organization_user( organization: 'Spec Test', login_or_email: 'foo@foo-bar.tld', role: 'Editor' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be == 200
+    end
+
+    it 'Update Users in Organisation - failed' do
+      r = @g.update_organization_user( organization: 'Spec Test', login_or_email: 'foo-2@foo-bar.tld', role: 'Bar' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
     end
 
     it 'Delete User in Organisation' do
-      r = @g.delete_user_from_organization( organization: 'Spec Test', loginOrEmail: 'foo@foo-bar.tld' )
+      r = @g.delete_user_from_organization( organization: 'Spec Test', login_or_email: 'foo@foo-bar.tld' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be == 200
     end
 
     it 'Delete Organisation' do
-      r = @g.delete_organisation( name: 'Spec Test' )
+      r = @g.delete_organisation( 'Spec Test' )
       expect(r).to be_a(Hash)
       status = r.dig('status')
       message = r.dig('message')

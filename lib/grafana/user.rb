@@ -73,7 +73,6 @@ module Grafana
       dashboard_id = dashboard if(dashboard.is_a?(Integer))
 
       if(dashboard.is_a?(String))
-
         search = { query: dashboard }
         r = search_dashboards( search )
         message = r.dig('message')

@@ -59,8 +59,8 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing params') if( params.size.zero? )
 
-      user_name = validate( params, required: true, var: 'user_name', type: String )
-      permissions  = params.dig(:permissions)
+      user_name   = validate( params, required: true, var: 'user_name', type: String )
+      permissions = validate( params, required: true, var: 'permissions' )
       raise ArgumentError.new(format('wrong type. \'permissions\' must be an String or Hash, given %s', permissions.class.to_s ) ) unless( permissions.is_a?(String) || permissions.is_a?(Hash) )
 
       valid_perms = ['Viewer','Editor','Read Only Editor','Admin']
@@ -68,7 +68,7 @@ module Grafana
       if( permissions.is_a?( String ) && !valid_perms.include?(permissions) )
 
         message = format( 'user permissions must be one of %s, given \'%s\'', valid_perms.join(', '), permissions )
-        logger.warn( message )
+#        logger.warn( message )
 
         return {
           'status' => 404,
@@ -83,8 +83,8 @@ module Grafana
 
         unless( grafana_admin.is_a?(Boolean) )
 
-          message = 'Grafana admin permission must be either true or false'
-          logger.warn( message )
+          message = 'Grafana admin permission must be either \'true\' or \'false\''
+#           logger.warn( message )
 
           return {
             'status' => 404,
