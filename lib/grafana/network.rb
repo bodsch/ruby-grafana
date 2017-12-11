@@ -129,6 +129,12 @@ module Grafana
           'status' => 401,
           'message' => format('Not authorized to connect \'%s/%s\' - wrong username or password?', @url, endpoint)
         }
+      rescue RestClient::Forbidden
+
+        return {
+          'status' => 403,
+          'message' => format('The operation is forbidden \'%s/%s\'', @url, endpoint)
+        }
 
       rescue RestClient::NotFound
 

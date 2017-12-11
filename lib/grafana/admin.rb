@@ -62,30 +62,26 @@ module Grafana
       user_name   = validate( params, required: true, var: 'user_name', type: String )
       permissions = validate( params, required: true, var: 'permissions' )
       raise ArgumentError.new(format('wrong type. \'permissions\' must be an String or Hash, given %s', permissions.class.to_s ) ) unless( permissions.is_a?(String) || permissions.is_a?(Hash) )
+      valid_roles    = ['Viewer', 'Editor', 'Read Only Editor', 'Admin']
 
-      valid_perms = ['Viewer','Editor','Read Only Editor','Admin']
+      downcased = Set.new valid_roles.map(&:downcase)
 
-      if( permissions.is_a?( String ) && !valid_perms.include?(permissions) )
+      if( permissions.is_a?(String) )
+        unless( downcased.include?( permissions.downcase ) )
+          message = format( 'wrong permissions. Must be one of %s, given \'%s\'', valid_roles.join(', '), permissions )
+          return {
+            'status' => 404,
+            'name' => user_name,
+            'permissions' => permissions,
+            'message' => message
+          }
+        end
+      end
 
-        message = format( 'user permissions must be one of %s, given \'%s\'', valid_perms.join(', '), permissions )
-#        logger.warn( message )
-
-        return {
-          'status' => 404,
-          'name' => user_name,
-          'permissions' => permissions,
-          'message' => message
-        }
-
-      elsif( permissions.is_a?(Hash) && !permissions.dig(:grafana_admin).nil? )
-
+      if( permissions.is_a?(Hash) && !permissions.dig(:grafana_admin).nil? )
         grafana_admin = permissions.dig(:grafana_admin)
-
         unless( grafana_admin.is_a?(Boolean) )
-
           message = 'Grafana admin permission must be either \'true\' or \'false\''
-#           logger.warn( message )
-
           return {
             'status' => 404,
             'name' => user_name,
@@ -117,24 +113,30 @@ module Grafana
         logger.debug(payload.to_json) if(@debug)
 
         return put(endpoint, payload.to_json )
-      else
-
-        org = current_organization
-
-        endpoint = format( '/api/orgs/%s/users/%s', org['id'], user_id )
-        logger.debug( format( 'Updating user id %s permissions', user_id ) ) if @debug
-
-        payload = {
-          name: org.dig('name'),
-          orgId: org.dig('id'),
-          role: permissions.downcase.capitalize
-        }
-
-        logger.debug("Updating user id #{user_id} permissions (PATCH #{endpoint})") if @debug
-        logger.debug(payload.to_json) if(@debug)
-
-        return patch( endpoint, payload.to_json )
       end
+
+      org = current_organization
+
+      if( org.nil? || org.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => 'No current Organization found'
+        }
+      end
+
+      endpoint = format( '/api/orgs/%s/users/%s', org.dig('id'), user_id )
+      logger.debug( format( 'Updating user id %s permissions', user_id ) ) if @debug
+
+      payload = {
+        name: org.dig('name'),
+        orgId: org.dig('id'),
+        role: permissions.downcase.capitalize
+      }
+
+      logger.debug("Updating user id #{user_id} permissions (PATCH #{endpoint})") if @debug
+      logger.debug(payload.to_json) if(@debug)
+
+      patch( endpoint, payload.to_json )
     end
 
     # Delete an Global User
@@ -238,7 +240,6 @@ module Grafana
 
       post( endpoint, payload.to_json)
     end
-
 
     # Change Password for User
     #

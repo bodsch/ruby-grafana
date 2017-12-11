@@ -150,47 +150,18 @@ module Grafana
     #
     def add_user_to_organization( params )
 
-      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
-      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+      data   = validate_organisation_user( params )
+      status = data.dig('status')
 
-      organization   = validate( params, required: true, var: 'organization', type: String )
-      login_or_email = validate( params, required: true, var: 'login_or_email', type: String )
-      role           = validate( params, required: true, var: 'role', type: String )
-      valid_roles    = ['Viewer', 'Editor', 'Read Only Editor', 'Admin']
+      return data if( status.nil? || status.to_i == 404 )
 
-      # https://stackoverflow.com/questions/9333952/case-insensitive-arrayinclude?answertab=votes#tab-top
-      # Do this once, or each time the array changes
-      downcased = Set.new valid_roles.map(&:downcase)
-      unless( downcased.include?( role.downcase ) )
-
-        message = format( 'wrong role. Role must be one of %s, given \'%s\'', valid_roles.join(', '), role )
-
-        return {
-          'status' => 404,
-          'login_or_email' => login_or_email,
-          'role' => role,
-          'message' => message
-        }
-      end
-
-      org = organization( organization )
-      usr = user_by_name( login_or_email )
-
-      if( org.nil? || org.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('Organization \'%s\' not found', organization)
-        }
-      end
-
-      if( usr.nil? || usr.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' not found', login_or_email)
-        }
-      end
+      org = data.dig('organisation')
+      usr = data.dig('user')
 
       org_id = org.dig('id')
+      organization = org.dig('name')
+      login_or_email = usr.dig('name')
+      role = data.dig(:role)
 
       payload = {
         loginOrEmail: login_or_email,
@@ -222,48 +193,19 @@ module Grafana
     #
     def update_organization_user( params )
 
-      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
-      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+      data   = validate_organisation_user( params )
+      status = data.dig('status')
 
-      organization   = validate( params, required: true, var: 'organization', type: String )
-      login_or_email = validate( params, required: true, var: 'login_or_email', type: String )
-      role           = validate( params, required: true, var: 'role', type: String )
-      valid_roles    = ['Viewer', 'Editor', 'Read Only Editor', 'Admin']
+      return data if( status.nil? || status.to_i == 404 )
 
-      # https://stackoverflow.com/questions/9333952/case-insensitive-arrayinclude?answertab=votes#tab-top
-      # Do this once, or each time the array changes
-      downcased = Set.new valid_roles.map(&:downcase)
-      unless( downcased.include?( role.downcase ) )
-
-        message = format( 'wrong role. Role must be one of %s, given \'%s\'', valid_roles.join(', '), role )
-
-        return {
-          'status' => 404,
-          'login_or_email' => login_or_email,
-          'role' => role,
-          'message' => message
-        }
-      end
-
-      org = organization( organization )
-      usr = user_by_name( login_or_email )
-
-      if( org.nil? || org.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('Organization \'%s\' not found', organization)
-        }
-      end
-
-      if( usr.nil? || usr.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' not found', login_or_email)
-        }
-      end
+      org = data.dig('organisation')
+      usr = data.dig('user')
 
       org_id = org.dig('id')
+      organization = org.dig('name')
       usr_id = usr.dig('id')
+      login_or_email = usr.dig('name')
+      role = data.dig(:role)
 
       payload = {
         role: role
@@ -382,11 +324,10 @@ module Grafana
       if(organisation_id.is_a?(String))
         data = organizations.dig('message')
         organisation_map = {}
-        data.each do |ds|
-          organisation_map[ds['id']] = ds
+        data.each do |d|
+          organisation_map[d.dig('id')] = d.dig('name')
         end
-        organisation_map.select { |_k,v| v['name'] == organisation_id }
-        organisation_id = organisation_map.keys.first if( data )
+        organisation_id = organisation_map.select { |x,y| y == organisation_id }.keys.first if( organisation_map )
       end
 
       if( organisation_id.nil? )
@@ -401,6 +342,60 @@ module Grafana
 
       delete(endpoint)
     end
+
+
+    private
+    def validate_organisation_user( params )
+
+
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      organization   = validate( params, required: true, var: 'organization', type: String )
+      login_or_email = validate( params, required: true, var: 'login_or_email', type: String )
+      role           = validate( params, required: true, var: 'role', type: String )
+      valid_roles    = ['Viewer', 'Editor', 'Read Only Editor', 'Admin']
+
+      # https://stackoverflow.com/questions/9333952/case-insensitive-arrayinclude?answertab=votes#tab-top
+      # Do this once, or each time the array changes
+      downcased = Set.new valid_roles.map(&:downcase)
+      unless( downcased.include?( role.downcase ) )
+
+        message = format( 'wrong role. Role must be one of %s, given \'%s\'', valid_roles.join(', '), role )
+
+        return {
+          'status' => 404,
+          'login_or_email' => login_or_email,
+          'role' => role,
+          'message' => message
+        }
+      end
+
+      org = organization( organization )
+      usr = user_by_name( login_or_email )
+
+      if( org.nil? || org.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('Organization \'%s\' not found', organization)
+        }
+      end
+
+      if( usr.nil? || usr.dig('status').to_i != 200 )
+        return {
+          'status' => 404,
+          'message' => format('User \'%s\' not found', login_or_email)
+        }
+      end
+
+      {
+        'status' => 200,
+        'organisation' => org,
+        'user' => usr,
+        'role' => role
+      }
+    end
+
 
   end
 end

@@ -20,7 +20,7 @@ module Grafana
 
       datasources = get( endpoint )
 
-      if  datasources.nil? || datasources.dig('status').to_i != 200
+      if  datasources.nil? || datasources == false || datasources.dig('status').to_i != 200
         return {
           'status' => 404,
           'message' => 'No Datasources found'
