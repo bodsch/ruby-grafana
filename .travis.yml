@@ -19,7 +19,7 @@ before_install:
     docker run \
     --rm \
     --detach \
-    --publish=3000:3000 \
+    --publish=3030:3000 \
     --env URL_PATH=/ \
     --hostname=grafana \
     bodsch/docker-grafana:4.6.2-r1
