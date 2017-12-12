@@ -81,7 +81,6 @@ module Grafana
     # @return [Hash]
     #
     def current_user_oganizations
-
       endpoint = '/api/user/orgs'
       @logger.debug("Getting current user organizations (GET #{endpoint})") if @debug
       get(endpoint)

@@ -34,6 +34,8 @@ module Grafana
 
     # Get a single datasources by Id or Name
     #
+    # @param [Mixed] datasource_id Datasource Name (String) or Datasource Id (Integer)
+    #
     # @example
     #    datasource( 1 )
     #    datasource( 'foo' )

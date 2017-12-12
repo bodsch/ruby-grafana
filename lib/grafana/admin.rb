@@ -68,12 +68,11 @@ module Grafana
 
       if( permissions.is_a?(String) )
         unless( downcased.include?( permissions.downcase ) )
-          message = format( 'wrong permissions. Must be one of %s, given \'%s\'', valid_roles.join(', '), permissions )
           return {
             'status' => 404,
             'name' => user_name,
             'permissions' => permissions,
-            'message' => message
+            'message' => format( 'wrong permissions. Must be one of %s, given \'%s\'', valid_roles.join(', '), permissions )
           }
         end
       end
@@ -81,24 +80,18 @@ module Grafana
       if( permissions.is_a?(Hash) && !permissions.dig(:grafana_admin).nil? )
         grafana_admin = permissions.dig(:grafana_admin)
         unless( grafana_admin.is_a?(Boolean) )
-          message = 'Grafana admin permission must be either \'true\' or \'false\''
           return {
             'status' => 404,
             'name' => user_name,
             'permissions' => permissions,
-            'message' => message
+            'message' => 'Grafana admin permission must be either \'true\' or \'false\''
           }
         end
       end
 
       usr = user(user_name)
 
-      if( usr.nil? || usr.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' not found', user_name)
-        }
-      end
+      return { 'status' => 404, 'message' => format('User \'%s\' not found', user_name) } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       user_id = usr.dig('id')
 
@@ -117,12 +110,7 @@ module Grafana
 
       org = current_organization
 
-      if( org.nil? || org.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => 'No current Organization found'
-        }
-      end
+      return { 'status' => 404, 'message' => 'No current Organization found' } if( org.nil? || org.dig('status').to_i != 200 )
 
       endpoint = format( '/api/orgs/%s/users/%s', org.dig('id'), user_id )
       logger.debug( format( 'Updating user id %s permissions', user_id ) ) if @debug
@@ -162,19 +150,8 @@ module Grafana
         user_id = usr.dig('id')
       end
 
-      if( user_id.nil? )
-        return {
-          'status' => 404,
-          'message' => format( 'No User \'%s\' found', user_id)
-        }
-      end
-
-      if( user_id.is_a?(Integer) && user_id.to_i.zero? )
-        return {
-          'status' => 403,
-          'message' => format( 'Can\'t delete user id %d (admin user)', user_id )
-        }
-      end
+      return { 'status' => 404, 'message' => format( 'No User \'%s\' found', user_id) } if( user_id.nil? )
+      return { 'status' => 403, 'message' => format( 'Can\'t delete user id %d (admin user)', user_id ) } if( user_id.is_a?(Integer) && user_id.to_i.zero? )
 
       endpoint = format('/api/admin/users/%d', user_id )
       logger.debug( "Deleting user id #{user_id} (DELETE #{endpoint})" ) if @debug

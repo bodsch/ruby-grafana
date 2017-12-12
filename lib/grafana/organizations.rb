@@ -13,7 +13,6 @@ module Grafana
       get( endpoint )
     end
 
-
     # Get a single data sources by Id or Name
     #
     # @example
@@ -34,28 +33,6 @@ module Grafana
 
       get(endpoint)
     end
-
-#     # Get Organisation by Id
-#     # GET /api/orgs/:orgId
-#     def organization_by_id( id )
-#
-#       raise ArgumentError.new('id must be an Integer') unless( id.is_a?(Integer) )
-#
-#       endpoint = format( '/api/orgs/%d', id )
-#       @logger.debug("Get Organisation by Id (GET #{endpoint}})") if @debug
-#       get( endpoint )
-#     end
-#
-#     # Get Organisation by Name
-#     # GET /api/orgs/name/:orgName
-#     def organization_by_name( name )
-#
-#       raise ArgumentError.new('name must be an String') unless( name.is_a?(String) )
-#
-#       endpoint = format( '/api/orgs/name/%s', URI.escape( name ) )
-#       @logger.debug("Get Organisation by Name (GET #{endpoint})") if @debug
-#       get( endpoint )
-#     end
 
     # Update Organisation
     #
@@ -151,8 +128,8 @@ module Grafana
 
       organization_id = org.dig('id')
       organization = org.dig('name')
-      login_or_email = usr.dig('name')
-      role = data.dig(:role)
+      login_or_email = usr.dig('email')
+      role = data.dig('role')
 
       endpoint = format( '/api/orgs/%d/users', organization_id )
       payload = {
@@ -223,7 +200,6 @@ module Grafana
     #
     # @return [Hash]
     #
-    # DELETE /api/orgs/:orgId/users/:userId
     def delete_user_from_organization( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
@@ -313,6 +289,18 @@ module Grafana
 
 
     private
+    # validate an user for an organisation
+    #
+    # @examle
+    #    params = {
+    #      organization: 'Foo',
+    #      login_or_email: 'foo@foo-bar.tld',
+    #      role: 'Viewer'
+    #    }
+    #    validate_organisation_user( params )
+    #
+    # @return [Hash]
+    #
     def validate_organisation_user( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )

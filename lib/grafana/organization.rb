@@ -6,9 +6,11 @@ module Grafana
   module Organization
 
     # Get current Organisation
-    # GET /api/org
     #
-    #  -> {"id"=>1, "name"=>"Docker", "address"=>{"address1"=>"", "address2"=>"", "city"=>"", "zipCode"=>"", "state"=>"", "country"=>""}, "status"=>200}
+    # @example
+    #    current_organization
+    #
+    # @return [Hash]
     #
     def current_organization
       endpoint = '/api/org'
@@ -17,9 +19,17 @@ module Grafana
     end
 
     # Update current Organisation
-    # PUT /api/org
     #
+    # @param [Hash] params
+    # @option params [String] name new Organisation Name
     #
+    # @example
+    #    params = {
+    #       name: 'foo'
+    #    }
+    #    update_current_organization( params )
+    #
+    # @return [Hash]
     #
     def update_current_organization( params )
 
@@ -38,9 +48,11 @@ module Grafana
     end
 
     # Get all users within the actual organisation
-    # GET /api/org/users
     #
+    # @example
+    #    current_organization_users
     #
+    # @return [Hash]
     #
     def current_organization_users
       endpoint = '/api/org/users'
@@ -49,9 +61,19 @@ module Grafana
     end
 
     # Add a new user to the actual organisation
-    # POST /api/org/users
     #
+    # @param [Hash] params
+    # @option params [String] login_or_email Login or email
+    # @option params [String] role Name of the Role - only 'Viewer', 'Editor', 'Read Only Editor' or 'Admin' allowed
     #
+    # @example
+    #    params = {
+    #       login_or_email: 'foo',
+    #       role: 'Editor'
+    #    }
+    #    add_user_to_current_organization( params )
+    #
+    # @return [Hash]
     #
     def add_user_to_current_organization( params )
 

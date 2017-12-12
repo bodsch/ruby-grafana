@@ -7,13 +7,16 @@ module Grafana
 
 
     # Get dashboard
-    # GET /api/dashboards/db/:slug
+    #
+    # @example
+    #    dashboard('dashboard for many foo')
+    #
+    # @return [String]
+    #
     def dashboard( name )
 
       raise ArgumentError.new(format('wrong type. \'name\' must be an String, given \'%s\'', name.class.to_s)) unless( name.is_a?(String) )
       raise ArgumentError.new('missing name') if( name.size.zero? )
-
-#       raise ArgumentError.new('name must be an String') unless( name.is_a?(String) )
 
       endpoint = format( '/api/dashboards/db/%s', slug(name) )
 

@@ -18,7 +18,18 @@ module Grafana
       get(endpoint)
     end
 
-
+    # Get a single user by Id or Name
+    #
+    # @param [Hash] params
+    # @option params [Hash] data
+    # @option params [Mixed] user Username (String) or Userid (Integer)
+    #
+    # @example
+    #    user( 1 )
+    #    user( 'foo' )
+    #
+    # @return [Hash]
+    #
     def user( user_id )
 
       raise ArgumentError.new(format('wrong type. user \'user_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', user_id.class.to_s)) if( user_id.is_a?(String) && user_id.is_a?(Integer) )
@@ -27,12 +38,10 @@ module Grafana
       if(user_id.is_a?(String))
         user_map = {}
         users.dig('message').each do |d|
-#           puts d
           usr_id = d.dig('id').to_i
           user_map[usr_id] = d
         end
 
-#         puts user_map
         user_id = user_map.select { |_k,v| v['login'] == user_id || v['email'] == user_id || v['name'] == user_id }.keys.first
       end
 
@@ -40,33 +49,11 @@ module Grafana
 
       endpoint = format( '/api/users/%s', user_id )
 
-#       puts endpoint
-
       @logger.debug("Getting user by Id #{user_id} (GET #{endpoint})") if @debug
       data = get(endpoint)
       data['id'] = user_id
       data
     end
-
-#     # Get single user by Id
-#     # GET /api/users/:id
-#     def user_by_id(id)
-#
-#       raise ArgumentError.new('id must be an Integer') unless( id.is_a?(Integer) )
-#
-#       endpoint = format( '/api/users/%d', id )
-#       @logger.debug("Getting user by Id #{id} (GET #{endpoint})") if @debug
-#       get(endpoint)
-#     end
-#
-#     # Get single user by Username(login) or Email
-#     # GET /api/users/lookup?loginOrEmail=user@mygraf.com
-#     def user( name )
-#
-#       endpoint = format( '/api/users/lookup?loginOrEmail=%s', URI.escape( name ) )
-#       @logger.debug("Get User by Name (GET #{endpoint})") if @debug
-#       get( endpoint )
-#     end
 
     # search users with parameters
     #
@@ -94,63 +81,82 @@ module Grafana
     end
 
     # User Update
+    #
+    # @param [Hash] params
+    # @option params [String] email
+    # @option params [String] user_name
+    # @option params [String] login_name
+    # @option params [String] theme
+    #
+    # @example
+    #    params = {
+    #      email:'user@mygraf.com',
+    #      user_name:'User2',
+    #      login_name:'user',
+    #      theme: 'light'
+    #    }
+    #    update_user( params )
+    #
+    # @return [Hash]
+    #
     # PUT /api/users/:id
-    def update_user( params = {} )
+    def update_user( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
-      user_name   = params.dig(:user_name)
-
-      raise ArgumentError.new('missing \'user_name\'') if( user_name.nil? )
-
-      if( !user_name.is_a?(String) && !user_name.is_a?(Integer) )
-        raise ArgumentError.new('user_name must be an String (for an Username) or an Integer (for an User Id)')
-      end
+      user_name  = validate( params, required: true, var: 'user_name', type: String )
+      email      = validate( params, required: true, var: 'email', type: String )
+      login_name = validate( params, required: false, var: 'login_name', type: String ) || user_name
+      theme      = validate( params, required: false, var: 'theme', type: String )
 
       usr = user(user_name)
 
-      if  usr.nil? || usr.dig('status').to_i != 200
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' not found', user_name)
-        }
-      end
+      return { 'status' => 404, 'message' => format('User \'%s\' not found', user_name) } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       user_id = usr.dig('id')
 
       endpoint = format( '/api/users/%d', user_id )
+      payload = {
+        email: email,
+        name: user_name,
+        login: login_name,
+        theme: theme
+      }
+      payload.reject!{ |_k, v| v.nil? }
 
       @logger.debug("Updating user with Id #{user_id}") if @debug
 
-      usr    = usr.deep_string_keys
-      params = params.deep_string_keys
+      usr     = usr.deep_string_keys
+      payload = payload.deep_string_keys
 
-      params = usr.merge(params)
+      payload = usr.merge(payload)
 
-      put( endpoint, params.to_json )
+      put( endpoint, payload.to_json )
     end
 
     # Get Organisations for user
-    # GET /api/users/:id/orgs
-    def user_organizations(user)
+    #
+    # @param [Mixed] user_id Username (String) or Userid (Integer)
+    #
+    # @example
+    #    user_organizations( 1 )
+    #    user_organizations( 'foo' )
+    #
+    # @return [Hash]
+    #
+    def user_organizations( user_id )
 
-      if( !user.is_a?(String) && !user.is_a?(Integer) )
-        raise ArgumentError.new('user must be an String (for an Dashboard name) or an Integer (for an Dashboard ID)')
-      end
+      raise ArgumentError.new(format('wrong type. user \'user_id\' must be an String (for an Username) or an Integer (for an Userid), given \'%s\'', user_id.class.to_s)) if( user_id.is_a?(String) && user_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'user_id\'') if( user_id.size.zero? )
 
-      usr = user(user)
+      usr = user(user_id)
 
-      if  usr.nil? || usr.dig('status').to_i != 200
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' not found', user)
-        }
-      end
+      return { 'status' => 404, 'message' => format('User \'%s\' not found', user_id) } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       user_id = usr.dig('id')
 
       endpoint = format('/api/users/%d/orgs', user_id )
-      @logger.debug("Getting organizations for User #{user} (GET #{endpoint})") if @debug
+      @logger.debug("Getting organizations for User #{user_id} (GET #{endpoint})") if @debug
       get(endpoint)
     end
 

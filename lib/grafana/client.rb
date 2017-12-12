@@ -107,7 +107,6 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'open_timeout\' must be an Integer, given \'%s\'', @open_timeout.class.to_s)) unless( @open_timeout.is_a?(Integer) )
 
       protocoll = ssl == true ? 'https' : 'http'
-      raise ArgumentError.new(format('wrong \'protocoll\'. only \'http\' or \'https\' allowed, given \'%s\'', protocoll)) if( %w[http https].include?(protocoll.downcase) == false )
 
       @url      = format( '%s://%s:%d%s', protocoll, host, port, url_path )
     end

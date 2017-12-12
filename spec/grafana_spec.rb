@@ -16,7 +16,7 @@ describe Grafana do
       debug: false,
       grafana: {
         host: 'localhost',
-        port: 3000
+        port: 3030
       }
     }
 
@@ -590,28 +590,53 @@ describe Grafana do
     end
 
     it 'Add User in Organisation - successful' do
-      r = @g.add_user_to_organization( organization: 'Spec Test', login_or_email: 'foo@foo-bar.tld', role: 'Editor' )
+      params = {
+        organization: 'Spec Test',
+        login_or_email: 'foo@foo-bar.tld',
+        role: 'Editor'
+      }
+      r = @g.add_user_to_organization( params )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
+
+      if(status != 200)
+        puts r
+      end
+
       expect(status).to be == 200
     end
 
     it 'Add User in Organisation - failed' do
-      r = @g.add_user_to_organization( organization: 'Spec Test', login_or_email: 'foo-2@foo-bar.tld', role: 'Foo' )
+      params = {
+        organization: 'Spec Test',
+        login_or_email: 'foo-2@foo-bar.tld',
+        role: 'Foo'
+      }
+      r = @g.add_user_to_organization( params )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be == 404
     end
 
     it 'Update Users in Organisation - successful' do
-      r = @g.update_organization_user( organization: 'Spec Test', login_or_email: 'foo@foo-bar.tld', role: 'Editor' )
+      params = {
+        organization: 'Spec Test',
+        login_or_email: 'foo@foo-bar.tld',
+        role: 'Viewer'
+      }
+      r = @g.update_organization_user( params )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be == 200
     end
 
     it 'Update Users in Organisation - failed' do
-      r = @g.update_organization_user( organization: 'Spec Test', login_or_email: 'foo-2@foo-bar.tld', role: 'Bar' )
+      params = {
+        organization: 'Spec Test',
+        login_or_email: 'foo-2@foo-bar.tld',
+        role: 'Bar'
+      }
+      r = @g.update_organization_user( params )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be == 404
@@ -643,8 +668,6 @@ describe Grafana do
     end
 
   end
-
-
 
 
   describe 'User' do
@@ -802,6 +825,7 @@ describe Grafana do
     it 'Get Organisations for user' do
 
       r = @g.user_organizations('foo@foo-bar.tld')
+
       expect(r).to be_a(Hash)
 
       status  = r.dig('status')
@@ -812,12 +836,11 @@ describe Grafana do
     it 'Update Users' do
 
       r = @g.update_user(
-        user_name: 'foo@foo-bar.tld',
+        user_name: 'foo-2',
         theme: 'light',
-        name: 'spec-test',
+        login_name: 'spec-test',
         email: 'spec-test@foo-bar.tld'
       )
-
       expect(r).to be_a(Hash)
 
       status  = r.dig('status')
@@ -826,8 +849,9 @@ describe Grafana do
       expect(status).to be == 200
       expect(message).to be_a(String)
       #expect(message).to be == 200
+
       r = @g.update_user(
-        user_name: 'spec-test@foo-bar.tld',
+        user_name: 'spec-test',
         email: 'foo@foo-bar.tld',
       )
       expect(r).to be_a(Hash)
