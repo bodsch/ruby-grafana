@@ -101,12 +101,12 @@ module Grafana
 
     # Add User in Organisation
     #
-    # @param
+    # @param [Hash] params
     # @option params [String] organization Organisation name
     # @option params [String] login_or_email Login or email
     # @option params [String] role Name of the Role - only 'Viewer', 'Editor', 'Read Only Editor' or 'Admin' allowed
     #
-    # @examle
+    # @example
     #    params = {
     #      organization: 'Foo',
     #      login_or_email: 'foo@foo-bar.tld',
@@ -144,12 +144,12 @@ module Grafana
 
     # Update Users in Organisation
     #
-    # @param
+    # @param [Hash] params
     # @option params [String] organization Organisation name
     # @option params [String] login_or_email Login or email
     # @option params [String] role Name of the Role - only 'Viewer', 'Editor', 'Read Only Editor' or 'Admin' allowed
     #
-    # @examle
+    # @example
     #    params = {
     #      organization: 'Foo',
     #      login_or_email: 'foo@foo-bar.tld',
@@ -186,12 +186,11 @@ module Grafana
 
     # Delete User in Organisation
     #
-    # @param
+    # @param [Hash] params
     # @option params [String] organization Organisation name
     # @option params [String] login_or_email Login or email
-    # @option params [String] role Name of the Role - only 'Viewer', 'Editor', 'Read Only Editor' or 'Admin' allowed
     #
-    # @examle
+    # @example
     #    params = {
     #      organization: 'Foo',
     #      login_or_email: 'foo@foo-bar.tld'
@@ -225,10 +224,10 @@ module Grafana
 
     # Create Organisation
     #
-    # @param
+    # @param [Hash] params
     # @option params [String] organization Organisation name
     #
-    # @examle
+    # @example
     #    params = {
     #      name: 'Foo'
     #    }
@@ -291,7 +290,7 @@ module Grafana
     private
     # validate an user for an organisation
     #
-    # @examle
+    # @example
     #    params = {
     #      organization: 'Foo',
     #      login_or_email: 'foo@foo-bar.tld',

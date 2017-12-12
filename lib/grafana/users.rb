@@ -20,9 +20,7 @@ module Grafana
 
     # Get a single user by Id or Name
     #
-    # @param [Hash] params
-    # @option params [Hash] data
-    # @option params [Mixed] user Username (String) or Userid (Integer)
+    # @param [Mixed] user_id Username (String) or Userid (Integer)
     #
     # @example
     #    user( 1 )
