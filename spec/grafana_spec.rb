@@ -324,8 +324,9 @@ describe Grafana do
 
     it 'Update an existing data source \'graphite\'' do
       r = @g.update_datasource(
-        datasource: 'graphite',
-        data: { url: 'http://localhost:2003' }
+        name: 'graphite',
+        organisation: 1,
+        url: 'http://localhost:2003'
       )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -336,7 +337,7 @@ describe Grafana do
     it 'Get all datasources' do
       r = @g.datasources
       expect(r).to be_a(Hash)
-      expect(r.keys.count).to be == 9
+      expect(r.keys.count).to be >= 9
     end
 
     it 'Get a single data sources by Name' do
@@ -373,8 +374,9 @@ describe Grafana do
 
     it 'Update an existing data source \'foo-2\'' do
       r = @g.update_datasource(
-        datasource: 'foo-2',
-        data: { url: 'http://localhost:2003' }
+        name: 'foo-2',
+        type: 'influxdb',
+        url: 'http://localhost:2003'
       )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -393,9 +395,8 @@ describe Grafana do
     it 'delete all created datasources' do
 
       %w[grafana graphite cloudwatch elasticsearch prometheus influxdb mysql opentsdb postgres].each do |d|
-      r = @g.delete_datasource(d)
-      expect(r).to be_a(Hash)
-
+        r = @g.delete_datasource(d)
+        expect(r).to be_a(Hash)
       end
     end
 
@@ -896,7 +897,7 @@ describe Grafana do
     end
 
     it 'search tagged dashboards' do
-      search = { :tags => 'QA' }
+      search = { tags: 'QA' }
       r = @g.search_dashboards( search )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -907,7 +908,7 @@ describe Grafana do
     end
 
     it 'search starred dashboards' do
-      search = { :starred => true }
+      search = { starred: true }
       r = @g.search_dashboards( search )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -918,7 +919,7 @@ describe Grafana do
     end
 
     it 'search dashboards with query' do
-      search = { :query => 'QA Graphite Carbon Metrics' }
+      search = { query: 'QA Graphite Carbon Metrics' }
       r = @g.search_dashboards( search )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -929,7 +930,7 @@ describe Grafana do
     end
 
     it 'list dashboard' do
-      search = { :query => 'QA Graphite Carbon Metrics' }
+      search = { query: 'QA Graphite Carbon Metrics' }
       r = @g.search_dashboards( search )
       message = r.dig('message')
       title = message.first.dig('title')

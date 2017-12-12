@@ -74,14 +74,29 @@ module Grafana
     # merge an current existing datasource configuration with the new values
     #
     # @param [Hash] params
-    # @option params [Hash] data
-    # @option params [Mixed] datasource Datasource Name (String) or Datasource Id (Integer)
+    # @option params [Mixed] name Name or Id of the current existing Datasource (required)
+    # @option params [Mixed] organisation Name or Id of an existing Organisation
+    # @option params [String] type Datasource Type - (required) (grafana graphite cloudwatch elasticsearch prometheus influxdb mysql opentsdb postgres)
+    # @option params [String] new_name  New Datasource Name
+    # @option params [String] database  Datasource Database
+    # @option params [String] access (proxy) Acess Type
+    # @option params [Boolean] default (false)
+    # @option params [String] user
+    # @option params [String] password
+    # @option params [String] url Datasource URL
+    # @option params [Hash] json_data
+    # @option params [String] basic_user
+    # @option params [String] basic_password
     #
     # @example
-    #    update_datasource(
-    #      datasource: 'graphite',
-    #      data: { url: 'http://localhost:2003' }
-    #    )
+    #    params = {
+    #      name: 'graphite',
+    #      new_name: 'influx',
+    #      organisation: 'Main Org.',
+    #      type: 'influxdb',
+    #      url: 'http://localhost:8090'
+    #    }
+    #    update_datasource( params )
     #
     # @return [Hash]
     #
@@ -90,17 +105,64 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      data       = validate( params, required: true, var: 'data', type: Hash )
-      datasource = validate( params, required: true, var: 'datasource' )
+      name = validate( params, required: true, var: 'name' )
+      organisation  = validate( params, required: false, var: 'organisation' )
+      type          = validate( params, required: false, var: 'type', type: String )
+      new_name      = validate( params, required: false, var: 'new_name', type: String )
+      database    = validate( params, required: false, var: 'database', type: String )
+      access      = validate( params, required: false, var: 'access', type: String ) || 'proxy'
+      default     = validate( params, required: false, var: 'default', type: Boolean ) || false
+      user        = validate( params, required: false, var: 'user', type: String )
+      password    = validate( params, required: false, var: 'password', type: String )
+      url         = validate( params, required: false, var: 'url', type: String )
+      json_data   = validate( params, required: false, var: 'json_data', type: Hash )
+      ba_user     = validate( params, required: false, var: 'basic_user', type: String )
+      ba_password = validate( params, required: false, var: 'basic_password', type: String )
+      basic_auth  = false
+      basic_auth  = true unless( ba_user.nil? && ba_password.nil? )
+      org_id      = nil
 
-      raise ArgumentError.new(format('wrong type. user \'datasource\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', datasource.class.to_s)) if( datasource.is_a?(String) && datasource.is_a?(Integer) )
+      raise ArgumentError.new(format('wrong type. user \'name\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', name.class.to_s)) if( name.is_a?(String) && name.is_a?(Integer) )
 
-      existing_ds = datasource(datasource)
+      if( organisation )
+        raise ArgumentError.new(format('wrong type. user \'organisation\' must be an String (for an Organisation name) or an Integer (for an Organisation Id), given \'%s\'', organisation.class.to_s)) if( organisation.is_a?(String) && organisation.is_a?(Integer) )
+        org    = organization( organisation )
+        org_id = org.dig('id')
 
+        return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
+      end
+
+      existing_ds = datasource(name)
       existing_ds.reject! { |x| x == 'status' }
       existing_ds = existing_ds.deep_string_keys
-
       datasource_id = existing_ds.dig('id')
+
+      return { 'status' => 404, 'message' => format('No Datasource \'%s\' found', name) } if( datasource_id.nil? )
+
+      raise format('Data Source Id can not be 0') if( datasource_id.zero? )
+
+      unless( type.nil? )
+        valid_types = %w[grafana graphite cloudwatch elasticsearch prometheus influxdb mysql opentsdb postgres]
+        raise ArgumentError.new(format('wrong datasource type. only %s allowed, given \%s\'', valid_types.join(', '), type)) if( valid_types.include?(type.downcase) == false )
+      end
+
+      data = {
+        id: datasource_id,
+        orgId: org_id,
+        name: new_name,
+        type: type,
+        access: access,
+        url: url,
+        password: password,
+        user: user,
+        database: database,
+        basicAuth: basic_auth,
+        basicAuthUser: ba_user,
+        basicAuthPassword: ba_user,
+        isDefault: default,
+        jsonData: json_data
+      }
+      data.reject!{ |_k, v| v.nil? }
 
       payload = data.deep_string_keys
       payload = existing_ds.merge(payload).deep_symbolize_keys
@@ -121,7 +183,6 @@ module Grafana
     # @option params [String] database  Datasource Database - (required)
     # @option params [String] access (proxy) Acess Type - (required) (proxy or direct)
     # @option params [Boolean] default (false)
-    # @option params [String] user
     # @option params [String] password
     # @option params [String] url Datasource URL - (required)
     # @option params [Hash] json_data
@@ -175,7 +236,6 @@ module Grafana
       database    = validate( params, required: true, var: 'database', type: String )
       access      = validate( params, required: false, var: 'access', type: String ) || 'proxy'
       default     = validate( params, required: false, var: 'default', type: Boolean ) || false
-      user        = validate( params, required: false, var: 'user', type: String )
       password    = validate( params, required: false, var: 'password', type: String )
       url         = validate( params, required: true, var: 'url', type: String )
       json_data   = validate( params, required: false, var: 'json_data', type: Hash )
