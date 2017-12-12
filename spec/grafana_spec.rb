@@ -129,7 +129,6 @@ describe Grafana do
     it 'set Password for User \'spec-test-1\'' do
 
       r = @g.update_user_password( user_name: 'spec-test-1', password: 'foor' )
-
       expect(r).to be_a(Hash)
       status = r.dig('status')
       expect(status).to be_a(Integer)
@@ -166,7 +165,7 @@ describe Grafana do
 
     it 'delete user with id (\'spec-test-1\')' do
 
-      usr = @g.user_by_name('spec-test-1@bar.com')
+      usr = @g.user('spec-test-1@bar.com')
       id = usr['id']
 
       r = @g.delete_user(id)
@@ -714,8 +713,8 @@ describe Grafana do
 
   describe 'Users' do
 
-    it 'All Users' do
-      r = @g.all_users
+    it 'get all Users' do
+      r = @g.users
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       message = r.dig('message')
@@ -726,40 +725,7 @@ describe Grafana do
       expect(message.count).to be >= 1
     end
 
-    it 'Users by Id (1)' do
-      r = @g.user_by_id(1)
-
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      message = r.dig('message')
-
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-    end
-
-    it 'Users by Id (2)' do
-      r = @g.user_by_id(2)
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      message = r.dig('message')
-
-      expect(status).to be_a(Integer)
-      expect(status).to be == 404
-    end
-
-    it 'Users by Name' do
-      r = @g.user_by_name( 'admin@localhost' )
-      expect(r).to be_a(Hash)
-
-      status  = r.dig('status')
-      message = r.dig('message')
-
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-    end
-
-
-    it 'Add temporary User' do
+    it 'add temporary User' do
       r = @g.add_user(
         user_name:'foo',
         email: 'foo@foo-bar.tld',
@@ -775,9 +741,55 @@ describe Grafana do
       expect(id).to be_a(Integer)
     end
 
+    it 'get users by Id (1) - must be successful' do
+      r = @g.user(1)
 
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
 
-    it 'Search for Users by (admin == true)' do
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'get users by Id (2) - must be failed' do
+      r = @g.user(2)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 404
+    end
+
+    it 'get users by Name - must be successful' do
+      r = @g.user( 'admin@localhost' )
+      expect(r).to be_a(Hash)
+
+      status  = r.dig('status')
+      message = r.dig('message')
+
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'add another temporary User' do
+      r = @g.add_user(
+        user_name:'foo-2',
+        email: 'foo-2@foo-bar.tld',
+        password: 'pass'
+      )
+      expect(r).to be_a(Hash)
+
+      status = r.dig('status')
+      id = r.dig('id')
+      message = r.dig('message')
+      expect(r).to be_a(Hash)
+      expect(status).to be_a(Integer)
+      expect(id).to be_a(Integer)
+    end
+
+    it 'search for Users by (admin == true)' do
       r = @g.search_for_users_by( isAdmin: true )
       expect(r).to be_a(Array)
     end
@@ -822,13 +834,13 @@ describe Grafana do
 
     end
 
-    it 'delete temporary User' do
-      r = @g.delete_user('foo@foo-bar.tld')
-      expect(r).to be_a(Hash)
-      status = r.dig('status')
-      expect(status).to be_a(Integer)
-      expect(status).to be == 200
-    end
+#     it 'delete temporary User' do
+#       r = @g.delete_user('foo@foo-bar.tld')
+#       expect(r).to be_a(Hash)
+#       status = r.dig('status')
+#       expect(status).to be_a(Integer)
+#       expect(status).to be == 200
+#     end
 
 
   end

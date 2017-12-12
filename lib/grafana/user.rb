@@ -6,7 +6,12 @@ module Grafana
   module User
 
     # Actual User
-    # GET /api/user
+    #
+    # @example
+    #    current_user
+    #
+    # @return [Hash]
+    #
     def current_user
       endpoint = '/api/user'
       @logger.debug("Getting user current user (GET #{endpoint})") if @debug
@@ -14,7 +19,16 @@ module Grafana
     end
 
     # Change Password
-    # PUT /api/user/password
+    #
+    # @param [Hash] params
+    # @option params [String] old_password the old password
+    # @option params [String] new_password the new password
+    #
+    # @example
+    #    update_current_user_password( old_password: 'foo', new_password: 'FooBar' )
+    #
+    # @return [Hash]
+    #
     def update_current_user_password( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
@@ -34,10 +48,18 @@ module Grafana
     end
 
     # Switch user context for signed in user
-    # POST /api/user/using/:organizationId
+    #
+    # @param organization [String ] organization
+    #
+    # @example
+    #    switch_current_user_organization( 'Main. Org' )
+    #
+    # @return [Hash]
+    #
     def switch_current_user_organization( organization )
 
       raise ArgumentError.new(format('wrong type. \'organization\' must be an String, given \'%s\'', organization.class.to_s)) unless( organization.is_a?(String) )
+      raise ArgumentError.new('missing \'organization\'') if( organization.size.zero? )
 
       org = organization_by_name( organization )
 
@@ -52,7 +74,12 @@ module Grafana
     end
 
     # Organisations of the actual User
-    # GET /api/user/orgs
+    #
+    # @example
+    #    current_user_oganizations
+    #
+    # @return [Hash]
+    #
     def current_user_oganizations
 
       endpoint = '/api/user/orgs'
@@ -61,7 +88,15 @@ module Grafana
     end
 
     # Star a dashboard
-    # POST /api/user/stars/dashboard/:dashboardId
+    #
+    # @param [Mixed] dashboard_id Dashboard Name (String) or Dashboard Id (Integer) for add a star
+    #
+    # @example
+    #    add_dashboard_star( 1 )
+    #    add_dashboard_star( 'QA Graphite Carbon Metrics' )
+    #
+    # @return [Hash]
+    #
     def add_dashboard_star( dashboard_id )
 
       raise ArgumentError.new(format('wrong type. user \'dashboard_id\' must be an String (for an Dashboard name) or an Integer (for an Dashboard Id), given \'%s\'', dashboard_id.class.to_s)) if( dashboard_id.is_a?(String) && dashboard_id.is_a?(Integer) )
@@ -83,7 +118,15 @@ module Grafana
     end
 
     # Unstar a dashboard
-    # DELETE /api/user/stars/dashboard/:dashboardId
+    #
+    # @param [Mixed] dashboard_id Dashboard Name (String) or Dashboard Id (Integer) for delete a star
+    #
+    # @example
+    #    remove_dashboard_star( 1 )
+    #    remove_dashboard_star( 'QA Graphite Carbon Metrics' )
+    #
+    # @return [Hash]
+    #
     def remove_dashboard_star( dashboard_id )
 
       raise ArgumentError.new(format('wrong type. user \'dashboard_id\' must be an String (for an Dashboard name) or an Integer (for an Dashboard Id), given \'%s\'', dashboard_id.class.to_s)) if( dashboard_id.is_a?(String) && dashboard_id.is_a?(Integer) )

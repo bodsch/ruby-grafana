@@ -84,19 +84,19 @@ module Grafana
 
       return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
 
-      org_id = org.dig('id')
+      organization_id = org.dig('id')
 
-      endpoint = format( '/api/orgs/%s', org_id )
+      endpoint = format( '/api/orgs/%s', organization_id )
       payload = { name: name }
 
-      @logger.debug("Update Organisation id #{org_id} (PUT #{endpoint})") if @debug
+      @logger.debug("Update Organisation id #{organization_id} (PUT #{endpoint})") if @debug
 
       put( endpoint, payload.to_json )
     end
 
     # Get Users in Organisation
     #
-    # @param [Mixed] user_id Username (String) or Userid (Integer) for delete User
+    # @param [Mixed] organization_id Organistaion Name (String) or Organistaion Id (Integer)
     #
     # @example
     #    organization_users( 1 )
@@ -104,21 +104,21 @@ module Grafana
     #
     # @return [Hash]
     #
-    def organization_users( org_id )
+    def organization_users( organization_id )
 
-      raise ArgumentError.new(format('wrong type. user \'org_id\' must be an String (for an Organisation name) or an Integer (for an Organisation Id), given \'%s\'', org_id.class.to_s)) if( org_id.is_a?(String) && org_id.is_a?(Integer) )
-      raise ArgumentError.new('missing \'org_id\'') if( org_id.size.zero? )
+      raise ArgumentError.new(format('wrong type. user \'organization_id\' must be an String (for an Organisation name) or an Integer (for an Organisation Id), given \'%s\'', organization_id.class.to_s)) if( organization_id.is_a?(String) && organization_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'organization_id\'') if( organization_id.size.zero? )
 
-      if(org_id.is_a?(String))
-        org = organization(org_id)
+      if(organization_id.is_a?(String))
+        org = organization(organization_id)
         return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
 
-        org_id = org.dig('id')
+        organization_id = org.dig('id')
       end
 
-      endpoint = format( '/api/orgs/%s/users', org_id )
+      endpoint = format( '/api/orgs/%s/users', organization_id )
 
-      @logger.debug("Getting users in Organisation id #{org_id} (GET #{endpoint})") if @debug
+      @logger.debug("Getting users in Organisation id #{organization_id} (GET #{endpoint})") if @debug
       get(endpoint)
     end
 
@@ -149,12 +149,12 @@ module Grafana
       org = data.dig('organisation')
       usr = data.dig('user')
 
-      org_id = org.dig('id')
+      organization_id = org.dig('id')
       organization = org.dig('name')
       login_or_email = usr.dig('name')
       role = data.dig(:role)
 
-      endpoint = format( '/api/orgs/%d/users', org_id )
+      endpoint = format( '/api/orgs/%d/users', organization_id )
       payload = {
         loginOrEmail: login_or_email,
         role: role
@@ -192,13 +192,13 @@ module Grafana
       org = data.dig('organisation')
       usr = data.dig('user')
 
-      org_id = org.dig('id')
+      organization_id = org.dig('id')
       organization = org.dig('name')
       usr_id = usr.dig('id')
       login_or_email = usr.dig('name')
       role = data.dig(:role)
 
-      endpoint = format( '/api/orgs/%d/users/%d', org_id, usr_id )
+      endpoint = format( '/api/orgs/%d/users/%d', organization_id, usr_id )
       payload = {
         role: role
       }
@@ -233,15 +233,15 @@ module Grafana
       login_or_email = validate( params, required: true, var: 'login_or_email', type: String )
 
       org = organization( organization )
-      usr = user_by_name( login_or_email )
+      usr = user( login_or_email )
 
       return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
       return { 'status' => 404, 'message' => format('User \'%s\' not found', login_or_email) } if( usr.nil? || usr.dig('status').to_i != 200 )
 
-      org_id = org.dig('id')
+      organization_id = org.dig('id')
       usr_id = usr.dig('id')
 
-      endpoint = format( '/api/orgs/%d/users/%d', org_id, usr_id )
+      endpoint = format( '/api/orgs/%d/users/%d', organization_id, usr_id )
 
       @logger.debug("Deleting user '#{login_or_email}' in organization '#{organization}' (DELETE #{endpoint})") if @debug
       delete(endpoint)
@@ -336,7 +336,7 @@ module Grafana
       end
 
       org = organization( organization )
-      usr = user_by_name( login_or_email )
+      usr = user( login_or_email )
 
       return { 'status' => 404, 'message' => format('Organization \'%s\' not found', organization) } if( org.nil? || org.dig('status').to_i != 200 )
       return { 'status' => 404, 'message' => format('User \'%s\' not found', login_or_email) } if( usr.nil? || usr.dig('status').to_i != 200 )

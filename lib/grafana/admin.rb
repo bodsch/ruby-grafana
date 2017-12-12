@@ -91,7 +91,7 @@ module Grafana
         end
       end
 
-      usr = user_by_name(user_name)
+      usr = user(user_name)
 
       if( usr.nil? || usr.dig('status').to_i != 200 )
         return {
@@ -158,7 +158,7 @@ module Grafana
       raise ArgumentError.new('missing \'user_id\'') if( user_id.size.zero? )
 
       if(user_id.is_a?(String))
-        usr = user_by_name(user_id)
+        usr = user(user_id)
         user_id = usr.dig('id')
       end
 
@@ -212,7 +212,7 @@ module Grafana
       login_name = validate( params, required: false, var: 'login_name', type: String ) || user_name
       password = validate( params, required: true, var: 'password', type: String )
 
-      usr = user_by_name(user_name)
+      usr = user(user_name)
 
       if( usr.nil? || usr.dig('status').to_i == 200 )
         return {
@@ -265,16 +265,11 @@ module Grafana
       raise ArgumentError.new('missing params') if( params.size.zero? )
 
       user_name = validate( params, required: true, var: 'user_name', type: String )
-      password = validate( params, required: true, var: 'password', type: String )
+      password  = validate( params, required: true, var: 'password', type: String )
 
-      usr = user_by_name(user_name)
+      usr = user(user_name)
 
-      if( usr.nil? || usr.dig('status').to_i != 200 )
-        return {
-          'status' => 404,
-          'message' => format('User \'%s\' not found', user_name)
-        }
-      end
+      return { 'status' => 404, 'message' => format('User \'%s\' not found', user_name) } if( usr.nil? || usr.dig('status').to_i != 200 )
 
       user_id = usr.dig('id')
 

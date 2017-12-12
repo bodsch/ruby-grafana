@@ -75,7 +75,7 @@ module Grafana
       end
 
       org = current_organization_users
-      usr = user_by_name( login_or_email )
+      usr = user( login_or_email )
 
       return { 'status' => 404, 'message' => format('User \'%s\' not found', login_or_email) } if( usr.nil? || usr.dig('status').to_i != 200 )
 
