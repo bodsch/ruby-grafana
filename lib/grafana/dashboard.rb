@@ -149,7 +149,7 @@ module Grafana
       tags    = validate( params, required: false, var: 'tags' )
 
       api     = []
-      api << format( 'query=%s', CGI.escape( query ) ) unless  query.nil?
+      api << format( 'query=%s', CGI.escape( query ) ) unless( query.nil? )
       api << format( 'starred=%s', starred ? 'true' : 'false' ) unless( starred.nil? )
 
       unless( tags.nil? )

@@ -871,8 +871,6 @@ describe Grafana do
   end
 
 
-
-
   describe 'Dashborads' do
 
     it 'import dashboards from directory' do
@@ -944,7 +942,7 @@ describe Grafana do
     end
 
     it 'delete dashboard' do
-      search = { :tags => 'QA' }
+      search = { tags: 'QA' }
       r = @g.search_dashboards( search )
       expect(r).to be_a(Hash)
       message = r.dig('message')
@@ -962,6 +960,107 @@ describe Grafana do
     end
 
   end
+
+
+  describe 'Annotations' do
+
+    it 'import dashboards from directory' do
+      r = @g.import_dashboards_from_directory('spec/dashboards')
+      expect(r).to be_a(Hash)
+      expect(r.count).to be == 2
+      expect(r.select { |k, v| v['status'] == 200 }.count).to be 2
+    end
+
+    it 'create annotation' do
+      params = {
+        time: Time.now.to_i,
+        time_end: Time.now.to_i + 120,
+        tags: [ 'spec', 'test' ],
+        text: 'test annotation'
+      }
+      r = @g.create_annotation(params)
+
+      puts r
+
+    end
+
+    it 'create graphite annotation' do
+
+      params = {
+        what: 'QA Graphite Carbon Metrics',
+        when: Time.now.to_i,
+        tags: [ 'spec', 'test' ],
+        text: 'test annotation'
+      }
+      r = @g.create_annotation_graphite(params)
+
+      puts r
+    end
+
+    it 'update annotation' do
+      params = {
+        annotation: 1,
+        from: Time.now.to_i - 320,
+        to: Time.now.to_i,
+        tags: [ 'spec', 'test', 'correcting' ],
+        text: 'new text ... (test annotation)'
+      }
+      r = @g.update_annotation(params)
+
+      puts r
+
+    end
+
+
+    it 'find annotation' do
+      params = {
+        dashboard: 'QA Graphite Carbon Metrics',
+        from: Time.now.to_i - 320,
+        to: Time.now.to_i,
+        limit: 5,
+        tags: [ 'spec', 'test' ]
+      }
+      r = @g.find_annotation(params)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      expect(status).to be == 200
+      expect(message).to be_a(Array)
+    end
+
+
+    it 'delete annotation' do
+      r = @g.delete_annotation(1)
+
+      puts r
+    end
+
+    it 'delete annotation by region' do
+      r = @g.delete_annotation_by_region(1)
+
+      puts r
+    end
+
+    it 'delete dashboard' do
+      search = { tags: 'QA' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).equal?(2)
+
+      message.each do |m|
+        title = m.dig('title')
+        r = @g.delete_dashboard(title)
+        expect(r).to be_a(Hash)
+        status  = r.dig('status')
+        expect(status).to be == 200
+      end
+
+    end
+  end
+
 
 end
 
