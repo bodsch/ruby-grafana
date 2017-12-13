@@ -4,7 +4,20 @@ module Grafana
   # namespace for validate options
   module Validator
 
-    # validate( params, { required: true, var: name, type: String } )
+    # validate some parameters
+    #
+    # @param params [Hash]
+    # @param options [Hash]
+    # @option options [Boolean] requiered
+    # @option options [String] var
+    # @option options [Class] type
+    #
+    # @example
+    #    default = validate( params, required: false, var: 'default', type: Boolean )
+    #    name    = validate( params, required: true, var: 'name', type: String )
+    #
+    # @return [Mixed]
+    #
     def validate( params, options )
       required = options.dig(:required) || false
       var      = options.dig(:var)

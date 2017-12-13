@@ -3,8 +3,24 @@ module Grafana
   module Tags
 
     # expand the Template Tags
+    # helper function to expand the Dashboard Tags with an own Array of Tags
     #
+    # @param params [Hash] params
+    # @option params [Hash] dashboard
+    # @option params [Array] additional_tags
     #
+    # @example
+    #    params = {
+    #      dashboard: {
+    #        rows: [
+    #
+    #        ]
+    #      },
+    #      additional_tag: [ 'tag1', 'tag2' ]
+    #    }
+    #    expand_tags( params )
+    #
+    # @return [Hash]
     #
     def expand_tags( params )
 

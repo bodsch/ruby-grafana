@@ -3,6 +3,15 @@ module Grafana
 
   module Tools
 
+    # return a slugged string for Grafana Dashboards
+    #
+    # @param text [String] text
+    #
+    # @example
+    #    slug( 'test dashboard' )
+    #
+    # @retunr [String]
+    #
     def slug( text )
 
       raise ArgumentError.new(format('wrong type. \'text\' must be an String, given \'%s\'', text.class.to_s)) unless( text.is_a?(String) )
@@ -23,7 +32,23 @@ module Grafana
       text.downcase
     end
 
-
+    # regenerate Row Ids in the Dashboard
+    # usefull for an automatic generated Dashboard
+    #
+    # @param params [Hash] params
+    #
+    # @example
+    #    params = {
+    #      dashboard: {
+    #        rows: [
+    #
+    #        ]
+    #      }
+    #    }
+    #    regenerate_template_ids( params )
+    #
+    # @return [Hash]
+    #
     def regenerate_template_ids( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
@@ -49,7 +74,15 @@ module Grafana
       JSON.generate( params )
     end
 
-
+    # check, it an String a valid Json
+    #
+    # @param json [String] json
+    #
+    # @example
+    #   valid_json?( json )
+    #
+    # @return [Boolean]
+    #
     def valid_json?( json )
       begin
         JSON.parse( json )

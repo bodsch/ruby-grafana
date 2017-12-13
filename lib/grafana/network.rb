@@ -3,31 +3,62 @@ module Grafana
 
   module Network
 
+    # GET request
+    #
+    # @param endpoint [String]
+    #
     def get( endpoint )
-
       request( 'GET', endpoint )
     end
 
+    # POST request
+    #
+    # @param endpoint [String]
+    # @param data [Hash]
+    #
     def post( endpoint, data )
-
       request( 'POST', endpoint, data )
     end
 
+    # PUT request
+    #
+    # @param endpoint [String]
+    # @param data [Hash]
+    #
     def put( endpoint, data )
-
       request( 'PUT', endpoint, data )
     end
 
+    # PATCH request
+    #
+    # @param endpoint [String]
+    # @param data [Hash]
+    #
     def patch( endpoint, data )
-
       request( 'PATCH', endpoint, data )
     end
 
+    # DELETE request
+    #
+    # @param endpoint [String]
+    #
     def delete( endpoint )
-
       request( 'DELETE', endpoint )
     end
 
+
+    private
+    # helper function for all request methods
+    #
+    # @param method_type [String]
+    # @param endpoint [String]
+    # @param data [Hash]
+    #
+    # @example
+    #
+    #
+    # @return [Hash]
+    #
     def request( method_type = 'GET', endpoint = '/', data = {} )
 
       raise 'try first login()' if  @api_instance.nil?
