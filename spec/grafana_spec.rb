@@ -971,57 +971,73 @@ describe Grafana do
       expect(r.select { |k, v| v['status'] == 200 }.count).to be 2
     end
 
+
     it 'create annotation' do
       params = {
         time: Time.now.to_i,
-        time_end: Time.now.to_i + 120,
+        region: true,
         tags: [ 'spec', 'test' ],
         text: 'test annotation'
       }
       r = @g.create_annotation(params)
 
-      puts r
-
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      expect(status).to be == 200
+      expect(message).to be_a(String)
     end
+
 
     it 'create graphite annotation' do
 
       params = {
-        what: 'QA Graphite Carbon Metrics',
+        what: 'spec test graphite annotation',
         when: Time.now.to_i,
         tags: [ 'spec', 'test' ],
         text: 'test annotation'
       }
       r = @g.create_annotation_graphite(params)
 
-      puts r
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      expect(status).to be == 200
+      expect(message).to be_a(String)
     end
+
 
     it 'update annotation' do
+
       params = {
-        annotation: 1,
-        from: Time.now.to_i - 320,
-        to: Time.now.to_i,
-        tags: [ 'spec', 'test', 'correcting' ],
-        text: 'new text ... (test annotation)'
-      }
-      r = @g.update_annotation(params)
-
-      puts r
-
-    end
-
-
-    it 'find annotation' do
-      params = {
-        dashboard: 'QA Graphite Carbon Metrics',
-        from: Time.now.to_i - 320,
-        to: Time.now.to_i,
         limit: 5,
         tags: [ 'spec', 'test' ]
       }
       r = @g.find_annotation(params)
 
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      if( status.to_i == 200 )
+        message = message.first
+        annotation_id = message.dig('id')
+      end
+
+      params = {
+        annotation: annotation_id,
+        region: true,
+        tags: [ 'spec', 'test', 'correcting' ],
+        text: 'new text ... (test annotation)'
+      }
+      r = @g.update_annotation(params)
+    end
+
+
+    it 'find annotation' do
+      params = {
+        limit: 10
+      }
+      r = @g.find_annotation(params)
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       message = r.dig('message')
@@ -1032,14 +1048,16 @@ describe Grafana do
 
     it 'delete annotation' do
       r = @g.delete_annotation(1)
-
-      puts r
+      expect(r).to be_a(Hash)
+#       status  = r.dig('status')
+#       expect(status).to be == 200
     end
 
     it 'delete annotation by region' do
       r = @g.delete_annotation_by_region(1)
-
-      puts r
+      expect(r).to be_a(Hash)
+#       status  = r.dig('status')
+#       expect(status).to be == 200
     end
 
     it 'delete dashboard' do

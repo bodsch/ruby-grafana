@@ -15,7 +15,6 @@ module Grafana
 
     # Find Annotations
     # http://docs.grafana.org/http_api/annotations/#find-annotations
-    # GET /api/annotations?from=1506676478816&to=1507281278816&tags=tag1&tags=tag2&limit=100
     #
     # @param [Hash] params
     # @option params [Integer] from: epoch datetime in milliseconds. Optional.
@@ -28,10 +27,8 @@ module Grafana
     #
     # @example
     #    params = {
-    #
-    #
-    #
-    #
+    #      limit: 5,
+    #      tags: [ 'spec', 'test' ]
     #    }
     #    find_annotation( params )
     #
@@ -54,12 +51,12 @@ module Grafana
 
         dashboard = search_dashboards( query: dashboard )
 
-        return { 'status' => 404, 'message' => format( 'No Dasgboard \'%s\' found', dashboard) } if( dashboard.nil? || dashboard.dig('status').to_i != 200 )
+        return { 'status' => 404, 'message' => format( 'No Dashboard \'%s\' found', dashboard) } if( dashboard.nil? || dashboard.dig('status').to_i != 200 )
 
         dashboard = dashboard.dig('message').first unless( dashboard.nil? && dashboard.dig('status').to_i == 200 )
         dashboard = dashboard.dig('id') unless( dashboard.nil? )
 
-        return { 'status' => 404, 'message' => format( 'No Dasgboard \'%s\' found', dashboard) } if( dashboard.nil? )
+        return { 'status' => 404, 'message' => format( 'No Dashboard \'%s\' found', dashboard) } if( dashboard.nil? )
       end
 
       api     = []
@@ -107,10 +104,9 @@ module Grafana
     #
     # @example
     #    params = {
-    #
-    #
-    #
-    #
+    #      time: Time.now.to_i,
+    #      tags: [ 'spec', 'test' ],
+    #      text: 'test annotation'
     #    }
     #    create_annotation( params )
     #
@@ -123,13 +119,41 @@ module Grafana
 
       dashboard = validate( params, required: false, var: 'dashboard' )
       panel_id  = validate( params, required: false, var: 'panel_id', type: Integer )
-      time      = validate( params, required: true, var: 'time', type: Integer )
-      time_end  = validate( params, required: true, var: 'time_end', type: Integer )
+      time      = validate( params, required: false, var: 'time', type: Integer ) || Time.now.to_i
+      time_end  = validate( params, required: false, var: 'time_end', type: Integer )
       region    = validate( params, required: false, var: 'region', type: Boolean )
       tags      = validate( params, required: true, var: 'tags', type: Array )
       text      = validate( params, required: true, var: 'text', type: String )
 
+      if( dashboard.is_a?(String) )
 
+        dashboard = search_dashboards( query: dashboard )
+
+        return { 'status' => 404, 'message' => format( 'No Dashboard \'%s\' found', dashboard) } if( dashboard.nil? || dashboard.dig('status').to_i != 200 )
+
+        dashboard = dashboard.dig('message').first unless( dashboard.nil? && dashboard.dig('status').to_i == 200 )
+        dashboard = dashboard.dig('id') unless( dashboard.nil? )
+
+        return { 'status' => 404, 'message' => format( 'No Dashboard \'%s\' found', dashboard) } if( dashboard.nil? )
+      end
+
+      unless( time_end.nil? )
+        return { 'status' => 404, 'message' => format( '\'end_time\' can\'t be lower then \'time\'' ) } if( time_end < time )
+      end
+
+      endpoint = '/api/annotations'
+      payload = {
+        dashboardId: dashboard,
+        panelId: panel_id,
+        time: time,
+        timeEnd: time_end,
+        isRegion: region,
+        tags: tags,
+        text: text
+      }
+      payload.reject!{ |_k, v| v.nil? }
+
+      post(endpoint, payload.to_json)
     end
 
     # Create Annotation in Graphite format
@@ -150,10 +174,10 @@ module Grafana
     #
     # @example
     #    params = {
-    #
-    #
-    #
-    #
+    #      what: 'spec test graphite annotation',
+    #      when: Time.now.to_i,
+    #      tags: [ 'spec', 'test' ],
+    #      text: 'test annotation'
     #    }
     #    create_annotation_graphite( params )
     #
@@ -169,11 +193,21 @@ module Grafana
       tags      = validate( params, required: true, var: 'tags', type: Array )
       text      = validate( params, required: true, var: 'text', type: String )
 
+      endpoint = '/api/annotations/graphite'
+      payload = {
+        what: what,
+        when: time_when,
+        tags: tags,
+        text: text
+      }
+      payload.reject!{ |_k, v| v.nil? }
+
+      post(endpoint, payload.to_json)
     end
 
     # Update Annotation
+    #
     # http://docs.grafana.org/http_api/annotations/#update-annotation
-    # PUT /api/annotations/:id
     #
     # @param [Hash] params
     # @option params [Integer] annotation
@@ -185,10 +219,9 @@ module Grafana
     #
     # @example
     #    params = {
-    #
-    #
-    #
-    #
+    #      annotation: 1,
+    #      tags: [ 'deployment' ],
+    #      text: 'git tag #1234'
     #    }
     #    update_annotation( params )
     #
@@ -206,7 +239,21 @@ module Grafana
       tags      = validate( params, required: false, var: 'tags', type: Array )
       text      = validate( params, required: false, var: 'text', type: String )
 
+      unless( time_end.nil? )
+        return { 'status' => 404, 'message' => format( '\'end_time\' can\'t be lower then \'time\'' ) } if( time_end < time )
+      end
 
+      endpoint = format( '/api/annotations/%d', annotation_id)
+      payload = {
+        time: time,
+        timeEnd: time_end,
+        isRegion: region,
+        text: text,
+        tags: tags
+      }
+      payload.reject!{ |_k, v| v.nil? }
+
+      put(endpoint, payload.to_json)
     end
 
     # Delete Annotation By Id
@@ -229,7 +276,9 @@ module Grafana
       raise ArgumentError.new('missing \'annotation_id\'') if( annotation_id.size.zero? )
       raise ArgumentError.new('\'annotation_id\' can not be 0') if( annotation_id.zero? )
 
+      endpoint = format( '/api/annotation/%d', annotation_id )
 
+      delete(endpoint)
     end
 
     # Delete Annotation By RegionId
@@ -252,11 +301,11 @@ module Grafana
 
       raise ArgumentError.new(format('wrong type. user \'region_id\' must be an Integer, given \'%s\'', region_id.class.to_s)) unless( region_id.is_a?(Integer) )
       raise ArgumentError.new('missing \'region_id\'') if( region_id.size.zero? )
-      raise ArgumentError.new('\'region_id\' can not be 0') if( region_id.zero? )
+#       raise ArgumentError.new('\'region_id\' can not be 0') if( region_id.zero? )
 
+      endpoint = format( '/api/annotation/region/%d', region_id )
 
-
-
+      delete(endpoint)
     end
 
   end
