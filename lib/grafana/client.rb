@@ -20,7 +20,7 @@ require_relative 'organizations'
 require_relative 'dashboard'
 require_relative 'dashboard_versions'
 require_relative 'snapshot'
-# require_relative 'alerts'
+require_relative 'alerts'
 
 # -------------------------------------------------------------------------------------------------------------------
 #
@@ -55,7 +55,7 @@ module Grafana
     include Grafana::Dashboard
     include Grafana::DashboardVersions
     include Grafana::Snapshot
-#    include Grafana::Alerts
+    include Grafana::Alerts
 
     attr_accessor :debug
 

@@ -94,9 +94,13 @@ module Grafana
               response_body = response.body
               response_code = response.code.to_i
               raise RestClient::BadRequest
+            when 422
+              response_body = response.body
+              response_code = response.code.to_i
+              raise RestClient::UnprocessableEntity
             else
-#               logger.error( response.code )
-#               logger.error( response.body )
+              logger.error( response.code )
+              logger.error( response.body )
 
               body = JSON.parse(response.body) if(response_body.is_a?(String))
               return {
@@ -164,12 +168,7 @@ module Grafana
       rescue RestClient::NotFound
         return { 'status' => 404, 'message' => 'Not Found' }
       rescue RestClient::Conflict
-
-        return {
-          'status' => 409,
-          'message' => 'Conflict with the current state of the target resource'
-        }
-
+        return { 'status' => 409, 'message' => 'Conflict with the current state of the target resource' }
       rescue RestClient::PreconditionFailed
         return { 'status' => 412, 'message' => 'Precondition failed. The Object probably already exists.' }
       rescue RestClient::PreconditionFailed

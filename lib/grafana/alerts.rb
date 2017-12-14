@@ -69,8 +69,6 @@ module Grafana
 
       endpoint = format( '/api/alerts/?%s' , api )
 
-      puts endpoint
-
       @logger.debug("Attempting to search for alerts (GET #{endpoint})") if @debug
 
       get( endpoint )
@@ -98,13 +96,13 @@ module Grafana
 #         alert_id = data.keys.first if( data )
 #       end
 
-      puts alert_id
+#       puts alert_id
       # GET /api/alerts/:id
 
 
       endpoint = format( '/api/alerts/%d' , alert_id )
 
-      puts endpoint
+#       puts endpoint
 
       @logger.debug("Attempting get alert id #{alert_id} (GET #{endpoint})") if @debug
 
@@ -112,14 +110,13 @@ module Grafana
     end
 
 
-    # Pause alert
+    # Pause single alert
     #
     # @param [Mixed] alert_id Alertname (String) or Alertid (Integer)
     #
     # @example
     #    alert_pause( 1 )
     #    alert_pause( 'foo' )
-    #    alert_pause
     #
     # @return [Hash]
     #
@@ -134,8 +131,7 @@ module Grafana
       end
 
       # POST /api/alerts/:id/pause
-      # POST /api/admin/pause-all-alerts
-      puts alert_id
+#       puts alert_id
     end
 
     # Get alert notifications
@@ -187,6 +183,12 @@ module Grafana
 
       # TODO
       # check if the alert 'name' already created
+      return { 'status' => 404, 'message' => format( 'alert notification \'%s\' alread exists', name) } if( alert_notification?(name) )
+
+#       data = alert_notifications
+#       data = data.dig('message').first unless( data.nil? && data.dig('status').to_i == 200 )
+#       data = data.select { |k| k['name'] == name }
+#       return { 'status' => 404, 'message' => format( 'alert notification \'%s\' alread exists', name) } if( data )
 
       payload = {
         name: name,
@@ -197,6 +199,9 @@ module Grafana
       payload.reject!{ |_k, v| v.nil? }
 
       endpoint = '/api/alert-notifications'
+
+#       puts endpoint
+#       puts payload
 
       post(endpoint, payload.to_json)
     end
@@ -251,14 +256,11 @@ module Grafana
 
       raise ArgumentError.new(format('wrong type. user \'alert_id\' must be an String (for an Alertname) or an Integer (for an Alertid), given \'%s\'', alert_id.class.to_s)) if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
 
-      if(alert_id.is_a?(String))
-        data = alerts( alerts: ['ALL'] )
-        puts data
-        data = data.select { |_k,v| v['name'] == alert_id }
-        alert_id = data.keys.first if( data )
-      end
+      alert_id = alert_notification_id(alert_id)
+      return { 'status' => 404, 'message' => format( 'alert notification \'%s\' not exists', name) } if( alert_id.nil? )
 
       payload = {
+        id: alert_id,
         name: name,
         type: type,
         isDefault: default,
@@ -267,8 +269,6 @@ module Grafana
       payload.reject!{ |_k, v| v.nil? }
 
       endpoint = format( '/api/alert-notifications/%d', alert_id )
-#       puts endpoint
-#       puts payload
 
       put(endpoint, payload.to_json)
     end
@@ -288,17 +288,44 @@ module Grafana
       raise ArgumentError.new(format('wrong type. user \'alert_id\' must be an String (for an Alert name) or an Integer (for an Alertid), given \'%s\'', alert_id.class.to_s)) if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
       raise ArgumentError.new('missing \'alert_id\'') if( alert_id.size.zero? )
 
-      if(alert_id.is_a?(String))
-        data = alerts( alerts: 'all' ).select { |_k,v| v['name'] == alert_id }
-        alert_id = data.keys.first if( data )
-      end
-
-      return { 'status' => 404, 'message' => format( 'No Alert \'%s\' found', alert_id) } if( alert_id.nil? )
+      id = alert_notification_id(alert_id)
+      return { 'status' => 404, 'message' => format( 'alert notification \'%s\' not exists', alert_id) } if( id.nil? )
 
       endpoint = format('/api/alert-notifications/%d', alert_id )
       logger.debug( "Deleting alert id #{alert_id} (DELETE #{endpoint})" ) if @debug
 
       delete( endpoint )
+    end
+
+
+    private
+    def alert_notification?( alert_id )
+
+      id = alert_notification_id(alert_id)
+
+      return true unless( id.nil? )
+
+      false
+    end
+
+    def alert_notification_id( alert_id )
+
+      data = alert_notifications
+      data = data.dig('message') unless( data.nil? && data.dig('status').to_i == 200 )
+
+      map = {}
+      data.each do |d|
+        map[d.dig('id')] = d.dig('name').downcase.split.join('_')
+      end
+
+      id = map.select { |key,value| key == alert_id } if( map && alert_id.is_a?(Integer) )
+      id = map.select { |key,value| value == alert_id.downcase.split.join('_') } if( map && alert_id.is_a?(String) )
+
+      id = id.keys.first unless(id.nil?)
+
+      return id if( id.is_a?(Integer) )
+
+      nil
     end
 
   end

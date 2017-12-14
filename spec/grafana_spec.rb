@@ -222,83 +222,80 @@ describe Grafana do
   # Alerts are currently not functional (FOR ME!)
   # needs some Q&A with the grafana team
   #
-#   describe 'Alerts' do
+#  describe 'Alerts' do
 #
-#     it 'get all alerts' do
-#       params = {}
-#       r = @g.alerts(params)
-#       expect(r).to be_a(Hash)
-#       status  = r.dig('status')
-#       message = r.dig('message')
-#       expect(status).to be == 200
-#       expect(message).to be_a(Array)
-#     end
+#    it 'create alert notification' do
+#      params = {
+#        name: 'new alert notification',
+#        type:  'email',
+#        default: true,
+#        settings: {
+#          addresses: 'foo@bar.com;spec-test@test.com'
+#        }
+#      }
+#      r = @g.create_alert_notification( params )
+#      expect(r).to be_a(Hash)
+#      status  = r.dig('status')
+#      id      = r.dig('id')
+#      expect(status).to be == 200
 #
-#     it 'create alert notification' do
-#       params = {
-#         name: 'new alert notification',
-#         type:  'email',
-#         default: true,
-#         settings: {
-#           addresses: 'foo@bar.com;spec-test@test.com'
-#         }
-#       }
-#       r = @g.create_alert_notification( params )
+##       puts "create: #{r}"
+#    end
 #
-#       puts r
-#       expect(r).to be_a(Hash)
-#       status  = r.dig('status')
-#       id      = r.dig('id')
-#       expect(status).to be == 200
+#    it 'get all alerts notification' do
+#      params = {}
+#      r = @g.alert_notifications
+#      expect(r).to be_a(Hash)
+#      status  = r.dig('status')
+#      message = r.dig('message')
+#      expect(status).to be == 200
+#      expect(message).to be_a(Array)
 #
-#       r = @g.alert(id)
+##       puts "get: #{r}"
+#    end
 #
-#       puts r
-#
-#     end
-#
-#
-#     it 'update alert notification' do
-#       params = {
-#         alert_id: 1,
-#         name: 'renamed alert notification',
-#         type:  'email',
-#         default: true,
-#         settings: {
-#           addresses: 'foo@bar.com;spec-test@test.com'
-#         }
-#       }
-#       r = @g.update_alert_notification( params )
-#
-#       puts r
-#       expect(r).to be_a(Hash)
-#       status  = r.dig('status')
-#       expect(status).to be == 200
-#     end
-#
-#     it 'get paused and pending alerts' do
-#
-#       params = {
-#         alerts: ['paused', 'pending']
-#       }
-#       r = @g.alerts(params)
-#       expect(r).to be_a(Hash)
-#       status  = r.dig('status')
-#       message = r.dig('message')
-#       expect(status).to be == 200
-#       expect(message).to be_a(Array)
-#     end
+#    it 'update alert notification' do
+#      params = {
+#        alert_id: 'new alert notification',
+#        name: 'renamed alert notification',
+#        type:  'email',
+#        default: true,
+#        settings: {
+#          addresses: 'foo@bar.com;spec-test@test.com'
+#        }
+#      }
+#      r = @g.update_alert_notification( params )
+#      puts "update: #{r}"
+#      expect(r).to be_a(Hash)
+#      status  = r.dig('status')
+#      expect(status).to be == 200
+#    end
+##
+##    it 'get paused and pending alerts' do
+##
+##      params = {
+##        alerts: ['paused', 'pending']
+##      }
+##      r = @g.alerts(params)
+##      expect(r).to be_a(Hash)
+##      status  = r.dig('status')
+##      message = r.dig('message')
+##      expect(status).to be == 200
+##      expect(message).to be_a(Array)
+##    end
 #
 #
 #
-#     it 'delete alert notification' do
-#       r = @g.delete_alert_notification( 1 )
-#       expect(r).to be_a(Hash)
-#       status  = r.dig('status')
-#       expect(status).to be == 200
-#     end
+#    it 'delete alert notification' do
+#      r = @g.delete_alert_notification( 'new alert notification' )
+#      puts "delete: #{r}"
 #
-#   end
+#      expect(r).to be_a(Hash)
+#      status  = r.dig('status')
+#      expect(status).to be == 200
+#    end
+#
+#  end
 
 
   describe 'Datasources' do
@@ -957,11 +954,11 @@ describe Grafana do
       expect(message).to be_a(String)
       #expect(message).to be == 200
 
-      r = @g.update_user(
-        user_name: 'spec-test',
-        email: 'foo@foo-bar.tld',
-      )
-      expect(r).to be_a(Hash)
+#       r = @g.update_user(
+#         user_name: 'spec-test',
+#         email: 'foo@foo-bar.tld',
+#       )
+#       expect(r).to be_a(Hash)
 
     end
 
@@ -977,7 +974,7 @@ describe Grafana do
   end
 
 
-  describe 'Dashborads' do
+  describe 'Dashboards' do
 
     it 'import dashboards from directory' do
       r = @g.import_dashboards_from_directory('spec/dashboards')
@@ -1081,7 +1078,7 @@ describe Grafana do
     it 'create annotation' do
       params = {
         time: Time.now.to_i,
-        region: true,
+        region: false,
         tags: [ 'spec', 'test' ],
         text: 'test annotation'
       }
@@ -1131,7 +1128,7 @@ describe Grafana do
 
       params = {
         annotation: annotation_id,
-        region: true,
+        region: false,
         tags: [ 'spec', 'test', 'correcting' ],
         text: 'new text ... (test annotation)'
       }
@@ -1197,6 +1194,7 @@ describe Grafana do
       end
 
     end
+
   end
 end
 
