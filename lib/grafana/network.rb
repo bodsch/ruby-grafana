@@ -155,31 +155,14 @@ module Grafana
 
         response_body = JSON.parse(response_body) if response_body.is_a?(String)
 
-        return {
-          'status' => 400,
-          'message' => response_body.dig('message').nil? ? 'Bad Request' : response_body.dig('message')
-        }
+        return { 'status' => 400, 'message' => response_body.dig('message').nil? ? 'Bad Request' : response_body.dig('message') }
 
       rescue RestClient::Unauthorized
-
-        return {
-          'status' => 401,
-          'message' => format('Not authorized to connect \'%s/%s\' - wrong username or password?', @url, endpoint)
-        }
+        return { 'status' => 401, 'message' => format('Not authorized to connect \'%s/%s\' - wrong username or password?', @url, endpoint) }
       rescue RestClient::Forbidden
-
-        return {
-          'status' => 403,
-          'message' => format('The operation is forbidden \'%s/%s\'', @url, endpoint)
-        }
-
+        return { 'status' => 403, 'message' => format('The operation is forbidden \'%s/%s\'', @url, endpoint) }
       rescue RestClient::NotFound
-
-        return {
-          'status' => 404,
-          'message' => 'Not Found'
-        }
-
+        return { 'status' => 404, 'message' => 'Not Found' }
       rescue RestClient::Conflict
 
         return {
@@ -188,20 +171,14 @@ module Grafana
         }
 
       rescue RestClient::PreconditionFailed
-
-        return {
-          'status' => 412,
-          'message' => 'Precondition failed. The Object probably already exists.'
-        }
-
+        return { 'status' => 412, 'message' => 'Precondition failed. The Object probably already exists.' }
+      rescue RestClient::PreconditionFailed
+        return { 'status' => 412, 'message' => 'Precondition failed. The Object probably already exists.' }
       rescue RestClient::ExceptionWithResponse => e
-
         logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{e}'" )
-        logger.error( data )
-        logger.error( @headers )
-        logger.error( JSON.pretty_generate( response_headers ) )
-
-        return false
+        logger.error( "query: #{data}" )
+#        logger.error( JSON.pretty_generate( response_headers ) )
+        return { 'status' => 500, 'message' => 'Internal Server Error' }
 
       end
 

@@ -195,11 +195,117 @@ describe Grafana do
   end
 
 
-  describe 'Datasources' do
+  describe 'create demo data' do
 
     it 'Create \'graphite\' data source' do
       r = @g.create_datasource(
         name: 'graphite',
+        type: 'graphite',
+        database: 'graphite',
+        url: 'http://localhost:8080'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'import dashboards from directory' do
+      r = @g.import_dashboards_from_directory('spec/dashboards')
+      expect(r).to be_a(Hash)
+      expect(r.count).to be == 2
+      expect(r.select { |k, v| v['status'] == 200 }.count).to be 2
+    end
+
+  end
+
+  # Alerts are currently not functional (FOR ME!)
+  # needs some Q&A with the grafana team
+  #
+#   describe 'Alerts' do
+#
+#     it 'get all alerts' do
+#       params = {}
+#       r = @g.alerts(params)
+#       expect(r).to be_a(Hash)
+#       status  = r.dig('status')
+#       message = r.dig('message')
+#       expect(status).to be == 200
+#       expect(message).to be_a(Array)
+#     end
+#
+#     it 'create alert notification' do
+#       params = {
+#         name: 'new alert notification',
+#         type:  'email',
+#         default: true,
+#         settings: {
+#           addresses: 'foo@bar.com;spec-test@test.com'
+#         }
+#       }
+#       r = @g.create_alert_notification( params )
+#
+#       puts r
+#       expect(r).to be_a(Hash)
+#       status  = r.dig('status')
+#       id      = r.dig('id')
+#       expect(status).to be == 200
+#
+#       r = @g.alert(id)
+#
+#       puts r
+#
+#     end
+#
+#
+#     it 'update alert notification' do
+#       params = {
+#         alert_id: 1,
+#         name: 'renamed alert notification',
+#         type:  'email',
+#         default: true,
+#         settings: {
+#           addresses: 'foo@bar.com;spec-test@test.com'
+#         }
+#       }
+#       r = @g.update_alert_notification( params )
+#
+#       puts r
+#       expect(r).to be_a(Hash)
+#       status  = r.dig('status')
+#       expect(status).to be == 200
+#     end
+#
+#     it 'get paused and pending alerts' do
+#
+#       params = {
+#         alerts: ['paused', 'pending']
+#       }
+#       r = @g.alerts(params)
+#       expect(r).to be_a(Hash)
+#       status  = r.dig('status')
+#       message = r.dig('message')
+#       expect(status).to be == 200
+#       expect(message).to be_a(Array)
+#     end
+#
+#
+#
+#     it 'delete alert notification' do
+#       r = @g.delete_alert_notification( 1 )
+#       expect(r).to be_a(Hash)
+#       status  = r.dig('status')
+#       expect(status).to be == 200
+#     end
+#
+#   end
+
+
+  describe 'Datasources' do
+
+    it 'Create \'graphite-2\' data source' do
+      r = @g.create_datasource(
+        name: 'graphite-2',
         type: 'graphite',
         database: 'graphite',
         url: 'http://localhost:8080'
@@ -322,9 +428,9 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-    it 'Update an existing data source \'graphite\'' do
+    it 'Update an existing data source \'graphite-2\'' do
       r = @g.update_datasource(
-        name: 'graphite',
+        name: 'graphite-2',
         organisation: 1,
         url: 'http://localhost:2003'
       )
@@ -394,7 +500,7 @@ describe Grafana do
 
     it 'delete all created datasources' do
 
-      %w[grafana graphite cloudwatch elasticsearch prometheus influxdb mysql opentsdb postgres].each do |d|
+      %w[grafana graphite-2 cloudwatch elasticsearch prometheus influxdb mysql opentsdb postgres].each do |d|
         r = @g.delete_datasource(d)
         expect(r).to be_a(Hash)
       end
@@ -1060,6 +1166,20 @@ describe Grafana do
 #       expect(status).to be == 200
     end
 
+  end
+
+
+
+  describe 'remove demo data' do
+
+    it 'Delete an existing data source \'graphite\' (by name)' do
+      r = @g.delete_datasource('graphite')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
     it 'delete dashboard' do
       search = { tags: 'QA' }
       r = @g.search_dashboards( search )
@@ -1078,7 +1198,5 @@ describe Grafana do
 
     end
   end
-
-
 end
 
