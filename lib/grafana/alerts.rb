@@ -146,11 +146,16 @@ module Grafana
       get('/api/alert-notifications')
     end
 
+
+
+
+
+
     # Create alert notification
     #
     # @param [Hash] params
     # @option params [String] name short description - required
-    # @option params [String] type ('email') - required
+    # @option params [String] type ('email') on of 'slack', 'pagerduty','email','webhook','kafka','hipchat','victorops','sensu','opsgenie','threema','pushover','telegram','line','prometheus-alertmanager' - required
     # @option params [Boolean] default (false)
     # @option params [Hash] settings
     #
@@ -175,11 +180,15 @@ module Grafana
       # TODO
       # type are 'email'
       # and the other possible values?
-
       name     = validate( params, required: true, var: 'name', type: String )
       type     = validate( params, required: true, var: 'type', type: String ) || 'email'
       default  = validate( params, required: false, var: 'default', type: Boolean ) || false
       settings = validate( params, required: false, var: 'settings', type: Hash )
+
+      unless( type.nil? )
+        valid_types = %w[slack pagerduty email webhook kafka hipchat victorops sensu opsgenie threema pushover telegram line prometheus-alertmanager]
+        raise ArgumentError.new(format('wrong notification type. only %s allowed, given \%s\'', valid_types.join(', '), type)) if( valid_types.include?(type.downcase) == false )
+      end
 
       # TODO
       # check if the alert 'name' already created
@@ -253,6 +262,11 @@ module Grafana
       type     = validate( params, required: true, var: 'type', type: String ) || 'email'
       default  = validate( params, required: false, var: 'default', type: Boolean ) || false
       settings = validate( params, required: false, var: 'settings', type: Hash )
+
+      unless( type.nil? )
+        valid_types = %w[slack pagerduty email webhook kafka hipchat victorops sensu opsgenie threema pushover telegram line prometheus-alertmanager]
+        raise ArgumentError.new(format('wrong notification type. only %s allowed, given \%s\'', valid_types.join(', '), type)) if( valid_types.include?(type.downcase) == false )
+      end
 
       raise ArgumentError.new(format('wrong type. user \'alert_id\' must be an String (for an Alertname) or an Integer (for an Alertid), given \'%s\'', alert_id.class.to_s)) if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
 
