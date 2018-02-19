@@ -61,24 +61,30 @@ module Grafana
     #
     def request( method_type = 'GET', endpoint = '/', data = {} )
 
-      raise 'try first login()' if  @api_instance.nil?
+      logger.debug( "request( #{method_type}, #{endpoint}, data )" )
+
+      raise 'try first login()' if @api_instance.nil?
+
+      login( username: @username, password: @password )
 
       response             = nil
       response_code        = 404
       response_body        = ''
 
+#       logger.debug("headers: #{headers}")
+
       begin
 
         case method_type.upcase
         when 'GET'
-          response = @api_instance[endpoint].get( @headers )
+          response = @api_instance[endpoint].get( headers )
         when 'POST'
-          response = @api_instance[endpoint].post( data, @headers )
+          response = @api_instance[endpoint].post( data, headers )
         when 'PATCH'
-          response = @api_instance[endpoint].patch( data, @headers )
+          response = @api_instance[endpoint].patch( data, headers )
         when 'PUT'
-          # response = @api_instance[endpoint].put( data, @headers )
-          @api_instance[endpoint].put( data, @headers ) do |response, request, result|
+          # response = @api_instance[endpoint].put( data, headers )
+          @api_instance[endpoint].put( data, headers ) do |response, request, result|
 
             case response.code
             when 200
@@ -112,7 +118,7 @@ module Grafana
           end
 
         when 'DELETE'
-          response = @api_instance[endpoint].delete( @headers )
+          response = @api_instance[endpoint].delete( headers )
         else
           @logger.error( "Error: #{__method__} is not a valid request method." )
           return false
@@ -133,11 +139,10 @@ module Grafana
           result = JSON.parse( response_body )
 
           if( result.is_a?(Array) )
-            r_result= {
+            return {
               'status' => response_code,
               'message' => result
             }
-            return r_result
           end
 
           result_status = result.dig('status') if( result.is_a?( Hash ) )
@@ -147,20 +152,16 @@ module Grafana
 
           return result
         else
-
           @logger.error( "#{__method__} #{method_type.upcase} on #{endpoint} failed: HTTP #{response.code} - #{response_body}" )
-          @logger.error( @headers )
+          @logger.error( headers )
           @logger.error( JSON.pretty_generate( response_headers ) )
 
           return JSON.parse( response_body )
         end
 
       rescue RestClient::BadRequest
-
         response_body = JSON.parse(response_body) if response_body.is_a?(String)
-
         return { 'status' => 400, 'message' => response_body.dig('message').nil? ? 'Bad Request' : response_body.dig('message') }
-
       rescue RestClient::Unauthorized
         return { 'status' => 401, 'message' => format('Not authorized to connect \'%s/%s\' - wrong username or password?', @url, endpoint) }
       rescue RestClient::Forbidden
@@ -173,16 +174,17 @@ module Grafana
         return { 'status' => 412, 'message' => 'Precondition failed. The Object probably already exists.' }
       rescue RestClient::PreconditionFailed
         return { 'status' => 412, 'message' => 'Precondition failed. The Object probably already exists.' }
-      rescue RestClient::ExceptionWithResponse => e
-        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{e}'" )
+      rescue RestClient::ExceptionWithResponse => error
+        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
         logger.error( "query: #{data}" )
 #        logger.error( JSON.pretty_generate( response_headers ) )
         return { 'status' => 500, 'message' => 'Internal Server Error' }
-
+      rescue => error
+        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
+        logger.error( "query: #{data}" )
+#        logger.error( JSON.pretty_generate( response_headers ) )
+        return { 'status' => 500, 'message' => 'Internal Server Error' }
       end
-
     end
-
   end
-
 end

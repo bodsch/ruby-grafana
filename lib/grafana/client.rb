@@ -100,6 +100,8 @@ module Grafana
       @http_headers       = settings.dig(:grafana, :http_headers)  || {}
       @debug              = settings.dig(:debug)                   || false
 
+      @headers            = {}
+
       raise ArgumentError.new('missing \'host\'') if( host.nil? )
 
       raise ArgumentError.new(format('wrong type. \'port\' must be an Integer, given \'%s\'', port.class.to_s)) unless( port.is_a?(Integer) )

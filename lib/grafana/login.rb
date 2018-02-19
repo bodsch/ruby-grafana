@@ -67,6 +67,9 @@ module Grafana
               accept: 'application/json',
               cookies: response_cookies
             }
+
+            @username = username
+            @password = password
           end
 
         rescue SocketError
@@ -112,6 +115,17 @@ module Grafana
           else
             raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
           end
+
+        rescue => error
+          if( retried < max_retries )
+            retried += 1
+            logger.error( error )
+            logger.debug( format( 'cannot login (retry %d / %d)', retried, max_retries ) ) if @debug
+            sleep( sleep_between_retries )
+            retry
+          else
+            raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
+          end
         end
 
         logger.debug('User session initiated') if @debug
@@ -133,6 +147,11 @@ module Grafana
       endpoint = '/api/login/ping'
       logger.debug( "Pinging current session (GET #{endpoint})" ) if @debug
       get( endpoint )
+    end
+
+
+    def headers
+      @headers
     end
   end
 

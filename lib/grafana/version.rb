@@ -8,7 +8,7 @@ module Grafana
     # minor part of version
     MINOR = 9
     # tiny part of version
-    TINY  = 2
+    TINY  = 7
   end
 
   # Current version of gem.

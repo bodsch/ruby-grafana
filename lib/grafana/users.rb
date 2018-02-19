@@ -35,7 +35,14 @@ module Grafana
 
       if(user_id.is_a?(String))
         user_map = {}
-        users.dig('message').each do |d|
+
+        usrs  = users
+        usrs  = JSON.parse(usrs) if(usrs.is_a?(String))
+        status = usrs.dig('status')
+
+        return usrs if( status != 200 )
+
+        usrs.dig('message').each do |d|
           usr_id = d.dig('id').to_i
           user_map[usr_id] = d
         end
