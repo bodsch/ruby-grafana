@@ -25,8 +25,8 @@ module Grafana
 #        end
       end
 
-      rescue => e
-        puts e
+      rescue => error
+        puts error
       end
 
       text.downcase
@@ -87,8 +87,8 @@ module Grafana
       begin
         JSON.parse( json )
         return true
-      rescue JSON::ParserError => e
-        @logger.error("json parse error: #{e}") if @debug
+      rescue JSON::ParserError => error
+        @logger.error("json parse error: #{error}") if @debug
         return false
       end
     end

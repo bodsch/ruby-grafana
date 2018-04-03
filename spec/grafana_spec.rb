@@ -16,7 +16,7 @@ describe Grafana do
       debug: false,
       grafana: {
         host: 'localhost',
-        port: 3030
+        port: 3000
       }
     }
 
@@ -1164,6 +1164,59 @@ describe Grafana do
     end
 
   end
+
+
+  describe 'Folder' do
+
+    it 'create folder' do
+      r = @g.create_folder( title: 'foo', uid: 'uid' )
+
+      puts r
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'get all folders' do
+      r = @g.folders
+
+      puts r
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'get folder by id' do
+      r = @g.folder( 1 )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'get folder by name' do
+      r = @g.folder('foo')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+
+
+
+
+
+  end
+
+
+
+
+
 
 
 

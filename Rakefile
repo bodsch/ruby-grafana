@@ -23,7 +23,7 @@ task :test => ['test']
 namespace :style do
   desc 'Run Ruby style checks'
   RuboCop::RakeTask.new(:ruby) do |task|
-    task.patterns = ['**/*.rb']
+    task.patterns = ['lib/*.rb', 'lib/**/*.rb']
     # don't abort rake on failure
     task.fail_on_error = true
   end

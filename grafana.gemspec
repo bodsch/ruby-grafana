@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 
   spec.name          = 'grafana'
   spec.version       = Grafana::VERSION
-  spec.date          = '2018-01-04'
+  spec.date          = '2018-04-03'
   spec.authors       = ['Bodo Schulz']
   spec.email         = ['bodo@boone-schulz.de']
 

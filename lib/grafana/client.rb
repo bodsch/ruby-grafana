@@ -21,6 +21,9 @@ require_relative 'dashboard'
 require_relative 'dashboard_versions'
 require_relative 'snapshot'
 require_relative 'alerts'
+require_relative 'folder'
+require_relative 'folder_permissions'
+require_relative 'folder_and_dashboard_search'
 
 # -------------------------------------------------------------------------------------------------------------------
 #
@@ -56,6 +59,9 @@ module Grafana
     include Grafana::DashboardVersions
     include Grafana::Snapshot
     include Grafana::Alerts
+    include Grafana::Folder
+    include Grafana::FolderPermissions
+    include Grafana::FolderSearch
 
     attr_accessor :debug
 

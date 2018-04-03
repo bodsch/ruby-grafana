@@ -61,7 +61,7 @@ module Grafana
     #
     def request( method_type = 'GET', endpoint = '/', data = {} )
 
-      logger.debug( "request( #{method_type}, #{endpoint}, data )" )
+#       logger.debug( "request( #{method_type}, #{endpoint}, data )" )
 
       raise 'try first login()' if @api_instance.nil?
 
