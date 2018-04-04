@@ -16,7 +16,7 @@ describe Grafana do
       debug: false,
       grafana: {
         host: 'localhost',
-        port: 3000
+        port: 3030
       }
     }
 
