@@ -34,13 +34,13 @@ module Grafana
     # GET /api/folders/:id
     #
     # Will return the folder identified by id.
-    def folder( folder_id )
+    def folder( folder_uid )
 
-      raise ArgumentError.new(format('wrong type. user \'folder_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', folder_id.class.to_s)) if( folder_id.is_a?(String) && folder_id.is_a?(Integer) )
-      raise ArgumentError.new('missing \'folder_id\'') if( folder_id.size.zero? )
+      raise ArgumentError.new(format('wrong type. user \'folder_uid\' must be an String (for an Folder Uid) or an Integer (for an Folder Id), given \'%s\'', folder_uid.class.to_s)) if( folder_uid.is_a?(String) && folder_uid.is_a?(Integer) )
+      raise ArgumentError.new('missing \'folder_uid\'') if( folder_uid.size.zero? )
 
-      if(folder_id.is_a?(String))
-        user_map = {}
+      if(folder_uid.is_a?(Integer))
+        folder_map = {}
 
         usrs  = folders
         usrs  = JSON.parse(usrs) if(usrs.is_a?(String))
@@ -48,22 +48,21 @@ module Grafana
 
         return usrs if( status != 200 )
 
-        usrs.dig('message').each do |d|
-          usr_id = d.dig('id').to_i
-          user_map[usr_id] = d
-        end
+        usrs = usrs.dig('message').detect {|f| f['id'] == folder_uid }
 
-        folder_id = user_map.select { |_k,v| v['login'] == folder_id || v['email'] == folder_id || v['name'] == folder_id }.keys.first
+        return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.nil? )
+
+        folder_uid = usrs.dig('uid') unless(usrs.nil?)
+
+        return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.is_a?(Integer) )
       end
 
-      return { 'status' => 404, 'message' => format( 'No User \'%s\' found', folder_id) } if( folder_id.nil? )
+      return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.nil? )
 
-      endpoint = format( '/api/folders/%s', folder_id )
+      endpoint = format( '/api/folders/%s', folder_uid )
 
-      @logger.debug("Getting folder by Id #{folder_id} (GET #{endpoint})") if @debug
-      data = get(endpoint)
-      data['id'] = folder_id
-      data
+      @logger.debug("Getting folder by Id #{folder_uid} (GET #{endpoint})") if @debug
+      get(endpoint)
     end
 
     # Create folder
@@ -116,8 +115,36 @@ module Grafana
     # Delete folder
     # DELETE /api/folders/:uid
     #
-    # Deletes an existing folder identified by uid together with all dashboards stored in the folder, if any. This operation cannot be reverted.
-    def delete_folder(); end
+    # Deletes an existing folder identified by uid together with all dashboards stored in the folder, if any.
+    # This operation cannot be reverted.
+    def delete_folder( folder_uid )
+
+      raise ArgumentError.new(format('wrong type. user \'folder_uid\' must be an String (for an Folder Uid) or an Integer (for an Folder Id), given \'%s\'', folder_uid.class.to_s)) if( folder_uid.is_a?(String) && folder_uid.is_a?(Integer) )
+      raise ArgumentError.new('missing \'folder_uid\'') if( folder_uid.size.zero? )
+
+      if(folder_uid.is_a?(Integer))
+
+        fldrs  = folders
+
+        fldrs  = JSON.parse(fldrs) if(fldrs.is_a?(String))
+        status = fldrs.dig('status')
+
+        return fldrs if( status != 200 )
+
+        fldrs.dig('message').each do |d|
+          folder_uid = d.dig('uid').to_s
+        end
+      end
+
+      return { 'status' => 404, 'message' => format( 'No User \'%s\' found', folder_uid) } if( folder_uid.nil? )
+
+      endpoint = format( '/api/folders/%s', folder_uid )
+
+      @logger.debug("deleting folder by uid #{folder_uid} (GET #{endpoint})") if @debug
+      delete(endpoint)
+
+
+    end
 
 
 

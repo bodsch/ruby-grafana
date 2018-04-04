@@ -1168,47 +1168,72 @@ describe Grafana do
 
   describe 'Folder' do
 
-    it 'create folder' do
-      r = @g.create_folder( title: 'foo', uid: 'uid' )
-
-      puts r
-
+    it 'create folder \'spec-test-first\'' do
+      r = @g.create_folder( title: 'foo', uid: 'spec-test-first' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
       expect(status).to be == 200
+    end
+
+    it 'create folder \'spec-test-second\'' do
+      r = @g.create_folder( title: 'bar', uid: 'spec-test-second' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'create folder \'spec-test-second\' (again)' do
+      r = @g.create_folder( title: 'bar', uid: 'spec-test-second' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 412
     end
 
     it 'get all folders' do
       r = @g.folders
-
-      puts r
-
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
       expect(status).to be == 200
     end
 
-    it 'get folder by id' do
-      r = @g.folder( 1 )
+    it 'get folder by id 10' do
+      r = @g.folder( 10 )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 404
+    end
+
+    it 'get folder by name \'spec-test-second\'' do
+      r = @g.folder('spec-test-second')
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
       expect(status).to be == 200
     end
 
-    it 'get folder by name' do
-      r = @g.folder('foo')
+
+
+
+    it 'delete folder' do
+      r = @g.delete_folder( 'spec-test-first' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
       expect(status).to be == 200
     end
 
-
-
-
+    it 'delete folder' do
+      r = @g.delete_folder( 'spec-test-second' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
 
 
   end
