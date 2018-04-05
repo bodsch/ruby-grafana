@@ -1192,6 +1192,14 @@ describe Grafana do
       expect(status).to be == 412
     end
 
+    it 'create folder \'iNpScWISEMGRt8EuNA8nyCB0UMb1e8MazJAAHDoFn\' (uid to long)' do
+      r = @g.create_folder( title: 'long uid', uid: 'iNpScWISEMGRt8EuNA8nyCB0UMb1e8MazJAAHDoFn' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 404
+    end
+
     it 'get all folders' do
       r = @g.folders
       expect(r).to be_a(Hash)
@@ -1216,7 +1224,16 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-
+    it 'update folder \'spec-test-second\'' do
+      r = @g.update_folder(
+        uid: 'spec-test-second',
+        title: 'new name'
+      )
+      expect(r).to be_a(Hash)
+      #status  = r.dig('status')
+      #expect(status).to be_a(Integer)
+      #expect(status).to be == 200
+    end
 
 
     it 'delete folder' do

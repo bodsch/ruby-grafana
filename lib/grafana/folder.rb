@@ -57,6 +57,8 @@ module Grafana
         return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.is_a?(Integer) )
       end
 
+      return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters. \'%s\' given', folder_uid.length) } if( folder_uid.is_a?(String) && folder_uid.length > 40 )
+
       return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.nil? )
 
       endpoint = format( '/api/folders/%s', folder_uid )
@@ -78,10 +80,10 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      title = validate( params, required: false, var: 'title' )
-      uid   = validate( params, required: true, var: 'uid' )
+      title = validate( params, required: false, var: 'title', type: String )
+      uid   = validate( params, required: true , var: 'uid'  , type: String )
 
-#      raise ArgumentError.new(format('wrong type. user \'name\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', name.class.to_s)) if( name.is_a?(String) && name.is_a?(Integer) )
+      return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters. \'%s\' given', uid.length) } if( uid.length > 40 )
 
       data = {
         uid: uid,
@@ -109,7 +111,44 @@ module Grafana
     #   - title – The title of the folder.
     #   - version – Provide the current version to be able to update the folder. Not needed if overwrite=true.
     #   - overwrite – Set to true if you want to overwrite existing folder with newer version.
-    def update_folder(); end
+    def update_folder( params )
+
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      uid       = validate( params, required: true , var: 'uid'      , type: String )
+      title     = validate( params, required: true , var: 'title'    , type: String )
+      new_uid   = validate( params, required: false, var: 'new_uid'  , type: String )
+      version   = validate( params, required: false, var: 'version'  , type: Integer )
+      overwrite = validate( params, required: false, var: 'overwrite', type: Boolean ) || false
+
+      # check uid length
+      # check if uid exists
+      # check new_uid length
+      # check if new_uid exists
+
+      payload = {
+        title: title,
+        uid: new_uid,
+        version: version,
+        overwrite: overwrite
+      }
+      payload.reject!{ |_k, v| v.nil? }
+
+      puts payload
+
+#       @logger.debug("Updating folder with Uid #{user_id}") if @debug
+#
+#       usr     = usr.deep_string_keys
+#       payload = payload.deep_string_keys
+#
+#       payload = usr.merge(payload)
+#
+#       put( endpoint, payload.to_json )
+
+      return {}
+
+    end
 
 
     # Delete folder
@@ -145,11 +184,6 @@ module Grafana
 
 
     end
-
-
-
-
-
 
 
   end
