@@ -1224,16 +1224,74 @@ describe Grafana do
       expect(status).to be == 200
     end
 
+
+
     it 'update folder \'spec-test-second\'' do
       r = @g.update_folder(
         uid: 'spec-test-second',
-        title: 'new name'
+        title: 'new name',
+        overwrite: true
+      )
+      #puts r
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+    it 'update folder \'spec-test-second\' with new uid and overwrite' do
+      r = @g.update_folder(
+        uid: 'spec-test-second',
+        title: 'new name',
+        new_uid: 'flupp-di-wupp',
+        overwrite: true
       )
       expect(r).to be_a(Hash)
-      #status  = r.dig('status')
-      #expect(status).to be_a(Integer)
-      #expect(status).to be == 200
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
     end
+
+    it 'update folder \'flupp-di-wupp\' with new uid without overwrite (must be fail)' do
+      r = @g.update_folder(
+        uid: 'flupp-di-wupp',
+        title: 'new name',
+        new_uid: 'spec-test-second'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 412
+    end
+
+    it 'update non existing folder \'spec-test-second-2\' (must be fail)' do
+      r = @g.update_folder(
+        uid: 'spec-test-second-2',
+        title: 'new name',
+        new_uid: 'flupp-di-wupp'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 404
+    end
+
+    it 'update folder \'spec-test-second\' and give them an existing uid (must be fail)' do
+      r = @g.update_folder(
+        uid: 'spec-test-second',
+        title: 'new name',
+        new_uid: 'spec-test-first'
+      )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 404
+    end
+
+
+
+
+
 
 
     it 'delete folder' do
@@ -1245,7 +1303,7 @@ describe Grafana do
     end
 
     it 'delete folder' do
-      r = @g.delete_folder( 'spec-test-second' )
+      r = @g.delete_folder( 'flupp-di-wupp' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)

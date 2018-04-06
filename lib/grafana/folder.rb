@@ -14,15 +14,9 @@ module Grafana
     # @return [Hash]
     #
     def folders
-
-      status = 200
-      folders = []
-
       endpoint = '/api/folders'
       @logger.debug("Getting all folders (GET #{endpoint})") if @debug
       get(endpoint)
-
-      # { status: status, folders: folders }
     end
 
     # Get folder by uid
@@ -40,25 +34,25 @@ module Grafana
       raise ArgumentError.new('missing \'folder_uid\'') if( folder_uid.size.zero? )
 
       if(folder_uid.is_a?(Integer))
+
         folder_map = {}
 
-        usrs  = folders
-        usrs  = JSON.parse(usrs) if(usrs.is_a?(String))
-        status = usrs.dig('status')
+        f  = folders
+        f  = JSON.parse(f) if(f.is_a?(String))
 
-        return usrs if( status != 200 )
+        status = f.dig('status')
+        return f if( status != 200 )
 
-        usrs = usrs.dig('message').detect {|f| f['id'] == folder_uid }
+        f = f.dig('message').detect {|f| f['id'] == folder_uid }
 
         return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.nil? )
 
-        folder_uid = usrs.dig('uid') unless(usrs.nil?)
+        folder_uid = f.dig('uid') unless(f.nil?)
 
         return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.is_a?(Integer) )
       end
 
       return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters. \'%s\' given', folder_uid.length) } if( folder_uid.is_a?(String) && folder_uid.length > 40 )
-
       return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.nil? )
 
       endpoint = format( '/api/folders/%s', folder_uid )
@@ -104,6 +98,9 @@ module Grafana
     # Update folder
     # PUT /api/folders/:uid
     #
+    # schould be fail, when the version are not incremented
+    # overwrite helps
+    #
     # Updates an existing folder identified by uid.
     # JSON Body schema:
     #
@@ -122,10 +119,13 @@ module Grafana
       version   = validate( params, required: false, var: 'version'  , type: Integer )
       overwrite = validate( params, required: false, var: 'overwrite', type: Boolean ) || false
 
-      # check uid length
-      # check if uid exists
-      # check new_uid length
-      # check if new_uid exists
+      existing_folder = folder( uid )
+      return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', uid) } if( existing_folder.dig('status') != 200 )
+
+      unless( new_uid.nil? )
+        existing_folder = folder( new_uid )
+        return { 'status' => 404, 'message' => format( 'Folder \'%s\' found', uid) } if( existing_folder.dig('status') == 200 )
+      end
 
       payload = {
         title: title,
@@ -135,19 +135,11 @@ module Grafana
       }
       payload.reject!{ |_k, v| v.nil? }
 
-      puts payload
+      @logger.debug("Updating folder with Uid #{uid}") if @debug
 
-#       @logger.debug("Updating folder with Uid #{user_id}") if @debug
-#
-#       usr     = usr.deep_string_keys
-#       payload = payload.deep_string_keys
-#
-#       payload = usr.merge(payload)
-#
-#       put( endpoint, payload.to_json )
+      endpoint = format( '/api/folders/%s', uid )
 
-      return {}
-
+      put( endpoint, payload.to_json )
     end
 
 
@@ -181,8 +173,6 @@ module Grafana
 
       @logger.debug("deleting folder by uid #{folder_uid} (GET #{endpoint})") if @debug
       delete(endpoint)
-
-
     end
 
 
