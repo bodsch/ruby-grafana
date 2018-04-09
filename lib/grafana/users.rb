@@ -38,16 +38,15 @@ module Grafana
 
         usrs  = users
         usrs  = JSON.parse(usrs) if(usrs.is_a?(String))
-        status = usrs.dig('status')
 
+        status = usrs.dig('status')
         return usrs if( status != 200 )
 
-        usrs.dig('message').each do |d|
-          usr_id = d.dig('id').to_i
-          user_map[usr_id] = d
-        end
+        u = usrs.dig('message').detect { |v| v['login'] == user_id || v['email'] == user_id || v['name'] == user_id }
 
-        user_id = user_map.select { |_k,v| v['login'] == user_id || v['email'] == user_id || v['name'] == user_id }.keys.first
+        return { 'status' => 404, 'message' => format( 'No User \'%s\' found', user_id) } if( u.nil? )
+
+        user_id = u.dig('id') unless(u.nil?)
       end
 
       return { 'status' => 404, 'message' => format( 'No User \'%s\' found', user_id) } if( user_id.nil? )

@@ -121,6 +121,17 @@ module Grafana
       @url      = format( '%s://%s:%d%s', protocoll, host, port, url_path )
     end
 
+    # Get Settings
+    #
+    # http://docs.grafana.org/http_api/other/#get-settings
+    #
+    def settings
+      endpoint = '/api/frontend/settings'
+      @logger.debug("Getting all settings (GET #{endpoint})") if @debug
+      get(endpoint)
+    end
+
+
     def self.logger
       @@logger ||= defined?(Logging) ? Logging.logger : Logger.new(STDOUT)
     end

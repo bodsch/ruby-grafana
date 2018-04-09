@@ -24,6 +24,17 @@ describe Grafana do
     @g.login(username: 'admin', password: 'admin')
   end
 
+
+  describe 'Frontend Settings' do
+
+    it 'settings' do
+      r = @g.settings
+
+      puts r
+    end
+  end
+
+
   describe 'Instance' do
 
     it 'login' do
@@ -1224,15 +1235,12 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-
-
     it 'update folder \'spec-test-second\'' do
       r = @g.update_folder(
         uid: 'spec-test-second',
         title: 'new name',
         overwrite: true
       )
-      #puts r
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
@@ -1288,12 +1296,6 @@ describe Grafana do
       expect(status).to be == 404
     end
 
-
-
-
-
-
-
     it 'delete folder' do
       r = @g.delete_folder( 'spec-test-first' )
       expect(r).to be_a(Hash)
@@ -1309,15 +1311,45 @@ describe Grafana do
       expect(status).to be_a(Integer)
       expect(status).to be == 200
     end
-
-
   end
 
+  describe 'Folder permissions' do
+
+    it 'create folder \'spec-test-first\'' do
+      r = @g.create_folder( title: 'foo', uid: 'spec-test-first' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
 
 
+    it 'get folder_permissions for user \'spec-test-1\' (must be fail)' do
 
+      r = @g.folder_permissions( 'spec-test-1' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 404
+    end
 
+    it 'get folder_permissions for folder \'spec-test-first\'' do
+      r = @g.folder_permissions( 'spec-test-first' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
 
+    it 'delete folder' do
+      r = @g.delete_folder( 'spec-test-first' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+  end
 
 
   describe 'remove demo data' do
