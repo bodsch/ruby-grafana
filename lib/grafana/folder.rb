@@ -14,6 +14,10 @@ module Grafana
     # @return [Hash]
     #
     def folders
+
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+
       endpoint = '/api/folders'
       @logger.debug("Getting all folders (GET #{endpoint})") if @debug
       get(endpoint)
@@ -32,6 +36,9 @@ module Grafana
 
       raise ArgumentError.new(format('wrong type. user \'folder_uid\' must be an String (for an Folder Uid) or an Integer (for an Folder Id), given \'%s\'', folder_uid.class.to_s)) if( folder_uid.is_a?(String) && folder_uid.is_a?(Integer) )
       raise ArgumentError.new('missing \'folder_uid\'') if( folder_uid.size.zero? )
+
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
 
       if(folder_uid.is_a?(Integer))
 
@@ -74,6 +81,9 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+
       title = validate( params, required: false, var: 'title', type: String )
       uid   = validate( params, required: true , var: 'uid'  , type: String )
 
@@ -112,6 +122,9 @@ module Grafana
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
 
       uid       = validate( params, required: true , var: 'uid'      , type: String )
       title     = validate( params, required: true , var: 'title'    , type: String )
@@ -152,6 +165,9 @@ module Grafana
 
       raise ArgumentError.new(format('wrong type. user \'folder_uid\' must be an String (for an Folder Uid) or an Integer (for an Folder Id), given \'%s\'', folder_uid.class.to_s)) if( folder_uid.is_a?(String) && folder_uid.is_a?(Integer) )
       raise ArgumentError.new('missing \'folder_uid\'') if( folder_uid.size.zero? )
+
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
 
       if(folder_uid.is_a?(Integer))
 

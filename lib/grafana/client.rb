@@ -14,11 +14,13 @@ require_relative 'admin'
 require_relative 'annotations'
 require_relative 'user'
 require_relative 'users'
+require_relative 'teams'
 require_relative 'datasource'
 require_relative 'organization'
 require_relative 'organizations'
 require_relative 'dashboard'
 require_relative 'dashboard_versions'
+require_relative 'dashboard_permissions'
 require_relative 'snapshot'
 require_relative 'alerts'
 require_relative 'folder'
@@ -52,11 +54,13 @@ module Grafana
     include Grafana::Annotations
     include Grafana::User
     include Grafana::Users
+    include Grafana::Teams
     include Grafana::Datasource
     include Grafana::Organization
     include Grafana::Organizations
     include Grafana::Dashboard
     include Grafana::DashboardVersions
+    include Grafana::DashboardPermissions
     include Grafana::Snapshot
     include Grafana::Alerts
     include Grafana::Folder
@@ -129,6 +133,15 @@ module Grafana
       endpoint = '/api/frontend/settings'
       @logger.debug("Getting all settings (GET #{endpoint})") if @debug
       get(endpoint)
+    end
+
+
+    def version
+      s = settings
+      @version =  s.dig('buildInfo','version')
+      @major_version = @version.split('.').first.to_i
+
+      {version: @version, major_version: @major_version}
     end
 
 

@@ -29,8 +29,17 @@ describe Grafana do
 
     it 'settings' do
       r = @g.settings
+      expect(r).to be_a(Hash)
+    end
+  end
 
-      puts r
+  describe 'get version' do
+
+    it 'version' do
+      r = @g.version
+      expect(r).to be_a(Hash)
+      expect(r.dig(:version)).to be_a(String)
+      expect(r.dig(:major_version)).to be_a(Integer)
     end
   end
 
@@ -985,6 +994,20 @@ describe Grafana do
   end
 
 
+  describe 'Teams' do
+
+    # search_team()
+    # team()
+    # add_team()
+    # update_team()
+    # delete_team()
+    # team_members()
+    # add_team_member()
+    # remove_team_meber()
+
+  end
+
+
   describe 'Dashboards' do
 
     it 'import dashboards from directory' do
@@ -1041,7 +1064,7 @@ describe Grafana do
       expect(message.count).to be == 1
     end
 
-    it 'list dashboard' do
+    it 'list dashboard (Grafana v4.x and Grafana v5.x)' do
       search = { query: 'QA Graphite Carbon Metrics' }
       r = @g.search_dashboards( search )
       message = r.dig('message')
@@ -1054,6 +1077,23 @@ describe Grafana do
       expect(t).to be_a(String)
       expect(t).equal?(title)
     end
+
+    it 'list dashboard (only Grafana v5.x)' do
+      search = { query: 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      message = r.dig('message')
+      uid = message.first.dig('uid')
+      title = message.first.dig('title')
+      r = @g.dashboard_by_uid(uid)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      t = r.dig('dashboard','title')
+      expect(t).to be_a(String)
+      expect(t).equal?(title)
+    end
+
+
 
     it 'delete dashboard' do
       search = { tags: 'QA' }
@@ -1180,46 +1220,62 @@ describe Grafana do
   describe 'Folder' do
 
     it 'create folder \'spec-test-first\'' do
+      version, major_version = @g.version.values
       r = @g.create_folder( title: 'foo', uid: 'spec-test-first' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'create folder \'spec-test-second\'' do
+      version, major_version = @g.version.values
       r = @g.create_folder( title: 'bar', uid: 'spec-test-second' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'create folder \'spec-test-second\' (again)' do
+      version, major_version = @g.version.values
       r = @g.create_folder( title: 'bar', uid: 'spec-test-second' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 412
+
+      expect(status).to be == 412 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'create folder \'iNpScWISEMGRt8EuNA8nyCB0UMb1e8MazJAAHDoFn\' (uid to long)' do
+      version, major_version = @g.version.values
       r = @g.create_folder( title: 'long uid', uid: 'iNpScWISEMGRt8EuNA8nyCB0UMb1e8MazJAAHDoFn' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 404
+
+      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'get all folders' do
+      version, major_version = @g.version.values
       r = @g.folders
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'get folder by id 10' do
+      version, major_version = @g.version.values
       r = @g.folder( 10 )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -1228,14 +1284,18 @@ describe Grafana do
     end
 
     it 'get folder by name \'spec-test-second\'' do
+      version, major_version = @g.version.values
       r = @g.folder('spec-test-second')
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'update folder \'spec-test-second\'' do
+      version, major_version = @g.version.values
       r = @g.update_folder(
         uid: 'spec-test-second',
         title: 'new name',
@@ -1244,10 +1304,13 @@ describe Grafana do
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'update folder \'spec-test-second\' with new uid and overwrite' do
+      version, major_version = @g.version.values
       r = @g.update_folder(
         uid: 'spec-test-second',
         title: 'new name',
@@ -1257,10 +1320,13 @@ describe Grafana do
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'update folder \'flupp-di-wupp\' with new uid without overwrite (must be fail)' do
+      version, major_version = @g.version.values
       r = @g.update_folder(
         uid: 'flupp-di-wupp',
         title: 'new name',
@@ -1269,10 +1335,13 @@ describe Grafana do
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 412
+
+      expect(status).to be == 412 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'update non existing folder \'spec-test-second-2\' (must be fail)' do
+      version, major_version = @g.version.values
       r = @g.update_folder(
         uid: 'spec-test-second-2',
         title: 'new name',
@@ -1281,10 +1350,13 @@ describe Grafana do
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 404
+
+      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'update folder \'spec-test-second\' and give them an existing uid (must be fail)' do
+      version, major_version = @g.version.values
       r = @g.update_folder(
         uid: 'spec-test-second',
         title: 'new name',
@@ -1293,60 +1365,79 @@ describe Grafana do
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 404
+
+      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'delete folder' do
+      version, major_version = @g.version.values
       r = @g.delete_folder( 'spec-test-first' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'delete folder' do
+      version, major_version = @g.version.values
       r = @g.delete_folder( 'flupp-di-wupp' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
   end
 
   describe 'Folder permissions' do
 
     it 'create folder \'spec-test-first\'' do
+      version, major_version = @g.version.values
       r = @g.create_folder( title: 'foo', uid: 'spec-test-first' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
 
     it 'get folder_permissions for user \'spec-test-1\' (must be fail)' do
-
+      version, major_version = @g.version.values
       r = @g.folder_permissions( 'spec-test-1' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 404
+
+      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'get folder_permissions for folder \'spec-test-first\'' do
+      version, major_version = @g.version.values
       r = @g.folder_permissions( 'spec-test-first' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
     it 'delete folder' do
+      version, major_version = @g.version.values
       r = @g.delete_folder( 'spec-test-first' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
     end
 
   end

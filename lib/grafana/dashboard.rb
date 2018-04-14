@@ -2,11 +2,35 @@
 module Grafana
 
   # http://docs.grafana.org/http_api/dashboard/
+
+  # The identifier (id) of a dashboard is an auto-incrementing numeric value and is only unique per Grafana install.
+  #
+  # The unique identifier (uid) of a dashboard can be used for uniquely identify a dashboard between multiple Grafana installs.
+  # It’s automatically generated if not provided when creating a dashboard. The uid allows having consistent URL’s for
+  # accessing dashboards and when syncing dashboards between multiple Grafana installs, see dashboard provisioning for
+  # more information. This means that changing the title of a dashboard will not break any bookmarked links to that dashboard.
+  #
+  # The uid can have a maximum length of 40 characters.
+  #
+  # Deprecated resources
+  #  Please note that these resource have been deprecated and will be removed in a future release.
+  #
+  #  - Get dashboard by slug
+  #  - Delete dashboard by slug
+  #
+  #
   #
   module Dashboard
 
-
+    # http://docs.grafana.org/http_api/dashboard/#get-dashboard-by-slug
+    #  - Deprecated starting from Grafana v5.0.
+    #    Please update to use the new Get dashboard by uid resource instead
+    #
     # Get dashboard
+    #
+    # Will return the dashboard given the dashboard slug.
+    # Slug is the url friendly version of the dashboard title.
+    # If there exists multiple dashboards with the same slug, one of them will be returned in the response.
     #
     # @example
     #    dashboard('dashboard for many foo')
@@ -18,23 +42,60 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'name\' must be an String, given \'%s\'', name.class.to_s)) unless( name.is_a?(String) )
       raise ArgumentError.new('missing name') if( name.size.zero? )
 
-      endpoint = format( '/api/dashboards/db/%s', slug(name) )
+#       v, mv = version.values
+#
+#       if( mv == 5)
+#         puts 'DEPRICATION WARNING'
+#         puts 'Grafana v5.0 use a new interal id/uid handling'
+#         puts 'This function works well with Grafana v4.x'
+#       end
 
-      @logger.debug( "Attempting to get dashboard (GET /api/dashboards/db/#{name})" ) if @debug
+      endpoint = format( '/api/dashboards/db/%s', slug(name) )
+      @logger.debug( "Attempting to get dashboard (GET #{endpoint})" ) if @debug
 
       get( endpoint )
     end
 
+    # http://docs.grafana.org/http_api/dashboard/#get-dashboard-by-uid
+    #
+    # GET /api/dashboards/uid/:uid
+    # Will return the dashboard given the dashboard unique identifier (uid).
+    #
+    #
+    #
+    #
+    def dashboard_by_uid( uid )
+
+      raise ArgumentError.new(format('wrong type. dashboard \'uid\' must be an String (for an title name) or an Integer (for an Datasource Id), given \'%s\'', uid.class.to_s)) if( uid.is_a?(String) && uid.is_a?(Integer) )
+      raise ArgumentError.new('missing \'uid\'') if( uid.size.zero? )
+
+      return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters. \'%s\' given', uid.length) } if( uid.length > 40 )
+
+      endpoint = format( '/api/dashboards/uid/%s', uid )
+      @logger.debug( "Attempting to get dashboard (GET #{endpoint})" ) if @debug
+
+      get( endpoint )
+    end
+
+
     # Create / Update dashboard
     #
+    # Creates a new dashboard or updates an existing dashboard.
+    #
     # @param [Hash] params
-    # @option params [Hash] dashboard
+    # @option params [Hash] dashboard The complete dashboard model
+    #  - dashboard.id – id = null to create a new dashboard.
+    #  - dashboard.uid – Optional unique identifier when creating a dashboard. uid = null will generate a new uid.
+    #  - folderId – The id of the folder to save the dashboard in.
+    #  - overwrite – Set to true if you want to overwrite existing dashboard with newer version, same dashboard title in folder or same dashboard uid.
+    #  - message - Set a commit message for the version history.
     # @option params [Boolean] overwrite (true)
     #
     # @example
     #    params = {
     #      dashboard: {
     #        id: null,
+    #        uid: null,
     #        title: 'Production Overview',
     #        tags: [ 'templated' ],
     #        timezone": 'browser',
@@ -45,7 +106,9 @@ module Grafana
     #        'schemaVersion': 6,
     #        'version': 0
     #      },
-    #      overwrite: false
+    #      folderId: 0,
+    #      overwrite: false,
+    #      message: 'created by foo'
     #    }
     #    create_dashboard( params )
     #
@@ -59,6 +122,8 @@ module Grafana
 
       dashboard = validate( params, required: true, var: 'dashboard', type: Hash )
       overwrite = validate( params, required: false, var: 'overwrite', type: Boolean ) || true
+      folderId  = validate( params, required: false, var: 'folderId', type: Integer )
+      message   = validate( params, required: false, var: 'message', type: String )
 
       dashboard = regenerate_template_ids( dashboard )
 
@@ -78,7 +143,12 @@ module Grafana
       post( endpoint, payload.to_json )
     end
 
+    # http://docs.grafana.org/http_api/dashboard/#delete-dashboard-by-slug
+    #  - Deprecated starting from Grafana v5.0.
+    #    Please update to use the new Get dashboard by uid resource instead
+    #
     # Delete dashboard
+    # Will delete the dashboard given the specified slug. Slug is the url friendly version of the dashboard title.
     #
     # @example
     #    delete_dashboard('dashboard for many foo')

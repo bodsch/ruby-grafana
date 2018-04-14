@@ -22,6 +22,9 @@ module Grafana
     # Gets all existing permissions for the folder with the given uid.
     def folder_permissions( folder_id )
 
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+
       f = folder( folder_id )
 
       status = f.dig('status')
@@ -48,6 +51,9 @@ module Grafana
 
 #       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 #       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+#
+#       v, mv = version.values
+#       return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
 #
 #       folder      = validate( params, required: true, var: 'folder'    , type: String )
 #       permissions = validate( params, required: true, var: 'permission', type: Hash )
