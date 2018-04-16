@@ -73,7 +73,17 @@ module Grafana
       raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
 
       if(team_id.is_a?(String))
-        team = search_team(name: team_id)
+        o_team = search_team(name: team_id)
+
+        status      = o_team.dig('status')
+        total_count = o_team.dig('totalCount')
+
+        if(status == 200 && total_count > 0)
+          teams = o_team.dig('teams')
+          team  = teams.detect { |v| v['name'] == team_id }
+
+          team_id = team.dig('id')
+        end
       end
 
       return { 'status' => 404, 'message' => format( 'No User \'%s\' found', team_id) } if( team_id.nil? )
@@ -81,8 +91,7 @@ module Grafana
       endpoint = format( '/api/teams/%s', team_id )
 
       @logger.debug("Getting team by Id #{team_id} (GET #{endpoint})") if @debug
-      data = get(endpoint)
-
+      get(endpoint)
     end
 
     # http://docs.grafana.org/http_api/team/#add-team
