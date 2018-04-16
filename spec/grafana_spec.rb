@@ -996,15 +996,34 @@ describe Grafana do
 
   describe 'Teams' do
 
+    it 'add team \'team alpha\'' do
+      r = @g.add_team(name: 'team alpha')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'add team \'team alpha\' (again)' do
+      r = @g.add_team(name: 'team alpha')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
+
     # search_team()
     # team()
-    # add_team()
     # update_team()
-    # delete_team()
     # team_members()
     # add_team_member()
     # remove_team_meber()
 
+    it 'delete team \'team alpha\'' do
+      r = @g.delete_team('team alpha')
+#       puts "#{r}"
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
   end
 
 
@@ -1084,6 +1103,7 @@ describe Grafana do
       message = r.dig('message')
       uid = message.first.dig('uid')
       title = message.first.dig('title')
+#      puts message
       r = @g.dashboard_by_uid(uid)
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -1392,6 +1412,7 @@ describe Grafana do
       expect(status).to be == 404 if(major_version < 5)
     end
   end
+
 
   describe 'Folder permissions' do
 

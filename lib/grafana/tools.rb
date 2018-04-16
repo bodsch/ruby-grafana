@@ -93,6 +93,6 @@ module Grafana
       end
     end
 
-  end
 
+  end
 end

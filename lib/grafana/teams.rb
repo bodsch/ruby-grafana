@@ -14,6 +14,17 @@ module Grafana
     # or
     # GET /api/teams/search?name=myteam
     #
+    # Default value for the perpage parameter is 1000 and for the page parameter is 1.
+    #
+    # The totalCount field in the response can be used for pagination of the teams list E.g. if totalCount is equal to 100 teams and the perpage parameter is set to 10 then there are 10 pages of teams.
+    #
+    # The query parameter is optional and it will return results where the query value is contained in the name field. Query values with spaces need to be url encoded e.g. query=my%20team.
+    #
+    # The name parameter returns a single team if the parameter matches the name field.
+
+
+
+    #
     # Status Codes:
     #
     # 200 - Ok
@@ -21,8 +32,33 @@ module Grafana
     # 403 - Permission denied
     # 404 - Team not found (if searching by name)
     #
-    def search_team()
+    def search_team( params )
 
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      perpage = validate( params, required: false, var: 'perpage', type: Integer ) || 1000
+      page    = validate( params, required: false, var: 'page'   , type: Integer ) || 1
+      query   = validate( params, required: false, var: 'query'  , type: String )
+      name    = validate( params, required: false, var: 'name'   , type: String )
+
+      unless(name.nil?)
+        endpoint = format('/api/teams/search?name=%s',CGI.escape(name))
+      else
+
+        api     = []
+        api << format( 'perpage=%s', perpage ) unless( perpage.nil? )
+        api << format( 'page=%s', page ) unless( page.nil? )
+        api << format( 'query=%s', CGI.escape( query ) ) unless( query.nil? )
+
+        api = api.join( '&' )
+
+        endpoint = format('/api/teams/search?%s', api)
+      end
+
+      @logger.debug("Attempting to search for alerts (GET #{endpoint})") if @debug
+
+      return get( endpoint )
     end
 
     # http://docs.grafana.org/http_api/team/#get-team-by-id
@@ -31,8 +67,21 @@ module Grafana
     # GET /api/teams/:id
     #
     #
-    def team()
+    def team( team_id )
 
+      raise ArgumentError.new(format('wrong type. user \'team_id\' must be an String (for an Team name) or an Integer (for an Team Id), given \'%s\'', team_id.class.to_s)) if( team_id.is_a?(String) && team_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
+
+      if(team_id.is_a?(String))
+        team = search_team(name: team_id)
+      end
+
+      return { 'status' => 404, 'message' => format( 'No User \'%s\' found', team_id) } if( team_id.nil? )
+
+      endpoint = format( '/api/teams/%s', team_id )
+
+      @logger.debug("Getting team by Id #{team_id} (GET #{endpoint})") if @debug
+      data = get(endpoint)
 
     end
 
@@ -42,9 +91,40 @@ module Grafana
     # POST /api/teams
     #
     #
-    def add_team()
+    def add_team( params )
 
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
+      name  = validate( params, required: true, var: 'name'  , type: String )
+      email = validate( params, required: false, var: 'email', type: String )
+
+      o_team = search_team(name: name)
+
+      status      = o_team.dig('status')
+      total_count = o_team.dig('totalCount')
+
+      if(status == 200 && total_count > 0)
+        teams = o_team.dig('teams')
+        team  = teams.detect { |v| v['name'] == name }
+
+        return {
+          'status' => 404,
+          'message' => format('team \'%s\' alread exists', name)
+        }
+      end
+
+      endpoint = '/api/teams'
+
+      payload = {
+        name: name,
+        email: email
+      }
+      payload.reject!{ |_k, v| v.nil? }
+
+      @logger.debug("Creating teal: #{name} (POST #{endpoint})") if @debug
+
+      post( endpoint, payload.to_json )
     end
 
     # http://docs.grafana.org/http_api/team/#update-team
@@ -66,10 +146,29 @@ module Grafana
     #
     #
     #
-    def delete_team()
+    def delete_team(team_id)
 
+      raise ArgumentError.new(format('wrong type. user \'team_id\' must be an String (for an Team name) or an Integer (for an Team Id), given \'%s\'', team_id.class.to_s)) if( team_id.is_a?(String) && team_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
 
+      if(team_id.is_a?(String))
+        o_team = search_team(name: team_id)
 
+        status      = o_team.dig('status')
+        total_count = o_team.dig('totalCount')
+
+        if(status == 200 && total_count > 0)
+          teams = o_team.dig('teams')
+          team  = teams.detect { |v| v['name'] == team_id }
+
+          team_id = team.dig('id')
+        end
+      end
+
+      endpoint = format( '/api/teams/%s', team_id )
+
+      @logger.debug("delete team Id #{team_id} (GET #{endpoint})") if @debug
+      delete(endpoint)
     end
 
     # http://docs.grafana.org/http_api/team/#get-team-members

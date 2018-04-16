@@ -61,13 +61,22 @@ module Grafana
     # GET /api/dashboards/uid/:uid
     # Will return the dashboard given the dashboard unique identifier (uid).
     #
+    # Get dashboard
     #
+    # Will return the dashboard given the dashboard unique identifier (uid).
     #
+    # @example
+    #    dashboard('L42r6NWiz')
+    #
+    # @return [String]
     #
     def dashboard_by_uid( uid )
 
       raise ArgumentError.new(format('wrong type. dashboard \'uid\' must be an String (for an title name) or an Integer (for an Datasource Id), given \'%s\'', uid.class.to_s)) if( uid.is_a?(String) && uid.is_a?(Integer) )
       raise ArgumentError.new('missing \'uid\'') if( uid.size.zero? )
+
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has uid support. you use version %s', v) } if(mv != 5)
 
       return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters. \'%s\' given', uid.length) } if( uid.length > 40 )
 
