@@ -10,7 +10,7 @@ module Grafana
 
     # http://docs.grafana.org/http_api/team/#team-search-with-paging
     #
-    # GET /api/teams/search?perpage=50&page=1&query=mytea
+    # GET /api/teams/search?perpage=50&page=1&query=myteam
     # or
     # GET /api/teams/search?name=myteam
     #
@@ -58,7 +58,9 @@ module Grafana
 
       @logger.debug("Attempting to search for alerts (GET #{endpoint})") if @debug
 
-      return get( endpoint )
+      r = get(endpoint)
+      r['status'] = 404 if( r.dig('totalCount') == 0 )
+      r
     end
 
     # http://docs.grafana.org/http_api/team/#get-team-by-id
@@ -74,7 +76,6 @@ module Grafana
 
       if(team_id.is_a?(String))
         o_team = search_team(name: team_id)
-
         status      = o_team.dig('status')
         total_count = o_team.dig('totalCount')
 
@@ -83,10 +84,10 @@ module Grafana
           team  = teams.detect { |v| v['name'] == team_id }
 
           team_id = team.dig('id')
+        else
+          return { 'status' => 404, 'message' => format( 'No Team \'%s\' found', team_id) }
         end
       end
-
-      return { 'status' => 404, 'message' => format( 'No User \'%s\' found', team_id) } if( team_id.nil? )
 
       endpoint = format( '/api/teams/%s', team_id )
 
@@ -141,7 +142,14 @@ module Grafana
     # There are two fields that can be updated for a team: name and email.
     # PUT /api/teams/:id
     #
-    def update_team()
+    def update_team( params )
+
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      name     = validate( params, required: true , var: 'name'    , type: String )
+      new_name = validate( params, required: true , var: 'new_name', type: String )
+      email    = validate( params, required: false, var: 'email'   , type: String )
 
 
     end
@@ -187,9 +195,32 @@ module Grafana
     #
     #
     #
-    def team_members()
+    def team_members(team_id)
 
+      raise ArgumentError.new(format('wrong type. user \'team_id\' must be an String (for an Team name) or an Integer (for an Team Id), given \'%s\'', team_id.class.to_s)) if( team_id.is_a?(String) && team_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
 
+      if(team_id.is_a?(String))
+        o_team = search_team(name: team_id)
+
+        status      = o_team.dig('status')
+        total_count = o_team.dig('totalCount')
+
+        if(status == 200 && total_count > 0)
+          teams = o_team.dig('teams')
+          team  = teams.detect { |v| v['name'] == team_id }
+
+          team_id = team.dig('id')
+        else
+          return { 'status' => 404, 'message' => format( 'No Team \'%s\' found', team_id) }
+        end
+      end
+
+      endpoint = format( '/api/teams/%s/members', team_id )
+
+      @logger.debug("Getting team by Id #{team_id} (GET #{endpoint})") if @debug
+
+      get(endpoint)
     end
 
     # http://docs.grafana.org/http_api/team/#add-team-member

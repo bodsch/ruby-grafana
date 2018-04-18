@@ -1010,8 +1010,52 @@ describe Grafana do
       expect(status).to be == 404
     end
 
-    # search_team()
-    # team()
+    it 'search team \'team alpha\'' do
+      r = @g.search_team(name: 'team alpha')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      teams   = r.dig('teams')
+      expect(status).to be == 200
+      expect(teams).to be_a(Array)
+    end
+
+    it 'search team \'team beta\'' do
+      r = @g.search_team(name: 'team beta')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      teams   = r.dig('teams')
+      expect(status).to be == 404
+      expect(teams).to be_a(Array)
+    end
+
+    it 'get team \'team alpha\'' do
+      r = @g.team('team alpha')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'get team \'team beta\'' do
+      r = @g.team('team beta')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
+
+    it 'team members for team \'team alpha\'' do
+      r = @g.team_members('team alpha')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'team members for team \'team beta\'' do
+      r = @g.team_members('team beta')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
+
     # update_team()
     # team_members()
     # add_team_member()
