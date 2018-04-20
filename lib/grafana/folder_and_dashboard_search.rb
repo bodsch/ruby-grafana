@@ -16,7 +16,39 @@ module Grafana
     #  - folderIds – List of folder id’s to search in for dashboards
     #  - starred – Flag indicating if only starred Dashboards should be returned
     #  - limit – Limit the number of returned results
-    def folder_and_dashboard_search(); end
+    def folder_and_dashboard_search(params)
+
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+
+      query         = validate( params, required: false, var: 'query'       , type: String )
+      tag           = validate( params, required: false, var: 'tag '        , type: String )
+      type          = validate( params, required: false, var: 'type'        , type: String )
+      dashboard_id  = validate( params, required: false, var: 'dashboardIds', type: Integer )
+      folder_id     = validate( params, required: false, var: 'folderIds'   , type: Integer )
+      starred       = validate( params, required: false, var: 'starred'     , type: Boolean ) || false
+      limit         = validate( params, required: false, var: 'limit'       , type: Integer )
+
+      api     = []
+      api << format( 'query=%s', CGI.escape( query ) ) unless( query.nil? )
+      api << format( 'tags=%s', tag ) unless( tag.nil? )
+      api << format( 'type=%s', type ) unless( type.nil? )
+      api << format( 'dashboardId=%s', dashboard_id ) unless( dashboard_id.nil? )
+      api << format( 'folderId=%s', folder_id ) unless( folder_id.nil? )
+      api << format( 'starred=%s', starred )
+      api << format( 'limit=%s', limit ) unless( limit.nil? )
+
+      api = api.join( '&' )
+
+      endpoint = format('/api/search?%s', api)
+
+#       puts endpoint
+      get(endpoint)
+
+    end
 
   end
 end

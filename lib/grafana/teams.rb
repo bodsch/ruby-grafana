@@ -37,6 +37,9 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+
       perpage = validate( params, required: false, var: 'perpage', type: Integer ) || 1000
       page    = validate( params, required: false, var: 'page'   , type: Integer ) || 1
       query   = validate( params, required: false, var: 'query'  , type: String )
@@ -74,6 +77,9 @@ module Grafana
       raise ArgumentError.new(format('wrong type. user \'team_id\' must be an String (for an Team name) or an Integer (for an Team Id), given \'%s\'', team_id.class.to_s)) if( team_id.is_a?(String) && team_id.is_a?(Integer) )
       raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
 
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+
       if(team_id.is_a?(String))
         o_team = search_team(name: team_id)
         status      = o_team.dig('status')
@@ -105,6 +111,9 @@ module Grafana
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
 
       name  = validate( params, required: true, var: 'name'  , type: String )
       email = validate( params, required: false, var: 'email', type: String )
@@ -147,11 +156,38 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      name     = validate( params, required: true , var: 'name'    , type: String )
-      new_name = validate( params, required: true , var: 'new_name', type: String )
-      email    = validate( params, required: false, var: 'email'   , type: String )
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
 
+      team_id = validate( params, required: true , var: 'team_id' )
+      name    = validate( params, required: false, var: 'name' , type: String )
+      email   = validate( params, required: true , var: 'email', type: String )
 
+      if(team_id.is_a?(String))
+        o_team = search_team(name: team_id)
+        status      = o_team.dig('status')
+        total_count = o_team.dig('totalCount')
+
+        if(status == 200 && total_count > 0)
+          teams = o_team.dig('teams')
+          team  = teams.detect { |v| v['name'] == team_id }
+
+          team_id = team.dig('id')
+        else
+          return { 'status' => 404, 'message' => format( 'No Team \'%s\' found', team_id) }
+        end
+      end
+
+      payload = {
+        email: email,
+        name: name
+      }
+      payload.reject!{ |_k, v| v.nil? }
+
+      endpoint = format( '/api/teams/%d', team_id )
+      @logger.debug("Updating team with Id #{team_id} (PUT #{endpoint})") if @debug
+
+      put( endpoint, payload.to_json )
     end
 
     # http://docs.grafana.org/http_api/team/#delete-team-by-id
@@ -167,6 +203,9 @@ module Grafana
 
       raise ArgumentError.new(format('wrong type. user \'team_id\' must be an String (for an Team name) or an Integer (for an Team Id), given \'%s\'', team_id.class.to_s)) if( team_id.is_a?(String) && team_id.is_a?(Integer) )
       raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
+
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
 
       if(team_id.is_a?(String))
         o_team = search_team(name: team_id)
@@ -200,6 +239,9 @@ module Grafana
       raise ArgumentError.new(format('wrong type. user \'team_id\' must be an String (for an Team name) or an Integer (for an Team Id), given \'%s\'', team_id.class.to_s)) if( team_id.is_a?(String) && team_id.is_a?(Integer) )
       raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
 
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+
       if(team_id.is_a?(String))
         o_team = search_team(name: team_id)
 
@@ -229,9 +271,51 @@ module Grafana
     #
     #
     #
-    def add_team_member()
+    def add_team_member(params)
 
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+
+      team_id = validate( params, required: true , var: 'team_id' )
+      user_id = validate( params, required: false, var: 'user_id' )
+
+      raise ArgumentError.new(format('wrong type. user \'user_id\' must be an String (for an User name) or an Integer (for an User Id), given \'%s\'', user_id.class.to_s)) if( user_id.is_a?(String) && user_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'user_id\'') if( user_id.size.zero? )
+
+      if(team_id.is_a?(String))
+        o_team = search_team(name: team_id)
+        status      = o_team.dig('status')
+        total_count = o_team.dig('totalCount')
+
+        if(status == 200 && total_count > 0)
+          teams = o_team.dig('teams')
+          team  = teams.detect { |v| v['name'] == team_id }
+
+          team_id = team.dig('id')
+        else
+          return { 'status' => 404, 'message' => format( 'No Team \'%s\' found', team_id) }
+        end
+      end
+
+      if(user_id.is_a?(String))
+        usr     = user(user_id)
+        status  = usr.dig('status')
+        usr_id  = usr.dig('id')
+
+        return { 'status' => 404, 'message' => format( 'No User \'%s\' found', user_id) } unless(status == 200)
+      end
+
+      payload = {
+        userId: usr_id
+      }
+      payload.reject!{ |_k, v| v.nil? }
+
+      endpoint = format( '/api/teams/%d/members', team_id )
+
+      post( endpoint, payload.to_json )
     end
 
     # http://docs.grafana.org/http_api/team/#remove-member-from-team
@@ -240,9 +324,46 @@ module Grafana
     #
     #
     #
-    def remove_team_meber()
+    def remove_team_member(params)
 
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+
+      team_id = validate( params, required: true , var: 'team_id' )
+      user_id = validate( params, required: false, var: 'user_id' )
+
+      raise ArgumentError.new(format('wrong type. user \'user_id\' must be an String (for an User name) or an Integer (for an User Id), given \'%s\'', user_id.class.to_s)) if( user_id.is_a?(String) && user_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'user_id\'') if( user_id.size.zero? )
+
+      if(team_id.is_a?(String))
+        o_team = search_team(name: team_id)
+        status      = o_team.dig('status')
+        total_count = o_team.dig('totalCount')
+
+        if(status == 200 && total_count > 0)
+          teams = o_team.dig('teams')
+          team  = teams.detect { |v| v['name'] == team_id }
+
+          team_id = team.dig('id')
+        else
+          return { 'status' => 404, 'message' => format( 'No Team \'%s\' found', team_id) }
+        end
+      end
+
+      if(user_id.is_a?(String))
+        usr     = user(user_id)
+        status  = usr.dig('status')
+        usr_id  = usr.dig('id')
+
+        return { 'status' => 404, 'message' => format( 'No User \'%s\' found', user_id) } unless(status == 200)
+      end
+
+      endpoint = format( '/api/teams/%d/members/%d', team_id, usr_id )
+
+      delete(endpoint)
     end
 
   end
