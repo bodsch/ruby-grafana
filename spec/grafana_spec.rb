@@ -1501,16 +1501,190 @@ describe Grafana do
   describe 'Folder permissions' do
 
 
+    it 'create folder \'spec-test-first\'' do
+      version, major_version = @g.version.values
+      r = @g.create_folder( title: 'bar', uid: 'spec-test-first' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'get folder permissions for \'spec-test-first\'' do
+      version, major_version = @g.version.values
+      r = @g.folder_permissions( 'spec-test-first' )
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'get folder permissions for \'spec-test-second\' (must be fail)' do
+      version, major_version = @g.version.values
+      r = @g.folder_permissions( 'spec-test-second' )
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+
+    it 'add team \'team alpha\'' do
+      r = @g.add_team(name: 'team alpha')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'add team \'team beta\'' do
+      r = @g.add_team(name: 'team beta')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'update folder permissions for \'spec-test-first\'' do
+      version, major_version = @g.version.values
+
+      params = {
+        folder: 'spec-test-first',
+        permissions: {
+          role: [{ 'viewer': 'View' }, { 'Editor': 'Edit' }],
+          team: [{ 'team beta': 'View' },{ 'team alpha': 'View' },{ 'team beta': 'Editor' }],
+          user: [{ 'qa': 'Admin' }]
+        }
+      }
+
+#1 = View
+#2 = Edit
+#4 = Admin
+#
+#Viewer",
+#      "permission": 1
+#    },
+#    {
+#      "role": "Editor",
+#      "permission": 2
+#    },
+#    {
+#      "teamId": 1,
+#      "permission": 1
+#    },
+#    {
+#      "userId": 11,
+#      "permission": 4
+#    }
+#        }
+
+      r = @g.update_folder_permissions( params )
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+
+
+
+
+
+    it 'delete folder' do
+      version, major_version = @g.version.values
+      r = @g.delete_folder( 'spec-test-first' )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
   end
 
   describe 'Folder search' do
 
-    it 'search folder and dashboard' do
+    it 'search folder and dashboard (wrong type, must be fail)' do
+
+      version, major_version = @g.version.values
+
+      params = {
+        type: 'foo'
+      }
+      r = @g.folder_and_dashboard_search(params)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'search folder and dashboard (without all parameters)' do
+
+      version, major_version = @g.version.values
+
+      params = {}
+      r = @g.folder_and_dashboard_search(params)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'search folder and dashboard (dash-folder)' do
+
+      version, major_version = @g.version.values
+
+      params = {
+        type: 'dash-folder'
+      }
+      r = @g.folder_and_dashboard_search(params)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'search folder and dashboard (dash-db)' do
+
+      version, major_version = @g.version.values
+
+      params = {
+        type: 'dash-db'
+      }
+      r = @g.folder_and_dashboard_search(params)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'search folder and dashboard (folderId, starred)' do
       version, major_version = @g.version.values
 
       params = {
         folderIds: 0,
-        query: '',
         starred: false
       }
       r = @g.folder_and_dashboard_search(params)
@@ -1523,11 +1697,61 @@ describe Grafana do
       expect(status).to be == 404 if(major_version < 5)
     end
 
-    it 'search folder and dashboard' do
+    it 'search folder and dashboard (starred)' do
       version, major_version = @g.version.values
 
       params = {
         starred: true
+      }
+      r = @g.folder_and_dashboard_search(params)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'search folder and dashboard (query, starred, tag)' do
+      version, major_version = @g.version.values
+
+      params = {
+        query: 'QA Graphite Carbon Metrics',
+        starred: false,
+        tag: 'QA'
+      }
+      r = @g.folder_and_dashboard_search(params)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'search folder and dashboard (query)' do
+      version, major_version = @g.version.values
+
+      params = {
+        query: 'QA Internal Grafana Stats'
+      }
+      r = @g.folder_and_dashboard_search(params)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'search folder and dashboard (tags)' do
+      version, major_version = @g.version.values
+
+      params = {
+        tag: 'QA'
       }
       r = @g.folder_and_dashboard_search(params)
 

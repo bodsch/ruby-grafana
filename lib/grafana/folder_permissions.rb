@@ -49,18 +49,79 @@ module Grafana
     #
     def update_folder_permissions( params )
 
-#       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
-#       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
-#
-#       v, mv = version.values
-#       return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
-#
-#       folder      = validate( params, required: true, var: 'folder'    , type: String )
-#       permissions = validate( params, required: true, var: 'permission', type: Hash )
-#
-#       valid_roles = ['View', 'Edit', 'Admin']
-#       valid_keys  = ['role','permission','teamId','userId']
-#
+      raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
+      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
+
+      v, mv = version.values
+      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+
+      folder      = validate( params, required: true, var: 'folder'     , type: String )
+      permissions = validate( params, required: true, var: 'permissions', type: Hash )
+
+      return { 'status' => 404, 'message' => 'no permissions given' } if( permissions.size.zero? )
+
+      valid_roles = ['View', 'Edit', 'Admin']
+      valid_keys  = ['role','permission','teamId','userId']
+
+#      puts JSON.pretty_generate permissions
+
+      roles_downcased = Set.new valid_roles.map(&:downcase)
+      keys_downcased  = Set.new valid_keys.map(&:downcase)
+
+      c_team = permissions.dig('team')
+      c_user = permissions.dig('user')
+
+      def validate_hash( has, valid_params )
+
+        unless( downcased.include?( permissions.downcase ) )
+          return {
+            'status' => 404,
+            'name' => user_name,
+            'permissions' => permissions,
+            'message' => format( 'wrong permissions. Must be one of %s, given \'%s\'', valid_roles.join(', '), permissions )
+          }
+        end
+
+      end
+
+      unless(c_team.nil?)
+        puts 'found team'
+        check_keys = []
+        team       = {}
+
+#        puts "#{c_team}"
+
+        c_team.uniq.each do |x|
+          k = x.keys.first
+          v = x.values.first
+
+#          puts "#{x} = #{k} - #{v}"
+          f_team = team(k)
+          team_id = f_team.dig('id')
+          if(( f_team.dig('status') == 200) && !check_keys.include?(team_id) )
+            check_keys << team_id
+            team.store(team_id, v)
+          end
+        end
+
+#         team_keys.sort.uniq
+#        puts "#{check_keys}"
+        puts JSON.pretty_generate team
+      end
+
+
+     unless(c_user.nil?)
+
+
+      end
+
+
+
+
+
+
+
+
 #         grafana_admin = permissions.dig(:grafana_admin)
 #         unless( grafana_admin.is_a?(Boolean) )
 #           return {

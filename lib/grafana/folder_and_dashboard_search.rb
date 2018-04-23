@@ -19,7 +19,6 @@ module Grafana
     def folder_and_dashboard_search(params)
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
-      raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       v, mv = version.values
       return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
@@ -29,8 +28,14 @@ module Grafana
       type          = validate( params, required: false, var: 'type'        , type: String )
       dashboard_id  = validate( params, required: false, var: 'dashboardIds', type: Integer )
       folder_id     = validate( params, required: false, var: 'folderIds'   , type: Integer )
-      starred       = validate( params, required: false, var: 'starred'     , type: Boolean ) || false
+      starred       = validate( params, required: false, var: 'starred'     , type: Boolean )
       limit         = validate( params, required: false, var: 'limit'       , type: Integer )
+
+      unless(type.nil?)
+        valid_types   = ['dash-folder', 'dash-db']
+        downcased = Set.new valid_types.map(&:downcase)
+        return { 'status' => 404, 'message' => format( 'wrong type. Must be one of %s, given \'%s\'', valid_types.join(', '), type ) } unless( downcased.include?( type.downcase ) )
+      end
 
       api     = []
       api << format( 'query=%s', CGI.escape( query ) ) unless( query.nil? )
@@ -38,16 +43,13 @@ module Grafana
       api << format( 'type=%s', type ) unless( type.nil? )
       api << format( 'dashboardId=%s', dashboard_id ) unless( dashboard_id.nil? )
       api << format( 'folderId=%s', folder_id ) unless( folder_id.nil? )
-      api << format( 'starred=%s', starred )
+      api << format( 'starred=%s', starred ) unless( starred.nil? )
       api << format( 'limit=%s', limit ) unless( limit.nil? )
 
       api = api.join( '&' )
 
       endpoint = format('/api/search?%s', api)
-
-#       puts endpoint
       get(endpoint)
-
     end
 
   end
