@@ -108,10 +108,10 @@ module Grafana
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
-      user_name  = validate( params, required: true, var: 'user_name', type: String )
-      email      = validate( params, required: true, var: 'email', type: String )
+      user_name  = validate( params, required: true , var: 'user_name' , type: String )
+      email      = validate( params, required: true , var: 'email'     , type: String )
       login_name = validate( params, required: false, var: 'login_name', type: String ) || user_name
-      theme      = validate( params, required: false, var: 'theme', type: String )
+      theme      = validate( params, required: false, var: 'theme'     , type: String )
 
       usr = user(user_name)
 

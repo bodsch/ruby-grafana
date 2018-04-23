@@ -1042,6 +1042,38 @@ describe Grafana do
       expect(status).to be == 404
     end
 
+    it 'update team \'team alpha\'' do
+      r = @g.update_team(team_id: 'team alpha', email: 'foo@bar.com')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+#     it 'get all Users' do
+#       r = @g.users
+#       expect(r).to be_a(Hash)
+#       status  = r.dig('status')
+#       message = r.dig('message')
+#       expect(status).to be_a(Integer)
+#       expect(status).to be == 200
+#       expect(message).to be_a(Array)
+#       expect(message.count).to be >= 1
+#     end
+
+    it 'add team members for team \'team alpha\'' do
+      r = @g.add_team_member(team_id:'team alpha', user_id: 'foo')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'add team members for team \'team alpha\' (must be fail)' do
+      r = @g.add_team_member(team_id:'team alpha', user_id: 'foo-3')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
+
     it 'team members for team \'team alpha\'' do
       r = @g.team_members('team alpha')
       expect(r).to be_a(Hash)
@@ -1056,14 +1088,22 @@ describe Grafana do
       expect(status).to be == 404
     end
 
-    # update_team()
-    # team_members()
-    # add_team_member()
-    # remove_team_meber()
+    it 'remove team member from team \'team alpha\'' do
+      r = @g.remove_team_member(team_id:'team alpha', user_id: 'foo')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'remove team member from team \'team alpha\' again (must be failed)' do
+      r = @g.remove_team_member(team_id:'team alpha', user_id: 'foo')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
 
     it 'delete team \'team alpha\'' do
       r = @g.delete_team('team alpha')
-#       puts "#{r}"
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be == 200
@@ -1460,9 +1500,21 @@ describe Grafana do
 
   describe 'Folder permissions' do
 
-    it 'create folder \'spec-test-first\'' do
+
+  end
+
+  describe 'Folder search' do
+
+    it 'search folder and dashboard' do
       version, major_version = @g.version.values
-      r = @g.create_folder( title: 'foo', uid: 'spec-test-first' )
+
+      params = {
+        folderIds: 0,
+        query: '',
+        starred: false
+      }
+      r = @g.folder_and_dashboard_search(params)
+
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
@@ -1471,32 +1523,14 @@ describe Grafana do
       expect(status).to be == 404 if(major_version < 5)
     end
 
-
-    it 'get folder_permissions for user \'spec-test-1\' (must be fail)' do
+    it 'search folder and dashboard' do
       version, major_version = @g.version.values
-      r = @g.folder_permissions( 'spec-test-1' )
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      expect(status).to be_a(Integer)
 
-      expect(status).to be == 404 if(major_version == 5)
-      expect(status).to be == 404 if(major_version < 5)
-    end
+      params = {
+        starred: true
+      }
+      r = @g.folder_and_dashboard_search(params)
 
-    it 'get folder_permissions for folder \'spec-test-first\'' do
-      version, major_version = @g.version.values
-      r = @g.folder_permissions( 'spec-test-first' )
-      expect(r).to be_a(Hash)
-      status  = r.dig('status')
-      expect(status).to be_a(Integer)
-
-      expect(status).to be == 200 if(major_version == 5)
-      expect(status).to be == 404 if(major_version < 5)
-    end
-
-    it 'delete folder' do
-      version, major_version = @g.version.values
-      r = @g.delete_folder( 'spec-test-first' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
@@ -1506,6 +1540,7 @@ describe Grafana do
     end
 
   end
+
 
 
   describe 'remove demo data' do
