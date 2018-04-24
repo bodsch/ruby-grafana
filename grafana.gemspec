@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 
   spec.name          = 'grafana'
   spec.version       = Grafana::VERSION
-  spec.date          = '2018-04-03'
+  spec.date          = '2018-04-24'
   spec.authors       = ['Bodo Schulz']
   spec.email         = ['bodo@boone-schulz.de']
 
@@ -72,5 +72,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency('pry', '~> 0')
   spec.add_development_dependency('pry-remote', '~> 0')
   spec.add_development_dependency('pry-nav', '~> 0')
-
+  spec.add_development_dependency('public_suffix', '~> 3.0')
 end
