@@ -60,9 +60,7 @@ module Grafana
     # @return [Hash]
     #
     def request( method_type = 'GET', endpoint = '/', data = {} )
-
 #       logger.debug( "request( #{method_type}, #{endpoint}, data )" )
-
       raise 'try first login()' if @api_instance.nil?
 
       login( username: @username, password: @password )
@@ -71,10 +69,7 @@ module Grafana
       response_code        = 404
       response_body        = ''
 
-#       logger.debug("headers: #{headers}")
-
       begin
-
         case method_type.upcase
         when 'GET'
           response = @api_instance[endpoint].get( headers )
@@ -84,49 +79,27 @@ module Grafana
           response = @api_instance[endpoint].patch( data, headers )
         when 'PUT'
           # response = @api_instance[endpoint].put( data, headers )
-          @api_instance[endpoint].put( data, headers ) do |response, request, result|
+          @api_instance[endpoint].put( data, headers ) do |resp, _request, _result|
+            response_body = resp.body
+            response_code = resp.code.to_i
+            response_body = JSON.parse(response_body) if response_body.is_a?(String)
 
-            case response.code
+            case response_code
             when 200
-              response_body = response.body
-              response_code = response.code.to_i
-              response_body = JSON.parse(response_body) if response_body.is_a?(String)
-
-              return {
-                'status' => response_code,
-                'message' => response_body.dig('message').nil? ? 'Successful' : response_body.dig('message')
-              }
+              return { 'status' => response_code, 'message' => response_body.dig('message').nil? ? 'Successful' : response_body.dig('message') }
             when 400
-              response_body = response.body
-              response_code = response.code.to_i
               raise RestClient::BadRequest
             when 412
-              response_body = response.body
-              response_code = response.code.to_i
-
-              body   = JSON.parse(response.body) if(response_body.is_a?(String))
-              status = body.dig('status')
-              message = body.dig('message')
+              status  = response_body.dig('status')
+              message = response_body.dig('message')
               message += " (#{status})"  unless(status.nil?)
-
-              return {
-                'status'  => response_code,
-                'message' => message
-              }
-
+              return { 'status'  => response_code, 'message' => message }
             when 422
-              response_body = response.body
-              response_code = response.code.to_i
               raise RestClient::UnprocessableEntity
             else
-              logger.error( response.code )
-              logger.error( response.body )
-
-              body = JSON.parse(response.body) if(response_body.is_a?(String))
-              return {
-                'status' => response_code,
-                'message' => body.dig('message')
-              }
+#               logger.error( response_code )
+#               logger.error( response_body )
+              return { 'status' => response_code, 'message' => response_body.dig('message') }
               # response.return! # (request, result)
             end
           end
@@ -142,25 +115,18 @@ module Grafana
         response_body    = response.body
         response_headers = response.headers
 
-        if( @debug )
-          logger.debug("response_code : #{response_code}" )
-          logger.debug("response_body : #{response_body}" )
-          logger.debug("response_headers : #{response_headers}" )
-        end
+#         if( @debug )
+#           logger.debug("response_code : #{response_code}" )
+#           logger.debug("response_body : #{response_body}" )
+#           logger.debug("response_headers : #{response_headers}" )
+#         end
 
         if( ( response_code >= 200 && response_code <= 299 ) || ( response_code >= 400 && response_code <= 499 ) )
 
           result = JSON.parse( response_body )
+          return { 'status' => response_code, 'message' => result } if( result.is_a?(Array) )
 
-          if( result.is_a?(Array) )
-            return {
-              'status' => response_code,
-              'message' => result
-            }
-          end
-
-          result_status = result.dig('status') if( result.is_a?( Hash ) )
-
+          result_status     = result.dig('status') if( result.is_a?( Hash ) )
           result['message'] = result_status unless( result_status.nil? )
           result['status']  = response_code
 
@@ -189,15 +155,13 @@ module Grafana
       rescue RestClient::PreconditionFailed
         return { 'status' => 412, 'message' => 'Precondition failed. The Object probably already exists.' }
       rescue RestClient::ExceptionWithResponse => error
-        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
-        logger.error( "query: #{data}" )
-#        logger.error( JSON.pretty_generate( response_headers ) )
-        return { 'status' => 500, 'message' => 'Internal Server Error' }
+#        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
+#        logger.error( "query: #{data}" )
+        return { 'status' => 500, 'message' => "Internal Server Error: #{error}" }
       rescue => error
-        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
-        logger.error( "query: #{data}" )
-#        logger.error( JSON.pretty_generate( response_headers ) )
-        return { 'status' => 500, 'message' => 'Internal Server Error' }
+#        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
+#        logger.error( "query: #{data}" )
+        return { 'status' => 500, 'message' => "Internal Server Error: #{error}" }
       end
     end
   end

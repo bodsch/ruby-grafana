@@ -103,7 +103,8 @@ module Grafana
 
       if( org.is_a?(Hash) && org.dig('status').to_i == 200 )
         org = org.dig('message')
-        return { 'status' => 404, 'message' => format('User \'%s\' are already in the organisation', login_or_email) } if( org.select { |x| x.dig('email') == login_or_email || x.dig('login') == login_or_email }.count >= 1 )
+        return { 'status' => 404, 'message' => format('User \'%s\' are already in the organisation', login_or_email) } \
+          if( org.select { |x| x.dig('email') == login_or_email || x.dig('login') == login_or_email }.count >= 1 )
       end
 
       endpoint = '/api/org/users'

@@ -30,12 +30,12 @@ module Grafana
     #
     def user( user_id )
 
-      raise ArgumentError.new(format('wrong type. user \'user_id\' must be an String (for an User name) or an Integer (for an User Id), given \'%s\'', user_id.class.to_s)) if( user_id.is_a?(String) && user_id.is_a?(Integer) )
+      if( user_id.is_a?(String) && user_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. user \'user_id\' must be an String (for an User name) or an Integer (for an User Id), given \'%s\'', user_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'user_id\'') if( user_id.size.zero? )
 
       if(user_id.is_a?(String))
-        user_map = {}
-
         usrs  = users
         usrs  = JSON.parse(usrs) if(usrs.is_a?(String))
 
@@ -150,7 +150,9 @@ module Grafana
     #
     def user_organizations( user_id )
 
-      raise ArgumentError.new(format('wrong type. user \'user_id\' must be an String (for an Username) or an Integer (for an Userid), given \'%s\'', user_id.class.to_s)) if( user_id.is_a?(String) && user_id.is_a?(Integer) )
+      if( user_id.is_a?(String) && user_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. user \'user_id\' must be an String (for an Username) or an Integer (for an Userid), given \'%s\'', user_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'user_id\'') if( user_id.size.zero? )
 
       usr = user(user_id)

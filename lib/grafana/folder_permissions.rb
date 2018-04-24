@@ -41,7 +41,7 @@ module Grafana
     # POST /api/folders/:uid/permissions
     #
     # Updates permissions for a folder.
-    # This operation will remove existing permissions if they’re not included in the request.
+    # This operation will remove existing permissions if they're not included in the request.
     #
     # JSON body schema:
     #
@@ -60,88 +60,94 @@ module Grafana
 
       return { 'status' => 404, 'message' => 'no permissions given' } if( permissions.size.zero? )
 
-      valid_roles = ['View', 'Edit', 'Admin']
-      valid_keys  = ['role','permission','teamId','userId']
+      f_folder = folder(folder)
+      return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder) } if( f_folder.dig('status') != 200 )
 
-#      puts JSON.pretty_generate permissions
+      folder_uid = f_folder.dig('uid')
 
-      roles_downcased = Set.new valid_roles.map(&:downcase)
-      keys_downcased  = Set.new valid_keys.map(&:downcase)
+      valid_roles = %w[View Edit Admin]
+#       valid_keys  = %w[role permission teamId userId]
 
       c_team = permissions.dig('team')
       c_user = permissions.dig('user')
-
-      def validate_hash( has, valid_params )
-
-        unless( downcased.include?( permissions.downcase ) )
-          return {
-            'status' => 404,
-            'name' => user_name,
-            'permissions' => permissions,
-            'message' => format( 'wrong permissions. Must be one of %s, given \'%s\'', valid_roles.join(', '), permissions )
-          }
-        end
-
-      end
+      team   = []
+      user   = []
 
       unless(c_team.nil?)
-        puts 'found team'
         check_keys = []
-        team       = {}
-
-#        puts "#{c_team}"
 
         c_team.uniq.each do |x|
           k = x.keys.first
           v = x.values.first
+          r = validate_hash( v, valid_roles )
 
-#          puts "#{x} = #{k} - #{v}"
           f_team = team(k)
           team_id = f_team.dig('id')
-          if(( f_team.dig('status') == 200) && !check_keys.include?(team_id) )
-            check_keys << team_id
-            team.store(team_id, v)
-          end
+
+          next unless(( f_team.dig('status') == 200) && !check_keys.include?(team_id) && r == true )
+
+          check_keys << team_id
+
+          role_id = valid_roles.index(v)
+          role_id += 1
+          role_id += 1 if(v == 'Admin')
+
+          team << {
+            teamId: team_id,
+            permission: role_id
+          }
         end
-
-#         team_keys.sort.uniq
-#        puts "#{check_keys}"
-        puts JSON.pretty_generate team
       end
 
+      unless(c_user.nil?)
+        check_keys = []
 
-     unless(c_user.nil?)
+        c_user.uniq.each do |x|
+          k = x.keys.first
+          v = x.values.first
+          r = validate_hash( v, valid_roles )
 
+          f_user = user(k)
+          user_id = f_user.dig('id')
 
+          next unless(( f_user.dig('status') == 200) && !check_keys.include?(user_id) && r == true )
+
+          check_keys << user_id
+
+          role_id = valid_roles.index(v)
+          role_id += 1
+          role_id += 1 if(v == 'Admin')
+
+          user << {
+            userId: user_id,
+            permission: role_id
+          }
+        end
       end
 
+      payload = {
+        items: team + user
+      }
+      payload.reject!{ |_, y| y.nil? }
+
+      endpoint = format( '/api/folders/%s/permissions', folder_uid )
+
+      post(endpoint, payload.to_json)
+    end
 
 
+    private
+    def validate_hash( value, valid_params )
 
+      downcased = Set.new valid_params.map(&:downcase)
 
-
-
-
-#         grafana_admin = permissions.dig(:grafana_admin)
-#         unless( grafana_admin.is_a?(Boolean) )
-#           return {
-#             'status' => 404,
-#             'name' => user_name,
-#             'permissions' => permissions,
-#             'message' => 'Grafana admin permission must be either \'true\' or \'false\''
-#           }
-#         end
-#
-#       role
-#       permission
-#       teamId
-#       userId
-#
-#
-#       #hasAcl"=>false,
-#       #"canSave"=>true,
-#       #"canEdit"=>true,
-#       #"canAdmin"=>true
+      unless( downcased.include?( value.downcase ) )
+        return {
+          'status' => 404,
+          'message' => format( 'wrong permissions. Must be one of %s, given \'%s\'', valid_params.join(', '), value )
+        }
+      end
+      true
     end
 
   end

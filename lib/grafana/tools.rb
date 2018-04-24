@@ -17,13 +17,13 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'text\' must be an String, given \'%s\'', text.class.to_s)) unless( text.is_a?(String) )
 
       begin
-      if( text =~ /\s/ && text =~ /-/ )
+        if( text =~ /\s/ && text =~ /-/ )
 #        if( text =~ /-/ )
           text = text.gsub( /\s+/, '' )
         else
           text = text.gsub( /\s+/, '-' )
 #        end
-      end
+        end
 
       rescue => error
         puts error

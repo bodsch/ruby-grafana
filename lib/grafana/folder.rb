@@ -34,7 +34,8 @@ module Grafana
     # Will return the folder identified by id.
     def folder( folder_uid )
 
-      raise ArgumentError.new(format('wrong type. user \'folder_uid\' must be an String (for an Folder Uid) or an Integer (for an Folder Id), given \'%s\'', folder_uid.class.to_s)) if( folder_uid.is_a?(String) && folder_uid.is_a?(Integer) )
+      raise ArgumentError.new(format('wrong type. user \'folder_uid\' must be an String (for an Folder Uid) or an Integer (for an Folder Id), given \'%s\'', folder_uid.class.to_s)) \
+          if( folder_uid.is_a?(String) && folder_uid.is_a?(Integer) )
       raise ArgumentError.new('missing \'folder_uid\'') if( folder_uid.size.zero? )
 
       v, mv = version.values
@@ -42,15 +43,13 @@ module Grafana
 
       if(folder_uid.is_a?(Integer))
 
-        folder_map = {}
-
         f  = folders
         f  = JSON.parse(f) if(f.is_a?(String))
 
         status = f.dig('status')
         return f if( status != 200 )
 
-        f = f.dig('message').detect {|f| f['id'] == folder_uid }
+        f = f.dig('message').detect {|x| x['id'] == folder_uid }
 
         return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.nil? )
 
@@ -59,7 +58,8 @@ module Grafana
         return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.is_a?(Integer) )
       end
 
-      return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters. \'%s\' given', folder_uid.length) } if( folder_uid.is_a?(String) && folder_uid.length > 40 )
+      return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters. \'%s\' given', folder_uid.length) } \
+          if( folder_uid.is_a?(String) && folder_uid.length > 40 )
       return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.nil? )
 
       endpoint = format( '/api/folders/%s', folder_uid )
@@ -74,8 +74,8 @@ module Grafana
     # Creates a new folder.
     # JSON Body schema:
     #
-    #   uid   – Optional unique identifier.
-    #   title – The title of the folder.
+    #   uid   - Optional unique identifier.
+    #   title - The title of the folder.
     def create_folder( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
@@ -93,7 +93,7 @@ module Grafana
         uid: uid,
         title: title
       }
-      data.reject!{ |_k, v| v.nil? }
+      data.reject!{ |_, y| y.nil? }
 
       payload = data.deep_string_keys
 
@@ -114,10 +114,10 @@ module Grafana
     # Updates an existing folder identified by uid.
     # JSON Body schema:
     #
-    #   - uid – Provide another unique identifier than stored to change the unique identifier.
-    #   - title – The title of the folder.
-    #   - version – Provide the current version to be able to update the folder. Not needed if overwrite=true.
-    #   - overwrite – Set to true if you want to overwrite existing folder with newer version.
+    #   - uid - Provide another unique identifier than stored to change the unique identifier.
+    #   - title - The title of the folder.
+    #   - version - Provide the current version to be able to update the folder. Not needed if overwrite=true.
+    #   - overwrite - Set to true if you want to overwrite existing folder with newer version.
     def update_folder( params )
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
@@ -146,7 +146,7 @@ module Grafana
         version: version,
         overwrite: overwrite
       }
-      payload.reject!{ |_k, v| v.nil? }
+      payload.reject!{ |_, y| y.nil? }
 
       @logger.debug("Updating folder with Uid #{uid}") if @debug
 
@@ -163,7 +163,8 @@ module Grafana
     # This operation cannot be reverted.
     def delete_folder( folder_uid )
 
-      raise ArgumentError.new(format('wrong type. user \'folder_uid\' must be an String (for an Folder Uid) or an Integer (for an Folder Id), given \'%s\'', folder_uid.class.to_s)) if( folder_uid.is_a?(String) && folder_uid.is_a?(Integer) )
+      raise ArgumentError.new(format('wrong type. user \'folder_uid\' must be an String (for an Folder Uid) or an Integer (for an Folder Id), given \'%s\'', folder_uid.class.to_s)) \
+          if( folder_uid.is_a?(String) && folder_uid.is_a?(Integer) )
       raise ArgumentError.new('missing \'folder_uid\'') if( folder_uid.size.zero? )
 
       v, mv = version.values

@@ -1,7 +1,8 @@
 
 module Grafana
 
-  # You can use the Alerting API to get information about alerts and their states but this API cannot be used to modify the alert. To create new alerts or modify them you need to update the dashboard json that contains the alerts.
+  # You can use the Alerting API to get information about alerts and their states but this API cannot be used to modify the alert.
+  # To create new alerts or modify them you need to update the dashboard json that contains the alerts.
   #
   # This API can also be used to create, update and delete alert notifications.
   #
@@ -38,7 +39,7 @@ module Grafana
 
       unless( alert_array.nil? )
         alert_array  = alert_array.sort
-        valid   = alert_array & valid_alerts
+#         valid   = alert_array & valid_alerts
         invalid = alert_array - valid_alerts
 
         raise ArgumentError.new(format('wrong alerts type. only %s allowed, given \'%s\'', valid_alerts.join(', '), alert_array.join(', '))) if( invalid.count != 0 )
@@ -88,7 +89,9 @@ module Grafana
     #
     def alert( alert_id )
 
-      raise ArgumentError.new(format('wrong type. user \'alert_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', alert_id.class.to_s)) if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
+      if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'alert_id\' must be an String (for an Alert name) or an Integer (for an Alert Id), given \'%s\'', alert_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'alert_id\'') if( alert_id.size.zero? )
 
 #       if(alert_id.is_a?(String))
@@ -122,7 +125,9 @@ module Grafana
     #
     def alert_pause( alert_id )
 
-      raise ArgumentError.new(format('wrong type. user \'alert_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', alert_id.class.to_s)) if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
+      if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'alert_id\' must be an String (for an Alert name) or an Integer (for an Alert Id), given \'%s\'', alert_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'alert_id\'') if( alert_id.size.zero? )
 
       if(alert_id.is_a?(String))
@@ -155,7 +160,8 @@ module Grafana
     #
     # @param [Hash] params
     # @option params [String] name short description - required
-    # @option params [String] type ('email') on of 'slack', 'pagerduty','email','webhook','kafka','hipchat','victorops','sensu','opsgenie','threema','pushover','telegram','line','prometheus-alertmanager' - required
+    # @option params [String] type one of 'slack', 'pagerduty','email','webhook','kafka','hipchat',
+    #                               'victorops','sensu','opsgenie','threema','pushover','telegram','line','prometheus-alertmanager' - required
     # @option params [Boolean] default (false)
     # @option params [Hash] settings
     #
@@ -268,7 +274,9 @@ module Grafana
         raise ArgumentError.new(format('wrong notification type. only %s allowed, given \%s\'', valid_types.join(', '), type)) if( valid_types.include?(type.downcase) == false )
       end
 
-      raise ArgumentError.new(format('wrong type. user \'alert_id\' must be an String (for an Alertname) or an Integer (for an Alertid), given \'%s\'', alert_id.class.to_s)) if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
+      if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. user \'alert_id\' must be an String (for an Alertname) or an Integer (for an Alert Id), given \'%s\'', alert_id.class.to_s))
+      end
 
       alert_id = alert_notification_id(alert_id)
       return { 'status' => 404, 'message' => format( 'alert notification \'%s\' not exists', name) } if( alert_id.nil? )
@@ -299,7 +307,9 @@ module Grafana
     #
     def delete_alert_notification( alert_id )
 
-      raise ArgumentError.new(format('wrong type. user \'alert_id\' must be an String (for an Alert name) or an Integer (for an Alertid), given \'%s\'', alert_id.class.to_s)) if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
+      if( alert_id.is_a?(String) && alert_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. user \'alert_id\' must be an String (for an Alert name) or an Integer (for an Alert Id), given \'%s\'', alert_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'alert_id\'') if( alert_id.size.zero? )
 
       id = alert_notification_id(alert_id)
@@ -332,8 +342,8 @@ module Grafana
         map[d.dig('id')] = d.dig('name').downcase.split.join('_')
       end
 
-      id = map.select { |key,value| key == alert_id } if( map && alert_id.is_a?(Integer) )
-      id = map.select { |key,value| value == alert_id.downcase.split.join('_') } if( map && alert_id.is_a?(String) )
+      id = map.select { |key,_value| key == alert_id } if( map && alert_id.is_a?(Integer) )
+      id = map.select { |_key,value| value == alert_id.downcase.split.join('_') } if( map && alert_id.is_a?(String) )
 
       id = id.keys.first unless(id.nil?)
 

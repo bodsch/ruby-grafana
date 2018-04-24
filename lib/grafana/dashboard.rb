@@ -6,7 +6,7 @@ module Grafana
   # The identifier (id) of a dashboard is an auto-incrementing numeric value and is only unique per Grafana install.
   #
   # The unique identifier (uid) of a dashboard can be used for uniquely identify a dashboard between multiple Grafana installs.
-  # It’s automatically generated if not provided when creating a dashboard. The uid allows having consistent URL’s for
+  # It's automatically generated if not provided when creating a dashboard. The uid allows having consistent URL's for
   # accessing dashboards and when syncing dashboards between multiple Grafana installs, see dashboard provisioning for
   # more information. This means that changing the title of a dashboard will not break any bookmarked links to that dashboard.
   #
@@ -72,7 +72,9 @@ module Grafana
     #
     def dashboard_by_uid( uid )
 
-      raise ArgumentError.new(format('wrong type. dashboard \'uid\' must be an String (for an title name) or an Integer (for an Datasource Id), given \'%s\'', uid.class.to_s)) if( uid.is_a?(String) && uid.is_a?(Integer) )
+      if( uid.is_a?(String) && uid.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. dashboard \'uid\' must be an String (for an title name) or an Integer (for an Datasource Id), given \'%s\'', uid.class.to_s))
+      end
       raise ArgumentError.new('missing \'uid\'') if( uid.size.zero? )
 
       v, mv = version.values
@@ -93,10 +95,10 @@ module Grafana
     #
     # @param [Hash] params
     # @option params [Hash] dashboard The complete dashboard model
-    #  - dashboard.id – id = null to create a new dashboard.
-    #  - dashboard.uid – Optional unique identifier when creating a dashboard. uid = null will generate a new uid.
-    #  - folderId – The id of the folder to save the dashboard in.
-    #  - overwrite – Set to true if you want to overwrite existing dashboard with newer version, same dashboard title in folder or same dashboard uid.
+    #  - dashboard.id - id = null to create a new dashboard.
+    #  - dashboard.uid - Optional unique identifier when creating a dashboard. uid = null will generate a new uid.
+    #  - folderId - The id of the folder to save the dashboard in.
+    #  - overwrite - Set to true if you want to overwrite existing dashboard with newer version, same dashboard title in folder or same dashboard uid.
     #  - message - Set a commit message for the version history.
     # @option params [Boolean] overwrite (true)
     #
@@ -129,12 +131,19 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      dashboard = validate( params, required: true, var: 'dashboard', type: Hash )
+      dashboard = validate( params, required: true , var: 'dashboard', type: Hash )
       overwrite = validate( params, required: false, var: 'overwrite', type: Boolean ) || true
-      folderId  = validate( params, required: false, var: 'folderId', type: Integer )
+      folder_id = validate( params, required: false, var: 'folderId' )
       message   = validate( params, required: false, var: 'message', type: String )
 
       dashboard = regenerate_template_ids( dashboard )
+
+      unless(folder_id.nil?)
+        f_folder = folder(folder_id)
+        return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_id) } if( f_folder.dig('status') != 200 )
+
+        folder_id = f_folder.dig('id')
+      end
 
       db = JSON.parse( dashboard ) if( dashboard.is_a?(String) )
       title = db.dig('dashboard','title')
@@ -143,7 +152,9 @@ module Grafana
 
       payload = {
         dashboard: db.dig('dashboard'),
-        overwrite: overwrite
+        overwrite: overwrite,
+        folderId: folder_id,
+        message: message
       }
       payload.reject!{ |_k, v| v.nil? }
 

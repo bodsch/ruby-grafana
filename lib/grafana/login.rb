@@ -67,72 +67,59 @@ module Grafana
               accept: 'application/json',
               cookies: response_cookies
             }
-
             @username = username
             @password = password
           end
 
         rescue SocketError
-          if( retried < max_retries )
-            retried += 1
-            logger.debug( format( 'cannot login, socket error (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( sleep_between_retries )
-            retry
-          else
-            raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
-          end
+          raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url ) unless( retried < max_retries )
+
+          retried += 1
+          logger.debug( format( 'cannot login, socket error (retry %d / %d)', retried, max_retries ) ) if @debug
+          sleep( sleep_between_retries )
+          retry
 
         rescue RestClient::Unauthorized
           logger.debug( request_data.to_json ) if @debug
           raise format( 'Not authorized to connect \'%s\' - wrong username or password?', @url )
 
         rescue RestClient::BadGateway
-          if( retried < max_retries )
-            retried += 1
-            logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( sleep_between_retries )
-            retry
-          else
-            raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
-          end
+          raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url ) unless( retried < max_retries )
+
+          retried += 1
+          logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
+          sleep( sleep_between_retries )
+          retry
 
         rescue Errno::ECONNREFUSED
-          if( retried < max_retries )
-            retried += 1
-            logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( sleep_between_retries )
-            retry
-          else
-            raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
-          end
+          raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url ) unless( retried < max_retries )
+
+          retried += 1
+          logger.debug( format( 'cannot login, connection refused (retry %d / %d)', retried, max_retries ) ) if @debug
+          sleep( sleep_between_retries )
+          retry
 
         rescue Errno::EHOSTUNREACH
-          if( retried < max_retries )
-            retried += 1
-            logger.debug( format( 'cannot login, host unreachable (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( sleep_between_retries )
-            retry
-          else
-            raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
-          end
+          raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url ) unless( retried < max_retries )
+
+          retried += 1
+          logger.debug( format( 'cannot login, host unreachable (retry %d / %d)', retried, max_retries ) ) if @debug
+          sleep( sleep_between_retries )
+          retry
 
         rescue => error
-          if( retried < max_retries )
-            retried += 1
-            logger.error( error )
-            logger.debug( format( 'cannot login (retry %d / %d)', retried, max_retries ) ) if @debug
-            sleep( sleep_between_retries )
-            retry
-          else
-            raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url )
-          end
+          raise format( 'Maximum retries (%d) against \'%s/login\' reached. Giving up ...', max_retries, @url ) unless( retried < max_retries )
+
+          retried += 1
+          logger.error( error )
+          logger.debug( format( 'cannot login (retry %d / %d)', retried, max_retries ) ) if @debug
+          sleep( sleep_between_retries )
+          retry
         end
 
         logger.debug('User session initiated') if @debug
-
         return true
       end
-
       false
     end
 

@@ -23,7 +23,10 @@ module Grafana
     #
     def organization( organisation_id )
 
-      raise ArgumentError.new(format('wrong type. user \'organisation_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', organisation_id.class.to_s)) if( organisation_id.is_a?(String) && organisation_id.is_a?(Integer) )
+      if( organisation_id.is_a?(String) && organisation_id.is_a?(Integer))
+        raise ArgumentError.new(format('wrong type. \'organisation_id\' must be an String (for an Datasource name) ' \
+                                       'or an Integer (for an Datasource Id), given \'%s\'', organisation_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'organisation_id\'') if( organisation_id.size.zero? )
 
       endpoint = format( '/api/orgs/%d', organisation_id ) if(organisation_id.is_a?(Integer))
@@ -83,7 +86,10 @@ module Grafana
     #
     def organization_users( organization_id )
 
-      raise ArgumentError.new(format('wrong type. user \'organization_id\' must be an String (for an Organisation name) or an Integer (for an Organisation Id), given \'%s\'', organization_id.class.to_s)) if( organization_id.is_a?(String) && organization_id.is_a?(Integer) )
+      if( organization_id.is_a?(String) && organization_id.is_a?(Integer))
+        raise ArgumentError.new(format('wrong type. \'organization_id\' must be an String (for an Organisation name) '\
+                                       'or an Integer (for an Organisation Id), given \'%s\'', organization_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'organization_id\'') if( organization_id.size.zero? )
 
       if(organization_id.is_a?(String))
@@ -266,7 +272,10 @@ module Grafana
     #
     def delete_organisation( organisation_id )
 
-      raise ArgumentError.new(format('wrong type. user \'organisation_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', organisation_id.class.to_s)) if( organisation_id.is_a?(String) && organisation_id.is_a?(Integer) )
+      if( organisation_id.is_a?(String) && organisation_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'organisation_id\' must be an String (for an Organisation name) ' \
+                                       'or an Integer (for an Organisation Id), given \'%s\'', organisation_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'organisation_id\'') if( organisation_id.size.zero? )
 
       if(organisation_id.is_a?(String))
@@ -275,7 +284,7 @@ module Grafana
         data.each do |d|
           organisation_map[d.dig('id')] = d.dig('name')
         end
-        organisation_id = organisation_map.select { |x,y| y == organisation_id }.keys.first if( organisation_map )
+        organisation_id = organisation_map.select { |_,y| y == organisation_id }.keys.first if( organisation_map )
       end
 
       return { 'status' => 404, 'message' => format( 'No Organisation \'%s\' found', organisation_id) } if( organisation_id.nil? )

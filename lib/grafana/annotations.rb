@@ -20,10 +20,12 @@ module Grafana
     # @option params [Integer] from: epoch datetime in milliseconds. Optional.
     # @option params [Integer] to: epoch datetime in milliseconds. Optional.
     # @option params [Integer] limit: number. Optional - default is 10. Max limit for results returned.
-    # @option params [Integer] alertId: number. Optional. Find annotations for a specified alert.
+    # @option params [Integer] alert_id: number. Optional. Find annotations for a specified alert.
     # @option params [Mixed] dashboard: number. Optional. Find annotations that are scoped to a specific dashboard
     # @option params [Integer] panel_id: number. Optional. Find annotations that are scoped to a specific panel
-    # @option params [Array] tags: string. Optional. Use this to filter global annotations. Global annotations are annotations from an annotation data source that are not connected specifically to a dashboard or panel. To do an “AND” filtering with multiple tags, specify the tags parameter multiple times e.g.
+    # @option params [Array] tags: Optional. Use this to filter global annotations.
+    #                              Global annotations are annotations from an annotation data source that are not connected specifically to a dashboard or panel.
+    #                              To do an "AND" filtering with multiple tags, specify the tags parameter multiple times e.g.
     #
     # @example
     #    params = {
@@ -160,7 +162,7 @@ module Grafana
     #
     # Creates an annotation by using Graphite-compatible event format.
     # The when and data fields are optional.
-    # If when is not specified then the current time will be used as annotation’s timestamp.
+    # If when is not specified then the current time will be used as annotation's timestamp.
     # The tags field can also be in prior to Graphite 0.10.0 format (string with multiple tags being separated by a space).
     #
     # http://docs.grafana.org/http_api/annotations/#create-annotation-in-graphite-format

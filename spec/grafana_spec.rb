@@ -221,7 +221,7 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'graphite',
         type: 'graphite',
-        database: 'graphite',
+#         database: 'graphite',
         url: 'http://localhost:8080'
       )
       expect(r).to be_a(Hash)
@@ -324,7 +324,6 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'graphite-2',
         type: 'graphite',
-        database: 'graphite',
         url: 'http://localhost:8080'
       )
       expect(r).to be_a(Hash)
@@ -337,7 +336,6 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'cloudwatch',
         type: 'cloudwatch',
-        database: 'cloudwatch',
         access: 'proxy',
         url: 'http://localhost:8080'
       )
@@ -351,7 +349,6 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'elasticsearch',
         type: 'elasticsearch',
-        database: 'elasticsearch',
         access: 'proxy',
         url: 'http://localhost:8080'
       )
@@ -365,7 +362,6 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'prometheus',
         type: 'prometheus',
-        database: 'prometheus',
         access: 'proxy',
         url: 'http://localhost:8080'
       )
@@ -379,7 +375,6 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'influxdb',
         type: 'influxdb',
-        database: 'influxdb',
         access: 'proxy',
         url: 'http://localhost:8080'
       )
@@ -393,7 +388,6 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'mysql',
         type: 'mysql',
-        database: 'mysql',
         access: 'proxy',
         url: 'http://localhost:8080'
       )
@@ -407,7 +401,6 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'opentsdb',
         type: 'opentsdb',
-        database: 'opentsdb',
         access: 'proxy',
         url: 'http://localhost:8080'
       )
@@ -421,7 +414,6 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'postgres',
         type: 'postgres',
-        database: 'postgres',
         access: 'proxy',
         url: 'http://localhost:8080'
       )
@@ -435,7 +427,6 @@ describe Grafana do
       r = @g.create_datasource(
         name: 'grafana',
         type: 'grafana',
-        database: 'grafana',
         access: 'proxy',
         url: 'http://localhost:8080'
       )
@@ -1551,38 +1542,40 @@ describe Grafana do
       expect(status).to be == 200
     end
 
+    it 'add temporary User' do
+      r = @g.add_user(
+        user_name:'foo',
+        email: 'foo@foo-bar.tld',
+        password: 'pass'
+      )
+      expect(r).to be_a(Hash)
+
+      status = r.dig('status')
+      id = r.dig('id')
+      message = r.dig('message')
+      expect(r).to be_a(Hash)
+      expect(status).to be_a(Integer)
+      expect(id).to be_a(Integer)
+    end
+
     it 'update folder permissions for \'spec-test-first\'' do
       version, major_version = @g.version.values
 
       params = {
         folder: 'spec-test-first',
         permissions: {
-          role: [{ 'viewer': 'View' }, { 'Editor': 'Edit' }],
-          team: [{ 'team beta': 'View' },{ 'team alpha': 'View' },{ 'team beta': 'Editor' }],
-          user: [{ 'qa': 'Admin' }]
+          team: [
+            { 'team beta' => 'View' },
+            { 'team alpha' => 'Viewer' },
+            { 'team beta' => 'Editor' },
+            { 'team alpha' => 'Edit' }
+          ],
+          user: [
+            { 'qa' => 'Admin' },
+            { 'foo' => 'View' }
+          ]
         }
       }
-
-#1 = View
-#2 = Edit
-#4 = Admin
-#
-#Viewer",
-#      "permission": 1
-#    },
-#    {
-#      "role": "Editor",
-#      "permission": 2
-#    },
-#    {
-#      "teamId": 1,
-#      "permission": 1
-#    },
-#    {
-#      "userId": 11,
-#      "permission": 4
-#    }
-#        }
 
       r = @g.update_folder_permissions( params )
 
@@ -1597,7 +1590,27 @@ describe Grafana do
 
 
 
+    it 'delete team \'team alpha\'' do
+      r = @g.delete_team('team alpha')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
 
+    it 'delete team \'team beta\'' do
+      r = @g.delete_team('team beta')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'delete temporary User' do
+      r = @g.delete_user('foo@foo-bar.tld')
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
 
     it 'delete folder' do
       version, major_version = @g.version.values

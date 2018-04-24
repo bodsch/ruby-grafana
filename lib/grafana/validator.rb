@@ -26,7 +26,7 @@ module Grafana
       params   = params.deep_symbolize_keys
       variable = params.dig(var.to_sym)
 
-      raise ArgumentError.new(format('\'%s\' is requiered and missing!', var)) if(variable.nil?) if(required == true )
+      raise ArgumentError.new(format('\'%s\' is requiered and missing!', var)) if(variable.nil? && required == true )
 
       unless( type.nil? )
         clazz = Object.const_get(type.to_s)

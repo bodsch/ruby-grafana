@@ -98,7 +98,9 @@ module Grafana
     #
     def add_dashboard_star( dashboard_id )
 
-      raise ArgumentError.new(format('wrong type. user \'dashboard_id\' must be an String (for an Dashboard name) or an Integer (for an Dashboard Id), given \'%s\'', dashboard_id.class.to_s)) if( dashboard_id.is_a?(String) && dashboard_id.is_a?(Integer) )
+      if( dashboard_id.is_a?(String) && dashboard_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'dashboard_id\' must be an String (for an Dashboard name) or an Integer (for an Dashboard Id), given \'%s\'', dashboard_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'dashboard_id\'') if( dashboard_id.size.zero? )
 
       dashboard_id = dashboard if(dashboard_id.is_a?(Integer))
@@ -128,7 +130,9 @@ module Grafana
     #
     def remove_dashboard_star( dashboard_id )
 
-      raise ArgumentError.new(format('wrong type. user \'dashboard_id\' must be an String (for an Dashboard name) or an Integer (for an Dashboard Id), given \'%s\'', dashboard_id.class.to_s)) if( dashboard_id.is_a?(String) && dashboard_id.is_a?(Integer) )
+      if( dashboard_id.is_a?(String) && dashboard_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'dashboard_id\' must be an String (for an Dashboard name) or an Integer (for an Dashboard Id), given \'%s\'', dashboard_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'dashboard_id\'') if( dashboard_id.size.zero? )
 
       dashboard_id = dashboard( dashboard_id ) if(dashboard_id.is_a?(Integer))

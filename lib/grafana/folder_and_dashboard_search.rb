@@ -9,13 +9,13 @@ module Grafana
     #
     # Query parameters:
     #
-    #  - query – Search Query
-    #  - tag – List of tags to search for
-    #  - type – Type to search for, dash-folder or dash-db
-    #  - dashboardIds – List of dashboard id’s to search for
-    #  - folderIds – List of folder id’s to search in for dashboards
-    #  - starred – Flag indicating if only starred Dashboards should be returned
-    #  - limit – Limit the number of returned results
+    #  - query - Search Query
+    #  - tag - List of tags to search for
+    #  - type - Type to search for, dash-folder or dash-db
+    #  - dashboardIds - List of dashboard id's to search for
+    #  - folderIds - List of folder id's to search in for dashboards
+    #  - starred - Flag indicating if only starred Dashboards should be returned
+    #  - limit - Limit the number of returned results
     def folder_and_dashboard_search(params)
 
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )

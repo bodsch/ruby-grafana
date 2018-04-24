@@ -44,7 +44,9 @@ module Grafana
     #
     def datasource( datasource_id )
 
-      raise ArgumentError.new(format('wrong type. user \'datasource_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', datasource_id.class.to_s)) if( datasource_id.is_a?(String) && datasource_id.is_a?(Integer) )
+      if( datasource_id.is_a?(String) && datasource_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'datasource_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', datasource_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'datasource_id\'') if( datasource_id.size.zero? )
 
       if(datasource_id.is_a?(String))
@@ -105,27 +107,31 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      name = validate( params, required: true, var: 'name' )
-      organisation  = validate( params, required: false, var: 'organisation' )
-      type          = validate( params, required: false, var: 'type', type: String )
-      new_name      = validate( params, required: false, var: 'new_name', type: String )
-      database    = validate( params, required: false, var: 'database', type: String )
-      access      = validate( params, required: false, var: 'access', type: String ) || 'proxy'
-      default     = validate( params, required: false, var: 'default', type: Boolean ) || false
-      user        = validate( params, required: false, var: 'user', type: String )
-      password    = validate( params, required: false, var: 'password', type: String )
-      url         = validate( params, required: false, var: 'url', type: String )
-      json_data   = validate( params, required: false, var: 'json_data', type: Hash )
-      ba_user     = validate( params, required: false, var: 'basic_user', type: String )
-      ba_password = validate( params, required: false, var: 'basic_password', type: String )
-      basic_auth  = false
-      basic_auth  = true unless( ba_user.nil? && ba_password.nil? )
-      org_id      = nil
+      name         = validate( params, required: true , var: 'name' )
+      organisation = validate( params, required: false, var: 'organisation' )
+      type         = validate( params, required: false, var: 'type', type: String )
+      new_name     = validate( params, required: false, var: 'new_name', type: String )
+      database     = validate( params, required: false, var: 'database', type: String )
+      access       = validate( params, required: false, var: 'access', type: String ) || 'proxy'
+      default      = validate( params, required: false, var: 'default', type: Boolean ) || false
+      user         = validate( params, required: false, var: 'user', type: String )
+      password     = validate( params, required: false, var: 'password', type: String )
+      url          = validate( params, required: false, var: 'url', type: String )
+      json_data    = validate( params, required: false, var: 'json_data', type: Hash )
+      ba_user      = validate( params, required: false, var: 'basic_user', type: String )
+      ba_password  = validate( params, required: false, var: 'basic_password', type: String )
+      basic_auth   = false
+      basic_auth   = true unless( ba_user.nil? && ba_password.nil? )
+      org_id       = nil
 
-      raise ArgumentError.new(format('wrong type. user \'name\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', name.class.to_s)) if( name.is_a?(String) && name.is_a?(Integer) )
-
+      if( name.is_a?(String) && name.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'name\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', name.class.to_s))
+      end
       if( organisation )
-        raise ArgumentError.new(format('wrong type. user \'organisation\' must be an String (for an Organisation name) or an Integer (for an Organisation Id), given \'%s\'', organisation.class.to_s)) if( organisation.is_a?(String) && organisation.is_a?(Integer) )
+        if( organisation.is_a?(String) && organisation.is_a?(Integer) )
+          raise ArgumentError.new(format('wrong type. \'organisation\' must be an String (for an Organisation name) or an Integer (for an Organisation Id), given \'%s\'', organisation.class.to_s))
+        end
+
         org    = organization( organisation )
         org_id = org.dig('id')
 
@@ -170,7 +176,7 @@ module Grafana
       endpoint = format('/api/datasources/%d', datasource_id )
 
       @logger.debug("Updating data source Id #{datasource_id} (GET #{endpoint})") if  @debug
-      logger.debug(payload.to_json) if(@debug)
+#       logger.debug(payload.to_json) if(@debug)
 
       put( endpoint, payload.to_json )
     end
@@ -180,10 +186,8 @@ module Grafana
     # @param [Hash] params
     # @option params [String] type Datasource Type - (required) (grafana graphite cloudwatch elasticsearch prometheus influxdb mysql opentsdb postgres)
     # @option params [String] name  Datasource Name - (required)
-    # @option params [String] database  Datasource Database - (required)
     # @option params [String] access (proxy) Acess Type - (required) (proxy or direct)
     # @option params [Boolean] default (false)
-    # @option params [String] password
     # @option params [String] url Datasource URL - (required)
     # @option params [Hash] json_data
     # @option params [Hash] json_secure
@@ -194,7 +198,6 @@ module Grafana
     #    params = {
     #      name: 'graphite',
     #      type: 'graphite',
-    #      database: 'graphite',
     #      url: 'http://localhost:8080'
     #    }
     #    create_datasource(params)
@@ -202,7 +205,6 @@ module Grafana
     #    params = {
     #      name: 'graphite',
     #      type: 'graphite',
-    #      database: 'graphite',
     #      default: true,
     #      url: 'http://localhost:8080',
     #      json_data: { graphiteVersion: '1.1' }
@@ -231,13 +233,11 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      type        = validate( params, required: true, var: 'type', type: String )
-      name        = validate( params, required: true, var: 'name', type: String )
-      database    = validate( params, required: true, var: 'database', type: String )
+      type        = validate( params, required: true , var: 'type', type: String )
+      name        = validate( params, required: true , var: 'name', type: String )
       access      = validate( params, required: false, var: 'access', type: String ) || 'proxy'
       default     = validate( params, required: false, var: 'default', type: Boolean ) || false
-      password    = validate( params, required: false, var: 'password', type: String )
-      url         = validate( params, required: true, var: 'url', type: String )
+      url         = validate( params, required: true , var: 'url', type: String )
       json_data   = validate( params, required: false, var: 'json_data', type: Hash )
       json_secure = validate( params, required: false, var: 'json_secure', type: Hash )
       ba_user     = validate( params, required: false, var: 'basic_user', type: String )
@@ -262,13 +262,7 @@ module Grafana
         jsonData: json_data,
         secureJsonData: json_secure
       }
-
       payload.reject!{ |_k, v| v.nil? }
-
-      if( @debug )
-        logger.debug("Creating data source: #{name} (database: #{database})")
-        logger.debug( payload.to_json )
-      end
 
       endpoint = '/api/datasources'
       post(endpoint, payload.to_json)
@@ -286,7 +280,9 @@ module Grafana
     #
     def delete_datasource( datasource_id )
 
-      raise ArgumentError.new(format('wrong type. user \'datasource_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', datasource_id.class.to_s)) if( datasource_id.is_a?(String) && datasource_id.is_a?(Integer) )
+      if( datasource_id.is_a?(String) && datasource_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'datasource_id\' must be an String (for an Datasource name) or an Integer (for an Datasource Id), given \'%s\'', datasource_id.class.to_s))
+      end
       raise ArgumentError.new('missing \'datasource_id\'') if( datasource_id.size.zero? )
 
       if(datasource_id.is_a?(String))
