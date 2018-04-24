@@ -179,7 +179,7 @@ module Grafana
     #      what: 'spec test graphite annotation',
     #      when: Time.now.to_i,
     #      tags: [ 'spec', 'test' ],
-    #      text: 'test annotation'
+    #      data: 'test annotation'
     #    }
     #    create_annotation_graphite( params )
     #
@@ -190,17 +190,18 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
-      what      = validate( params, required: true, var: 'what', type: String )
+      what      = validate( params, required: true , var: 'what', type: String )
       time_when = validate( params, required: false, var: 'when', type: Integer ) || Time.now.to_i
-      tags      = validate( params, required: true, var: 'tags', type: Array )
-      text      = validate( params, required: true, var: 'text', type: String )
+      tags      = validate( params, required: true , var: 'tags', type: Array )
+      data      = validate( params, required: false, var: 'text', type: String )
+      data      = validate( params, required: true , var: 'data', type: String )
 
       endpoint = '/api/annotations/graphite'
       payload = {
         what: what,
         when: time_when,
         tags: tags,
-        text: text
+        data: data
       }
       payload.reject!{ |_k, v| v.nil? }
 

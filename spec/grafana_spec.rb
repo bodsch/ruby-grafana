@@ -1244,7 +1244,7 @@ describe Grafana do
         what: 'spec test graphite annotation',
         when: Time.now.to_i,
         tags: [ 'spec', 'test' ],
-        text: 'test annotation'
+        data: 'test annotation'
       }
       r = @g.create_annotation_graphite(params)
 
