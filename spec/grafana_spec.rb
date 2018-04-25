@@ -1569,9 +1569,9 @@ describe Grafana do
       expect(status).to be == 404 if(major_version < 5)
     end
 
-    it 'get folder by id 10' do
+    it 'get folder by id 999 (must be fail)' do
       version, major_version = @g.version.values
-      r = @g.folder( 10 )
+      r = @g.folder(999)
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
