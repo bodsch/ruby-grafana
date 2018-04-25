@@ -1411,6 +1411,41 @@ describe Grafana do
   end
 
 
+  describe 'Dashboard Versions' do
+
+    it 'import dashboards from directory' do
+      r = @g.import_dashboards_from_directory('spec/dashboards')
+      expect(r).to be_a(Hash)
+      expect(r.count).to be == 2
+      expect(r.select { |k, v| v['status'] == 200 }.count).to be 2
+    end
+
+
+    it 'Gets all existing permissions for a existing dashboard' do
+      search = { query: 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      id = message.first.dig('id')
+
+      r = @g.dashboard_all_versions(id)
+      puts r
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+
+
+
+
+
+  end
+
+
   describe 'Annotations' do
 
     it 'import dashboards from directory' do
