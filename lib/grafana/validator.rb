@@ -36,6 +36,38 @@ module Grafana
       variable
     end
 
+    # validate an value with an array of values
+    #
+    #
+    # @return [Mixed]
+    #
+    def validate_hash( value, valid_params )
+
+#       puts "validate_hash( #{value}, #{valid_params} )"
+
+      unless( valid_params.collect { |r| r.downcase }.include?(value.downcase) )
+#         puts "NOOO : #{value}"
+        return {
+          'status' => 404,
+          'message' => format( 'wrong value. \'%s\' must be one of \'%s\'', value, valid_params.join('\', \''))
+        }
+      end
+#      puts "result: #{result} #{result.class}"
+#
+#
+#      downcased = Set.new valid_params.map(&:downcase)
+#
+#      puts "downcased: #{downcased}"
+#
+#      unless( downcased.include?( value.downcase ) )
+#        return {
+#          'status' => 404,
+#          'message' => format( 'wrong value. \'%s\' must be one of \'%s\'', value, valid_params.join('\', \''))
+#        }
+#      end
+      true
+    end
+
   end
 end
 

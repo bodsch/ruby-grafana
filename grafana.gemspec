@@ -72,5 +72,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency('pry', '~> 0')
   spec.add_development_dependency('pry-remote', '~> 0')
   spec.add_development_dependency('pry-nav', '~> 0')
-  spec.add_development_dependency('public_suffix', '~> 3.0')
 end

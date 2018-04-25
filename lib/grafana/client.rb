@@ -12,6 +12,7 @@ require_relative 'network'
 require_relative 'tools'
 require_relative 'admin'
 require_relative 'annotations'
+require_relative 'preferences'
 require_relative 'user'
 require_relative 'users'
 require_relative 'teams'
@@ -52,6 +53,7 @@ module Grafana
     include Grafana::Tools
     include Grafana::Admin
     include Grafana::Annotations
+    include Grafana::Preferences
     include Grafana::User
     include Grafana::Users
     include Grafana::Teams

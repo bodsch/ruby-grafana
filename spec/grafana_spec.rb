@@ -33,6 +33,7 @@ describe Grafana do
     end
   end
 
+
   describe 'get version' do
 
     it 'version' do
@@ -238,6 +239,117 @@ describe Grafana do
     end
 
   end
+
+
+  describe 'Preferences' do
+
+    it 'get current user preferences' do
+      version, major_version = @g.version.values
+      r = @g.user_preferences
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'update current user preferences' do
+      version, major_version = @g.version.values
+
+      params = {
+        theme: 'dark',
+        timezone: 'browser',
+        home_dashboard: 'QA Graphite Carbon Metrics'
+      }
+      r = @g.update_user_preferences(params)
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'update current user preferences (wrong theme, must be failed)' do
+      version, major_version = @g.version.values
+
+      params = {
+        theme: 'darker'
+      }
+      r = @g.update_user_preferences(params)
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+
+    it 'update current user preferences (wrong timezone, must be failed)' do
+      version, major_version = @g.version.values
+
+      params = {
+        theme: 'dark',
+        timezone: 'europe/berlin'
+      }
+      r = @g.update_user_preferences(params)
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'update current user preferences (wrong dashboard, must be failed)' do
+      version, major_version = @g.version.values
+
+      params = {
+        theme: 'dark',
+        home_dashboard: 'non existing'
+      }
+      r = @g.update_user_preferences(params)
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+
+    it 'get current organisation preferences' do
+      version, major_version = @g.version.values
+      r = @g.org_preferences
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+    it 'update current organisation preferences' do
+      version, major_version = @g.version.values
+
+      params = {
+        theme: 'dark',
+        timezone: 'browser',
+        home_dashboard: 'QA Graphite Carbon Metrics'
+      }
+      r = @g.update_org_preferences(params)
+      expect(r).to be_a(Hash)
+      status = r.dig('status')
+      expect(status).to be_a(Integer)
+
+      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 404 if(major_version < 5)
+    end
+
+  end
+
 
   # Alerts are currently not functional (FOR ME!)
   # needs some Q&A with the grafana team
@@ -1624,6 +1736,7 @@ describe Grafana do
     end
 
   end
+
 
   describe 'Folder search' do
 

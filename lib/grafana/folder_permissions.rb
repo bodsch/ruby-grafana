@@ -136,19 +136,19 @@ module Grafana
     end
 
 
-    private
-    def validate_hash( value, valid_params )
-
-      downcased = Set.new valid_params.map(&:downcase)
-
-      unless( downcased.include?( value.downcase ) )
-        return {
-          'status' => 404,
-          'message' => format( 'wrong permissions. Must be one of %s, given \'%s\'', valid_params.join(', '), value )
-        }
-      end
-      true
-    end
+#    private
+#    def validate_hash( value, valid_params )
+#
+#      downcased = Set.new valid_params.map(&:downcase)
+#
+#      unless( downcased.include?( value.downcase ) )
+#        return {
+#          'status' => 404,
+#          'message' => format( 'wrong permissions. Must be one of %s, given \'%s\'', valid_params.join(', '), value )
+#        }
+#      end
+#      true
+#    end
 
   end
 end
