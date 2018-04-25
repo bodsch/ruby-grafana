@@ -1323,6 +1323,94 @@ describe Grafana do
   end
 
 
+  describe 'Dashboard Permissions' do
+
+    it 'import dashboards from directory' do
+      r = @g.import_dashboards_from_directory('spec/dashboards')
+      expect(r).to be_a(Hash)
+      expect(r.count).to be == 2
+      expect(r.select { |k, v| v['status'] == 200 }.count).to be 2
+    end
+
+    it 'Gets all existing permissions for a existing dashboard' do
+      search = { query: 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      id = message.first.dig('id')
+      r = @g.dashboard_permissions(id)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'Gets all existing permissions for a non existing dashboard ' do
+      search = { query: 'QA Graphite Carbon Metrics' }
+      r = @g.dashboard_permissions(1)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
+
+
+    it 'update permissions for an existing dashboard ' do
+      search = { query: 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      id = message.first.dig('id')
+
+      params = {
+        dashboard_id: id,
+        permissions: {
+          team: [
+            { 'team beta' => 'View' },
+            { 'team alpha' => 'Viewer' },
+            { 'team beta' => 'Editor' },
+            { 'team alpha' => 'Edit' }
+          ],
+          user: [
+            { 'qa' => 'Admin' },
+            { 'foo' => 'View' }
+          ]
+        }
+      }
+      r = @g.update_dashboad_permissions( params )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
+
+    it 'delete dashboard' do
+      search = { tags: 'QA' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).equal?(2)
+
+      message.each do |m|
+        title = m.dig('title')
+        r = @g.delete_dashboard(title)
+        expect(r).to be_a(Hash)
+        status  = r.dig('status')
+        expect(status).to be == 200
+      end
+
+    end
+
+
+  end
+
+
   describe 'Annotations' do
 
     it 'import dashboards from directory' do
