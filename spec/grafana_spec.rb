@@ -1421,7 +1421,7 @@ describe Grafana do
     end
 
 
-    it 'Gets all existing permissions for a existing dashboard' do
+    it 'get all dashboard versions' do
       search = { query: 'QA Graphite Carbon Metrics' }
       r = @g.search_dashboards( search )
       expect(r).to be_a(Hash)
@@ -1431,15 +1431,95 @@ describe Grafana do
       expect(message).to be_a(Array)
       id = message.first.dig('id')
 
-      r = @g.dashboard_all_versions(id)
-      puts r
+      r = @g.dashboard_all_versions(dashboard_id: id)
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be == 200
     end
 
+    it 'get all dashboard versions of dashboard \'999\' (must be fail)' do
+      r = @g.dashboard_all_versions(dashboard_id: 999)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
+
+    it 'get version 1 of dashboard' do
+      search = { query: 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      id = message.first.dig('id')
+
+      r = @g.dashboard_version(dashboard_id: id, version: 1)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'get version 15 of dashboard (must be fail)' do
+      search = { query: 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      id = message.first.dig('id')
+
+      r = @g.dashboard_version(dashboard_id: id, version: 15)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 500
+    end
 
 
+    it 'restore dashboard version 2' do
+      search = { query: 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      id = message.first.dig('id')
+
+      r = @g.restore_dashboard(dashboard_id: id, version: 2)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+    end
+
+
+    it 'compare dashboard versions' do
+      search = { query: 'QA Graphite Carbon Metrics' }
+      r = @g.search_dashboards( search )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      id = message.first.dig('id')
+
+      params = {
+        'base': {
+          'dashboard_id' => id,
+          'version' => 1
+        },
+        'new': {
+          'dashboard_id' => id,
+          'version' => 2
+        }
+      }
+
+      r = @g.compare_dashboard_version(params)
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+    end
 
 
 
