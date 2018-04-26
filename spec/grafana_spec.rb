@@ -1505,11 +1505,11 @@ describe Grafana do
       id = message.first.dig('id')
 
       params = {
-        'base': {
+        'base' => {
           'dashboard_id' => id,
           'version' => 1
         },
-        'new': {
+        'new' => {
           'dashboard_id' => id,
           'version' => 2
         }
