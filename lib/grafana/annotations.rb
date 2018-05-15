@@ -193,8 +193,7 @@ module Grafana
       what      = validate( params, required: true , var: 'what', type: String )
       time_when = validate( params, required: false, var: 'when', type: Integer ) || Time.now.to_i
       tags      = validate( params, required: true , var: 'tags', type: Array )
-      data      = validate( params, required: false, var: 'text', type: String )
-      data      = validate( params, required: true , var: 'data', type: String )
+      data      = validate( params, required: false, var: 'data', type: String )
 
       endpoint = '/api/annotations/graphite'
       payload = {
