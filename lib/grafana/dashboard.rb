@@ -80,14 +80,13 @@ module Grafana
       v, mv = version.values
       return { 'status' => 404, 'message' => format( 'only Grafana 5 has uid support. you use version %s', v) } if(mv != 5)
 
-      return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters. \'%s\' given', uid.length) } if( uid.length > 40 )
+      return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters, but it is %s characters long', uid.length) } if( uid.length > 40 )
 
       endpoint = format( '/api/dashboards/uid/%s', uid )
       @logger.debug( "Attempting to get dashboard (GET #{endpoint})" ) if @debug
 
       get( endpoint )
     end
-
 
     # Create / Update dashboard
     #
@@ -147,6 +146,9 @@ module Grafana
 
       db = JSON.parse( dashboard ) if( dashboard.is_a?(String) )
       title = db.dig('dashboard','title')
+      uid   = db.dig('dashboard','uid')
+
+      return { 'status' => 404, 'message' => format( 'the template \'%s\' can\'t be create. The uid can have a maximum length of 40 characters, but it is %s characters long', title, uid.length) } if( ! uid.nil? && uid.length > 40 )
 
       endpoint = '/api/dashboards/db'
 

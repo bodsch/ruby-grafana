@@ -1220,7 +1220,7 @@ describe Grafana do
       r = @g.import_dashboards_from_directory('spec/dashboards')
       expect(r).to be_a(Hash)
       expect(r.count).to be == 2
-      expect(r.select { |k, v| v['status'] == 200 }.count).to be 2
+      expect(r.select { |k, v| v['status'] == 200 }.count).to eq(2)
     end
 
     it 'dashboards tags' do
@@ -1284,13 +1284,13 @@ describe Grafana do
       expect(t).equal?(title)
     end
 
-    it 'list dashboard (only Grafana v5.x)' do
+    it 'list dashboard by uid (only Grafana v5.x)' do
       search = { query: 'QA Graphite Carbon Metrics' }
       r = @g.search_dashboards( search )
       message = r.dig('message')
       uid = message.first.dig('uid')
       title = message.first.dig('title')
-#      puts message
+      # dashboard-by-uid
       r = @g.dashboard_by_uid(uid)
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -1300,6 +1300,48 @@ describe Grafana do
       expect(t).equal?(title)
     end
 
+    it 'list dashboard by uid (only Grafana v5.x. uid to long. must be fail)' do
+      r = @g.dashboard_by_uid('3d188cab-ffdf-47f1-b656-edde5cdfd31b-xxxx')
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
+
+    it 'create dashboard' do
+      a = '{
+        "dashboard": {
+          "id": null,
+          "uid": null,
+          "title": "Production Overview",
+          "tags": [ "QA", "templated" ],
+          "timezone": "browser",
+          "schemaVersion": 16,
+          "version": 0
+        }
+      }'
+      r = @g.create_dashboard(dashboard: JSON.parse(a) )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
+    end
+
+    it 'create dashboard (uid to long. must be fail)' do
+      a = '{
+        "dashboard": {
+          "id": null,
+          "uid": "qX74c5ALvPQSUs1Wcp251nWcsAUHiDKGUnMRNFTBe",
+          "title": "Production Overview",
+          "tags": [ "QA", "templated" ],
+          "timezone": "browser",
+          "schemaVersion": 16,
+          "version": 0
+        }
+      }'
+      r = @g.create_dashboard(dashboard: JSON.parse(a) )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
 
 
     it 'delete dashboard' do

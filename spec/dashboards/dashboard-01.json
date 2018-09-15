@@ -1,5 +1,6 @@
 { "dashboard":
 {
+  "uid": "3d188cab-ffdf-47f1-b656-edde5cdfd31b",
   "id": null,
   "revision": "1.0",
   "title": "QA Graphite Carbon Metrics",
