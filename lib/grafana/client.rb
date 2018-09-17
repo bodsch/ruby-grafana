@@ -27,6 +27,7 @@ require_relative 'alerts'
 require_relative 'folder'
 require_relative 'folder_permissions'
 require_relative 'folder_and_dashboard_search'
+require_relative 'playlist'
 
 # -------------------------------------------------------------------------------------------------------------------
 #
@@ -68,6 +69,7 @@ module Grafana
     include Grafana::Folder
     include Grafana::FolderPermissions
     include Grafana::FolderSearch
+    include Grafana::Playlist
 
     attr_accessor :debug
 

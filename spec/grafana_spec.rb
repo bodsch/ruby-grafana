@@ -1669,6 +1669,42 @@ describe Grafana do
   end
 
 
+  describe 'Playlist' do
+
+    it 'import dashboards from directory' do
+      r = @g.import_dashboards_from_directory('spec/dashboards')
+      expect(r).to be_a(Hash)
+      expect(r.count).to be == 2
+      expect(r.select { |k, v| v['status'] == 200 }.count).to eq(2)
+    end
+
+    it 'create playlist' do
+
+      paramas = {
+        name => 'QA Playlist',
+        interval => '2m',
+        items => [
+          {
+            id => 2,
+            order => 1,
+            title => 'from id'
+          },
+          {
+            tag => 'QA',
+            order => 2,
+            title => 'from tag'
+          }
+        ]
+      }
+
+      r = @g.create_playlist( params )
+
+
+    end
+
+  end
+
+
   describe 'Folder' do
 
     it 'create folder \'spec-test-first\'' do

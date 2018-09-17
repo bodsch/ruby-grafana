@@ -58,7 +58,7 @@ module Grafana
         return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.is_a?(Integer) )
       end
 
-      return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters. \'%s\' given', folder_uid.length) } \
+      return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters, but it is %s characters long', folder_uid.length) } \
           if( folder_uid.is_a?(String) && folder_uid.length > 40 )
       return { 'status' => 404, 'message' => format( 'No Folder \'%s\' found', folder_uid) } if( folder_uid.nil? )
 

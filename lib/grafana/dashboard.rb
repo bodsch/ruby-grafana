@@ -148,7 +148,7 @@ module Grafana
       title = db.dig('dashboard','title')
       uid   = db.dig('dashboard','uid')
 
-      return { 'status' => 404, 'message' => format( 'the template \'%s\' can\'t be create. The uid can have a maximum length of 40 characters, but it is %s characters long', title, uid.length) } if( ! uid.nil? && uid.length > 40 )
+      return { 'status' => 404, 'message' => format( 'The template \'%s\' can\'t be create. The uid can have a maximum length of 40 characters, but it is %s characters long', title, uid.length) } if( ! uid.nil? && uid.length > 40 )
 
       endpoint = '/api/dashboards/db'
 
