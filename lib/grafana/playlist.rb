@@ -225,9 +225,12 @@ module Grafana
 
       name     = validate( params, required: true , var: 'name'      , type: String )
       interval = validate( params, required: true , var: 'interval'  , type: String )
+      items    = validate( params, required: true , var: 'items'     , type: Array )
+
+      return { 'status' => 404, 'message' => 'You give me no items for a playlist' } if(items.count == 0)
 
 
-
+      return { status: 000, message: 'under development' }
     end
 
     ### Update a playlist
