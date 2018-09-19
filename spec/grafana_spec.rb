@@ -1678,28 +1678,42 @@ describe Grafana do
       expect(r.select { |k, v| v['status'] == 200 }.count).to eq(2)
     end
 
+    it 'create playlist (must be fail)' do
+
+      params = {
+        name: 'QA Playlist',
+        interval: '2m',
+        items: []
+      }
+
+      r = @g.create_playlist( params )
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 404
+    end
+
+
     it 'create playlist' do
 
-      paramas = {
-        name => 'QA Playlist',
-        interval => '2m',
-        items => [
+      params = {
+        name: 'QA Playlist',
+        interval: '2m',
+        items: [
           {
-            id => 2,
-            order => 1,
-            title => 'from id'
+            id: 2,
+            order: 1,
+            title: 'from id'
           },
           {
-            tag => 'QA',
-            order => 2,
-            title => 'from tag'
+            tag: 'QA',
+            order: 2,
+            title: 'from tag'
           }
         ]
       }
 
       r = @g.create_playlist( params )
-
-
+      p r
     end
 
   end
@@ -2203,5 +2217,6 @@ describe Grafana do
     end
 
   end
+
 end
 

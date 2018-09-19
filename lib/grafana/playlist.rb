@@ -227,10 +227,42 @@ module Grafana
       interval = validate( params, required: true , var: 'interval'  , type: String )
       items    = validate( params, required: true , var: 'items'     , type: Array )
 
-      return { 'status' => 404, 'message' => 'You give me no items for a playlist' } if(items.count == 0)
+      return { 'status' => 404, 'message' => 'There are no elements for a playlist' } if(items.count == 0)
+
+      _items   = []
+
+      # TODO
+      # check if dashboard id valid
+      items.each do |r|
+        _element = {}
+        if( r['id'] )
+          _element['type']  = 'dashboard_by_id'
+          _element['value'] = r['id']
+        elsif( r['tag'] )
+          _element['type']  = 'dashboard_by_tag'
+          _element['value'] = r['tag']
+        else
+          next
+        end
+
+        _element['order'] = r['order'] if(r['order'])
+        _element['title'] = r['title'] if(r['title'])
+
+        _items << _element if(_element.count == 4)
+      end
 
 
-      return { status: 000, message: 'under development' }
+      payload = {
+        name: name,
+        interval: interval,
+        items: _items
+      }
+      payload.reject!{ |_k, v| v.nil? }
+
+      p "payload: #{payload} (#{payload.class})"
+
+      endpoint = '/api/playlists'
+      #post(endpoint, payload.to_json)
     end
 
     ### Update a playlist
