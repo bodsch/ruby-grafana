@@ -235,34 +235,64 @@ module Grafana
       # check if dashboard id valid
       items.each do |r|
         _element = {}
-        if( r['id'] )
-          _element['type']  = 'dashboard_by_id'
-          _element['value'] = r['id']
+
+        if( r['name'] )
+
+          _name = search_dashboards( query: r['name'] )
+          _name_status = _name.dig('status')
+
+          next unless( _name_status == 200 )
+
+          _name = _name.dig('message')
+          _name_id = _name.first.dig('id')
+          _name_title = _name.first.dig('title')
+
+          _element[:type]  = 'dashboard_by_id'
+          _element[:value] = _name_id.to_s
+          _element[:title] = _name_title
+        elsif( r['id'] )
+
+          _uid = dashboard_by_uid(r['id'])
+          _uid_status = _uid.dig('status')
+
+          next unless( _uid_status == 200 )
+
+          _element[:type]  = 'dashboard_by_id'
+          _element[:value] = r['id']
         elsif( r['tag'] )
-          _element['type']  = 'dashboard_by_tag'
-          _element['value'] = r['tag']
+
+          _tags = search_dashboards( tags: r['tag'] )
+          _tags_status = _tags.dig('status')
+
+          next unless( _tags_status == 200 )
+
+          _element[:type]  = 'dashboard_by_tag'
+          _element[:value] = r['tag']
+          _element[:title] = r['tag'] # r['title'] if(r['title'])
+
         else
           next
         end
 
-        _element['order'] = r['order'] if(r['order'])
-        _element['title'] = r['title'] if(r['title'])
+        _element[:order] = r['order'] if(r['order'])
+        # _element[:title] = r['title'] if(r['title'])
 
         _items << _element if(_element.count == 4)
       end
 
 
       payload = {
-        name: name,
-        interval: interval,
-        items: _items
+        'name'=> name,
+        'interval'=> interval,
+        'items' => _items
       }
       payload.reject!{ |_k, v| v.nil? }
 
-      p "payload: #{payload} (#{payload.class})"
+      p "payload: #{payload.to_json} (#{payload.class})"
 
       endpoint = '/api/playlists'
-      #post(endpoint, payload.to_json)
+
+      post(endpoint, payload.to_json)
     end
 
     ### Update a playlist
