@@ -1692,27 +1692,39 @@ describe Grafana do
       expect(status).to be == 404
     end
 
+    it 'create playlist with tag' do
 
-    it 'create playlist' do
-
-      params = {
-        name: 'QA Playlist',
-        interval: '2m',
-        items: [
+      params = '{
+        "name": "QA Playlist",
+        "interval": "2m",
+        "items": [
           {
-            id: 2,
-            order: 1,
-            title: 'from id'
-          },
-          {
-            tag: 'QA',
-            order: 2,
-            title: 'from tag'
+            "tag": "QA",
+            "order": 2,
+            "title": "QA"
           }
         ]
-      }
+      }'
 
-      r = @g.create_playlist( params )
+      r = @g.create_playlist( JSON.parse(params) )
+      p r
+    end
+
+    it 'create playlist with named dashboard' do
+
+      params = '{
+        "name": "QA Playlist #2",
+        "interval": "2m",
+        "items": [
+          {
+            "name": "QA Graphite Carbon Metrics",
+            "order": 1,
+            "title": "QA Graphite Carbon Metrics"
+          }
+        ]
+      }'
+
+      r = @g.create_playlist( JSON.parse(params) )
       p r
     end
 
