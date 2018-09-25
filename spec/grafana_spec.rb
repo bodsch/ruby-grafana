@@ -16,7 +16,7 @@ describe Grafana do
       debug: false,
       grafana: {
         host: ENV.fetch( 'GRAFANA_HOST', 'localhost' ),
-        port: ENV.fetch( 'GRAFANA_PORT', 3000 )
+        port: ENV.fetch( 'GRAFANA_PORT', 3000 ).to_i
       }
     }
 
