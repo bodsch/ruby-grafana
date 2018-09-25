@@ -52,7 +52,27 @@ module Grafana
     #  }
     #]
     #```
-    def playlists() ; end
+    def playlists
+
+      endpoint = '/api/playlists'
+
+      @logger.debug("Attempting to get all existing playlists (GET #{endpoint})") if @debug
+
+      playlists = get( endpoint )
+
+      return { 'status' => 404, 'message' => 'No Playlists found' } if( playlists.nil? || playlists == false || playlists.dig('status').to_i != 200 )
+
+      playlists
+
+#      playlists = playlists.dig('message')
+#
+#      playlist_map = {}
+#      playlists.each do |ds|
+#        playlist_map[ds['id']] = ds
+#      end
+#
+#      playlist_map
+    end
 
     ### Get one playlist
     #
@@ -97,7 +117,41 @@ module Grafana
     #}
     #```
 
-    def playlist( params ) ; end
+    def playlist( playlist_id )
+
+      if( playlist_id.is_a?(String) && playlist_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'playlist_id\' must be an String (for an Playlist name) or an Integer (for an Playlist Id), given \'%s\'', playlist_id.class.to_s))
+      end
+      raise ArgumentError.new('missing \'playlist_id\'') if( playlist_id.size.zero? )
+
+      if(playlist_id.is_a?(String))
+
+        data = playlists
+        status = data.dig('status')
+        d = data.dig('message')
+        data = d.select { |k| k['name'] == playlist_id }
+
+        return { 'status' => 404, 'message' => format( 'No Playlist \'%s\' found', playlist_id) } if( data.size == 0 )
+
+        if( data.size != 0 )
+
+          _d = []
+          data.each do |k,v|
+            _d << playlist( k['id'] )
+          end
+          return { 'status' => status, 'playlists' => _d }
+        end
+#        return { 'status' => 200, 'message' => data } if( data.size != 0 )
+      end
+
+      raise format('Playlist Id can not be 0') if( playlist_id.zero? )
+
+      endpoint = format('/api/playlists/%d', playlist_id )
+
+      @logger.debug("Attempting to get existing playlist id #{playlist_id} (GET #{endpoint})") if  @debug
+
+      get(endpoint)
+    end
 
     ### Get Playlist items
 
@@ -136,7 +190,14 @@ module Grafana
     #]
     #```
 
-    def playlist_items() ; end
+    def playlist_items( playlist_id )
+
+      raise ArgumentError.new(format('wrong type. \'playlist_id\' must be an Integer, given \'%s\'', playlist_id.class)) unless( playlist_id.is_a?(Integer) )
+#       raise ArgumentError.new('missing \'playlist_id\'') if( playlist_id.size.zero? )
+
+
+      return { 'status' => 0, 'message' => 'under development' }
+    end
 
     ### Get Playlist dashboards
     #
@@ -170,7 +231,15 @@ module Grafana
     #]
     #```
 
-    def playlist_dashboards(); end
+    def playlist_dashboards( id )
+
+#       raise ArgumentError.new(format('wrong type. \'name\' must be an String, given \'%s\'', name.class.to_s)) unless( name.is_a?(String) )
+
+      endpoint = sprintf('/api/playlists/%s/dashboards', id)
+
+      @logger.debug( "Attempting to get playlist (GET #{endpoint})" ) if @debug
+      get(endpoint)
+    end
 
     # Create a playlist
 
@@ -231,8 +300,6 @@ module Grafana
 
       _items   = []
 
-      # TODO
-      # check if dashboard id valid
       items.each do |r|
         _element = {}
 
@@ -250,6 +317,7 @@ module Grafana
           _element[:type]  = 'dashboard_by_id'
           _element[:value] = _name_id.to_s
           _element[:title] = _name_title
+
         elsif( r['id'] )
 
           _uid = dashboard_by_uid(r['id'])
@@ -259,6 +327,7 @@ module Grafana
 
           _element[:type]  = 'dashboard_by_id'
           _element[:value] = r['id']
+
         elsif( r['tag'] )
 
           _tags = search_dashboards( tags: r['tag'] )
@@ -268,14 +337,13 @@ module Grafana
 
           _element[:type]  = 'dashboard_by_tag'
           _element[:value] = r['tag']
-          _element[:title] = r['tag'] # r['title'] if(r['title'])
+          _element[:title] = r['tag']
 
         else
           next
         end
 
         _element[:order] = r['order'] if(r['order'])
-        # _element[:title] = r['title'] if(r['title'])
 
         _items << _element if(_element.count == 4)
       end
@@ -288,7 +356,7 @@ module Grafana
       }
       payload.reject!{ |_k, v| v.nil? }
 
-      p "payload: #{payload.to_json} (#{payload.class})"
+#       p "payload: #{payload.to_json} (#{payload.class})"
 
       endpoint = '/api/playlists'
 

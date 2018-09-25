@@ -16,7 +16,7 @@ describe Grafana do
       debug: false,
       grafana: {
         host: 'localhost',
-        port: 3030
+        port: 3000
       }
     }
 
@@ -1707,7 +1707,10 @@ describe Grafana do
       }'
 
       r = @g.create_playlist( JSON.parse(params) )
-      p r
+      #p r
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
     end
 
     it 'create playlist with named dashboard' do
@@ -1725,8 +1728,85 @@ describe Grafana do
       }'
 
       r = @g.create_playlist( JSON.parse(params) )
-      p r
+      # p r
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be == 200
     end
+
+    it 'get all playlists' do
+
+      r = @g.playlists
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).equal?(2)
+      expect(status).to be == 200
+    end
+
+    it 'get playlists with id 1' do
+
+      r = @g.playlist(1)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      items   = r.dig('items')
+      expect(items).to be_a(Array)
+      expect(items.count).equal?(6)
+      expect(status).to be == 200
+    end
+
+    it 'get playlists with name' do
+
+      r = @g.playlist('QA Playlist')
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      playlists = r.dig('playlists')
+      expect(playlists).to be_a(Array)
+      #expect(message.count).equal?(2)
+      expect(status).to be == 200
+    end
+
+
+    it 'get playlist dashboards by id' do
+
+      r = @g.playlist_dashboards(1)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).equal?(2)
+      expect(status).to be == 200
+    end
+
+    it 'get playlist dashboards by id (must be fail)' do
+
+      r = @g.playlist_dashboards(1000)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      expect(message).to be_a(String)
+      expect(status).to be == 404
+    end
+
+
+    it 'get playlist items for playlist by id' do
+
+      r = @g.playlist_items( 1 )
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+#       message = r.dig('message')
+#       expect(message).to be_a(Array)
+#       expect(message.count).equal?(2)
+      expect(status).to be == 0
+    end
+
 
   end
 
