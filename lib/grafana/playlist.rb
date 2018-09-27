@@ -63,15 +63,6 @@ module Grafana
       return { 'status' => 404, 'message' => 'No Playlists found' } if( playlists.nil? || playlists == false || playlists.dig('status').to_i != 200 )
 
       playlists
-
-#      playlists = playlists.dig('message')
-#
-#      playlist_map = {}
-#      playlists.each do |ds|
-#        playlist_map[ds['id']] = ds
-#      end
-#
-#      playlist_map
     end
 
     ### Get one playlist
@@ -144,13 +135,20 @@ module Grafana
 #        return { 'status' => 200, 'message' => data } if( data.size != 0 )
       end
 
-      raise format('Playlist Id can not be 0') if( playlist_id.zero? )
+      raise format('playlist id can not be 0') if( playlist_id.zero? )
 
       endpoint = format('/api/playlists/%d', playlist_id )
 
+#      puts endpoint
+
       @logger.debug("Attempting to get existing playlist id #{playlist_id} (GET #{endpoint})") if  @debug
 
-      get(endpoint)
+      result = get(endpoint)
+#      puts result
+
+      return { 'status' => 404, 'message' => 'playlist is empty', 'items' => [] } if( result.dig('status') == 404 )
+
+      return result
     end
 
     ### Get Playlist items
@@ -190,13 +188,42 @@ module Grafana
     #]
     #```
 
-    def playlist_items( playlist_id )
+    def playlist_items( playlist_id, multi_result = false )
 
-      raise ArgumentError.new(format('wrong type. \'playlist_id\' must be an Integer, given \'%s\'', playlist_id.class)) unless( playlist_id.is_a?(Integer) )
-#       raise ArgumentError.new('missing \'playlist_id\'') if( playlist_id.size.zero? )
+      if( playlist_id.is_a?(String) && playlist_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'playlist_id\' must be an String (for an playlist name) or an Integer (for an playlist Id), given \'%s\'', playlist_id.class.to_s))
+      end
+      raise ArgumentError.new('missing \'playlist_id\'') if( playlist_id.size.zero? )
 
+      _playlists = playlists
 
-      return { 'status' => 0, 'message' => 'under development' }
+      begin
+        status  = _playlists.dig('status')
+        message = _playlists.dig('message')
+
+        if( status == 200 )
+
+          data = message.select { |k| k['id'] == playlist_id } if( playlist_id.is_a?(Integer) )
+          data = message.select { |k| k['name'] == playlist_id } if( playlist_id.is_a?(String) )
+
+          return { 'status' => 404, 'message' => 'No Playlist found' } if( !data.is_a?(Array) || data.count == 0 || status.to_i != 200 )
+          return { 'status' => 404, 'message' => format('found %d playlists with name %s', data.count, playlist_id ) } if( data.count > 1 && multi_result == false )
+
+          id = data.first.dig('id')
+        else
+          return _playlists
+        end
+      rescue
+        return { 'status' => 404, 'message' => 'No Playlists found' } if( playlists.nil? || playlists == false || playlists.dig('status').to_i != 200 )
+      end
+
+      endpoint = "/api/playlists/#{id}/items"
+
+      result = get( endpoint )
+
+      return { 'status' => 404, 'message' => 'playlist is empty' } if( result.dig('status') == 404 )
+
+      return result
     end
 
     ### Get Playlist dashboards
@@ -231,11 +258,12 @@ module Grafana
     #]
     #```
 
-    def playlist_dashboards( id )
+    def playlist_dashboards( playlist_id )
 
-#       raise ArgumentError.new(format('wrong type. \'name\' must be an String, given \'%s\'', name.class.to_s)) unless( name.is_a?(String) )
+      raise ArgumentError.new(format('wrong type. \'playlist_id\' must be an Integer, given \'%s\'', playlist_id.class)) unless( playlist_id.is_a?(Integer) )
+      raise ArgumentError.new('missing \'playlist_id\'') if( playlist_id.size.zero? )
 
-      endpoint = sprintf('/api/playlists/%s/dashboards', id)
+      endpoint = format('/api/playlists/%s/dashboards', playlist_id)
 
       @logger.debug( "Attempting to get playlist (GET #{endpoint})" ) if @debug
       get(endpoint)
@@ -450,7 +478,79 @@ module Grafana
     #{}
     #```
 
-    def delete_playlist(); end
+    def delete_playlist(playlist_id, multi_result = false )
+
+      if( playlist_id.is_a?(String) && playlist_id.is_a?(Integer) )
+        raise ArgumentError.new(format('wrong type. \'playlist_id\' must be an String (for an Playlist name) or an Integer (for an Playlist Id), given \'%s\'', playlist_id.class.to_s))
+      end
+      raise ArgumentError.new('missing \'playlist_id\'') if( playlist_id.size.zero? )
+
+      _playlists = playlists
+
+      data = []
+
+      begin
+        status  = _playlists.dig('status')
+        message = _playlists.dig('message')
+
+        if( status == 200 )
+
+          data = message.select { |k| k['id'] == playlist_id } if( playlist_id.is_a?(Integer) )
+          data = message.select { |k| k['name'] == playlist_id } if( playlist_id.is_a?(String) )
+
+          return { 'status' => 404, 'message' => 'no playlist found' } if( !data.is_a?(Array) || data.count == 0 || status.to_i != 200 )
+          return { 'status' => 404, 'message' => format('found %d playlists with name %s', data.count, playlist_id ) } if( data.count > 1 && multi_result == false )
+
+#           puts data.count
+#           puts "data: #{data} (#{data.class})"
+        else
+          return _playlists
+        end
+      rescue
+        return { 'status' => 404, 'message' => 'no playlists found' } if( playlists.nil? || playlists == false || playlists.dig('status').to_i != 200 )
+      end
+
+      if( multi_result == true )
+
+        result = { 'status' => 0, 'message' => 'under development' }
+        data.each do |x|
+
+          endpoint = format( '/api/playlists/%d', x.dig('id') )
+
+          begin
+#             puts endpoint
+            result = delete( endpoint )
+#             puts result
+          rescue => error
+            puts "error: #{error}"
+          end
+        end
+
+        return result
+        # { 'status' => 0, 'message' => 'under development' }
+      else
+
+        playlist_id = data.first.dig('id')
+
+        endpoint = format( '/api/playlists/%d', playlist_id )
+#         puts endpoint
+
+        result = delete( endpoint )
+
+#         puts result
+
+        if(result.dig('status').to_i == 500)
+
+          # check if the playlist exists
+          r = playlist( playlist_id )
+          return { 'status' => 200, 'message' => 'playlist deleted' } if(r.dig('status').to_i == 404)
+#          return { 'status' => 0, 'message' => 'under development' }
+        end
+
+        return result
+      end
+
+    end
 
   end
 end

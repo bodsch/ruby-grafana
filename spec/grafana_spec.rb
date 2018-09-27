@@ -1746,16 +1746,30 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-    it 'get playlists with id 1' do
+    it 'get playlists with id (can fail)' do
 
-      r = @g.playlist(1)
+      r = @g.playlist(4)
+
+#       p r
 
       expect(r).to be_a(Hash)
       status  = r.dig('status')
-      items   = r.dig('items')
-      expect(items).to be_a(Array)
-      expect(items.count).equal?(6)
-      expect(status).to be == 200
+
+      if(status == 200)
+        expect(status).to be == 200
+        items   = r.dig('items')
+        expect(items).to be_a(Array)
+        # expect(items.count).equal?(6)
+      elsif(status == 404)
+        items    = r.dig('items')
+        message  = r.dig('message')
+        expect(items).to be_a(Array)
+        expect(message).to be_a(String)
+        #expect(items.count).equal?(6)
+      else
+
+        expect { raise StandardError, 'this message exactly'}
+      end
     end
 
     it 'get playlists with name' do
@@ -1770,17 +1784,35 @@ describe Grafana do
       expect(status).to be == 200
     end
 
+    it 'get playlist dashboards by name (must be fail)' do
+
+      begin
+        r = @g.playlist_dashboards('fantasy')
+        #p r
+        #
+        #expect(r).to be_a(Hash)
+        #status  = r.dig('status')
+        #message = r.dig('message')
+        #expect(message).to be_a(Array)
+        #expect(message.count).equal?(2)
+        #expect(status).to be == 200
+
+      rescue ArgumentError => error
+        expect(error).to be_a(ArgumentError)
+      end
+
+    end
 
     it 'get playlist dashboards by id' do
 
-      r = @g.playlist_dashboards(1)
+      r = @g.playlist_dashboards(3)
 
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       message = r.dig('message')
-      expect(message).to be_a(Array)
-      expect(message.count).equal?(2)
-      expect(status).to be == 200
+#       expect(message).to be_a(Array)
+#       expect(message.count).equal?(2)
+      #expect(status).to be == 200
     end
 
     it 'get playlist dashboards by id (must be fail)' do
@@ -1794,17 +1826,137 @@ describe Grafana do
       expect(status).to be == 404
     end
 
+    it 'get playlist items for playlist by id (must be fail)' do
 
-    it 'get playlist items for playlist by id' do
-
-      r = @g.playlist_items( 1 )
+      r = @g.playlist_items(1000)
 
       expect(r).to be_a(Hash)
       status  = r.dig('status')
-#       message = r.dig('message')
-#       expect(message).to be_a(Array)
-#       expect(message.count).equal?(2)
-      expect(status).to be == 0
+      message = r.dig('message')
+      expect(message).to be_a(String)
+      expect(status).to be == 404
+    end
+
+    it 'get playlist items for playlist by name (must be fail)' do
+
+      r = @g.playlist_items('fantasy lines')
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      expect(message).to be_a(String)
+      expect(status).to be == 404
+    end
+
+    it 'get playlist items for playlist by id' do
+
+      r = @g.playlist_items(4)
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+
+      if(status == 200)
+        expect(status).to be == 200
+        expect(message).to be_a(Array)
+        expect(message.count).equal?(1)
+      elsif(status == 404)
+        expect(message).to be_a(String)
+      else
+        expect { raise StandardError, 'this message exactly'}
+      end
+#      message = r.dig('message')
+#      expect(message).to be_a(Array)
+#      expect(message.count).equal?(1)
+#      expect(status).to be == 200
+    end
+
+    it 'get playlist items for playlist by name (can fail)' do
+
+      r = @g.playlist_items( 'QA Playlist' )
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      expect(status).to be_a(Integer)
+
+      if(message.is_a?(Array))
+        expect(status).to be == 200
+      else
+        expect(status).to be == 404
+      end
+    end
+
+    it 'get playlist items for playlist by name' do
+
+      r = @g.playlist_items( 'QA Playlist', true )
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      expect(message).to be_a(Array)
+      expect(message.count).equal?(1)
+      expect(status).to be == 200
+    end
+
+
+
+
+    it 'delete playlist by id' do
+
+      r = @g.delete_playlist( 196 )
+
+#       p r
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+
+      if(status == 200)
+        expect(status).to be == 200
+#         expect(message).to be_a(Array)
+#         expect(message.count).equal?(1)
+      elsif(status == 404)
+        expect(message).to be_a(String)
+      else
+        expect { raise StandardError, 'wrong status code'}
+      end
+
+      #expect(message).to be_a(Array)
+      #expect(message.count).equal?(1)
+      #expect(status).to be == 200
+    end
+
+#    it 'delete playlist by name (can fail)' do
+#
+#      r = @g.delete_playlist( 'QA Playlist' )
+#
+#      p r
+#
+#      expect(r).to be_a(Hash)
+#      status  = r.dig('status')
+#      message = r.dig('message')
+#      expect(status).to be_a(Integer)
+#
+#      if(message.is_a?(Array))
+#        expect(status).to be == 200
+#      else
+#        expect(status).to be == 404
+#      end
+#    end
+#
+    it 'delete multiple playlist by name' do
+
+      r = @g.delete_playlist( 'QA Playlist', true )
+
+#       p r
+
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      message = r.dig('message')
+      #expect(message).to be_a(Array)
+      #expect(message.count).equal?(1)
+      #expect(status).to be == 200
     end
 
 
