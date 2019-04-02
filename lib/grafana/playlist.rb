@@ -318,7 +318,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
 #      v, mv = version.values
-#      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+#      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       name     = validate( params, required: true , var: 'name'      , type: String )
       interval = validate( params, required: true , var: 'interval'  , type: String )

@@ -78,7 +78,7 @@ module Grafana
       raise ArgumentError.new('missing \'uid\'') if( uid.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has uid support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'uid has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       return { 'status' => 404, 'message' => format( 'The uid can have a maximum length of 40 characters, but it is %s characters long', uid.length) } if( uid.length > 40 )
 

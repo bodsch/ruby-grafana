@@ -14,7 +14,7 @@ module Grafana
     def user_preferences()
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       endpoint = '/api/user/preferences'
       @logger.debug("Getting current user preferences (GET #{endpoint})") if @debug
@@ -46,7 +46,7 @@ module Grafana
     def org_preferences()
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       endpoint = '/api/org/preferences'
       @logger.debug("Getting current organisation preferences (GET #{endpoint})") if @debug
@@ -85,7 +85,7 @@ module Grafana
       valid_timezone = %w[utc browser]
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       unless(theme.nil?)
         v_theme = validate_hash( theme, valid_theme )

@@ -20,7 +20,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
 #      v, mv = version.values
-#      return { 'status' => 404, 'message' => format( 'only Grafana 5 has dashboard version support. you use version %s', v) } if(mv != 5)
+#      return { 'status' => 404, 'message' => format( 'dashboard has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       dashboard_id  = validate( params, required: true , var: 'dashboard_id', type: Integer )
       start         = validate( params, required: false, var: 'start'       , type: Integer )
@@ -44,7 +44,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       dashboard_id  = validate( params, required: true, var: 'dashboard_id', type: Integer )
       version       = validate( params, required: true, var: 'version'     , type: Integer )
@@ -67,7 +67,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
 #      v, mv = version.values
-#      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+#      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       dashboard_id  = validate( params, required: true, var: 'dashboard_id', type: Integer )
       version       = validate( params, required: true, var: 'version'    , type: Integer )
