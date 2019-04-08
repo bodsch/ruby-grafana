@@ -40,7 +40,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'team has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       perpage = validate( params, required: false, var: 'perpage', type: Integer ) || 1000
       page    = validate( params, required: false, var: 'page'   , type: Integer ) || 1
@@ -81,7 +81,7 @@ module Grafana
       raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'team has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       if(team_id.is_a?(String))
         o_team = search_team(name: team_id)
@@ -113,7 +113,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'team has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       name  = validate( params, required: true, var: 'name'  , type: String )
       email = validate( params, required: false, var: 'email', type: String )
@@ -151,7 +151,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'team has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       team_id = validate( params, required: true , var: 'team_id' )
       name    = validate( params, required: false, var: 'name' , type: String )
@@ -199,7 +199,7 @@ module Grafana
       raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'team has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       if(team_id.is_a?(String))
         o_team = search_team(name: team_id)
@@ -236,7 +236,7 @@ module Grafana
       raise ArgumentError.new('missing \'team_id\'') if( team_id.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'team has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       if(team_id.is_a?(String))
         o_team = search_team(name: team_id)
@@ -271,7 +271,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'team has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       team_id = validate( params, required: true , var: 'team_id' )
       user_id = validate( params, required: false, var: 'user_id' )
@@ -324,7 +324,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'team has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       team_id = validate( params, required: true , var: 'team_id' )
       user_id = validate( params, required: false, var: 'user_id' )

@@ -16,7 +16,7 @@ module Grafana
     def folders
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       endpoint = '/api/folders'
       @logger.debug("Getting all folders (GET #{endpoint})") if @debug
@@ -39,7 +39,7 @@ module Grafana
       raise ArgumentError.new('missing \'folder_uid\'') if( folder_uid.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       if(folder_uid.is_a?(Integer))
 
@@ -82,7 +82,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       title = validate( params, required: false, var: 'title', type: String )
       uid   = validate( params, required: true , var: 'uid'  , type: String )
@@ -124,7 +124,7 @@ module Grafana
       raise ArgumentError.new('missing \'params\'') if( params.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       uid       = validate( params, required: true , var: 'uid'      , type: String )
       title     = validate( params, required: true , var: 'title'    , type: String )
@@ -168,7 +168,7 @@ module Grafana
       raise ArgumentError.new('missing \'folder_uid\'') if( folder_uid.size.zero? )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has folder support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       if(folder_uid.is_a?(Integer))
 

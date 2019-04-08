@@ -21,7 +21,7 @@ module Grafana
       raise ArgumentError.new(format('wrong type. \'params\' must be an Hash, given \'%s\'', params.class.to_s)) unless( params.is_a?(Hash) )
 
       v, mv = version.values
-      return { 'status' => 404, 'message' => format( 'only Grafana 5 has team support. you use version %s', v) } if(mv != 5)
+      return { 'status' => 404, 'message' => format( 'team has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
 
       query         = validate( params, required: false, var: 'query'       , type: String )
       tag           = validate( params, required: false, var: 'tag '        , type: String )

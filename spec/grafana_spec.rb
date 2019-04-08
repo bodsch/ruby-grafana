@@ -250,7 +250,7 @@ describe Grafana do
       status = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -1972,7 +1972,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -1983,7 +1983,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -1994,7 +1994,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 412 if(major_version == 5)
+      expect(status).to be == 412 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2005,7 +2005,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2016,7 +2016,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2036,7 +2036,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2051,7 +2051,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2067,7 +2067,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2082,7 +2082,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 412 if(major_version == 5)
+      expect(status).to be == 412 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2097,7 +2097,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2112,7 +2112,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2123,7 +2123,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2134,7 +2134,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
   end
@@ -2150,7 +2150,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2162,7 +2162,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2174,7 +2174,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2234,7 +2234,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2270,7 +2270,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2292,7 +2292,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 404 if(major_version == 5)
+      expect(status).to be == 404 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2307,7 +2307,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2324,7 +2324,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2341,7 +2341,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2358,7 +2358,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2374,7 +2374,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2392,7 +2392,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2408,7 +2408,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
@@ -2424,7 +2424,7 @@ describe Grafana do
       status  = r.dig('status')
       expect(status).to be_a(Integer)
 
-      expect(status).to be == 200 if(major_version == 5)
+      expect(status).to be == 200 if(major_version >= 5)
       expect(status).to be == 404 if(major_version < 5)
     end
 
