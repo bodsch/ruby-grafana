@@ -60,7 +60,7 @@ module Grafana
     # @return [Hash]
     #
     def request( method_type = 'GET', endpoint = '/', data = {} )
-#       logger.debug( "request( #{method_type}, #{endpoint}, data )" )
+
       raise 'try first login()' if @api_instance.nil?
 
       login( username: @username, password: @password )
@@ -146,16 +146,6 @@ module Grafana
 
           end
 
-          #begin
-          #  response = @api_instance[endpoint].delete( headers )
-          #rescue => delete_error
-          #  logger.error( delete_error )
-          #  logger.error( response )
-          #
-          #  exit 1
-          #end
-
-
         else
           logger.error( "Error: #{__method__} is not a valid request method." )
           return false
@@ -165,16 +155,14 @@ module Grafana
         response_body    = response.body
         response_headers = response.headers
 
-#         if( @debug )
-#           logger.debug("response_code : #{response_code}" )
-#           logger.debug("response_body : #{response_body}" )
-#           logger.debug("response_headers : #{response_headers}" )
-#         end
-
         if( ( response_code >= 200 && response_code <= 299 ) || ( response_code >= 400 && response_code <= 499 ) )
 
-          result = JSON.parse( response_body )
-          return { 'status' => response_code, 'message' => result } if( result.is_a?(Array) )
+          if( response_body =~ /^\[.*\]$/ || response_body =~ /^\{.*\}$/ )
+            result = JSON.parse( response_body )
+            return { 'status' => response_code, 'message' => result } if( result.is_a?(Array) )
+          else
+            return { 'status' => response_code, 'message' => response_body }
+          end
 
           result_status     = result.dig('status') if( result.is_a?( Hash ) )
           result['message'] = result_status unless( result_status.nil? )
