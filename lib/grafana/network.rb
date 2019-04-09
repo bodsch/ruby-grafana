@@ -78,13 +78,18 @@ module Grafana
         when 'PATCH'
           response = @api_instance[endpoint].patch( data, headers )
         when 'PUT'
+
           # response = @api_instance[endpoint].put( data, headers )
           @api_instance[endpoint].put( data, headers ) do |resp, _request, _result|
-            response_body = resp.body
+
             response_code = resp.code.to_i
+            response_body = resp.body
             response_body = JSON.parse(response_body) if response_body.is_a?(String)
 
-            case response_code
+            #logger.debug( "code   : #{response_code}" )
+            #logger.debug( "message: #{response_body}" )
+
+            case response_code.to_i
             when 200
               return { 'status' => response_code, 'message' => response_body.dig('message').nil? ? 'Successful' : response_body.dig('message') }
             when 400
@@ -95,19 +100,64 @@ module Grafana
               message += " (#{status})"  unless(status.nil?)
               return { 'status'  => response_code, 'message' => message }
             when 422
-              raise RestClient::UnprocessableEntity
+              logger.error('422')
+
+              response_body = response_body.first if(response_body.is_a?(Array))
+              message_field_name = response_body.dig('fieldNames')
+
+              #status   = response_code # response_body.dig('status')
+              message  = response_body # .dig('message')
+              #message += " (#{status})"  unless(status.nil?)
+
+              # [{fieldNames"=>["Id"], "classification"=>"RequiredError", "message"=>"Required"}]
+
+              logger.error(message)
+              return { 'status'  => response_code, 'message' => message }
+#              #raise RestClient::UnprocessableEntity
             else
-#               logger.error( response_code )
-#               logger.error( response_body )
+#              logger.error( response_code )
+#              logger.error( response_body )
               return { 'status' => response_code, 'message' => response_body.dig('message') }
               # response.return! # (request, result)
             end
           end
 
         when 'DELETE'
-          response = @api_instance[endpoint].delete( headers )
+
+          @api_instance[endpoint].delete( headers ) do |resp, _request, _result|
+
+            response_code = resp.code.to_i
+            response_body = resp.body
+            response_body = JSON.parse(response_body) if response_body.is_a?(String)
+
+            #logger.debug( "code   : #{response_code}" )
+            #logger.debug( "message: #{response_body}" )
+
+            case response_code.to_i
+            when 200
+              return { 'status' => response_code, 'message' => response_body.dig('message').nil? ? 'Successful' : response_body.dig('message') }
+            when 404
+              return { 'status' => response_code, 'message' => response_body.dig('message').nil? ? 'Successful' : response_body.dig('message') }
+            else
+#              logger.error( response_code )
+#              logger.error( response_body )
+              return { 'status' => response_code, 'message' => response_body.dig('message') }
+            end
+
+          end
+
+          #begin
+          #  response = @api_instance[endpoint].delete( headers )
+          #rescue => delete_error
+          #  logger.error( delete_error )
+          #  logger.error( response )
+          #
+          #  exit 1
+          #end
+
+
         else
-          @logger.error( "Error: #{__method__} is not a valid request method." )
+          logger.error( "Error: #{__method__} is not a valid request method." )
           return false
         end
 
@@ -132,9 +182,9 @@ module Grafana
 
           return result
         else
-          @logger.error( "#{__method__} #{method_type.upcase} on #{endpoint} failed: HTTP #{response.code} - #{response_body}" )
-          @logger.error( headers )
-          @logger.error( JSON.pretty_generate( response_headers ) )
+          logger.error( "#{__method__} #{method_type.upcase} on #{endpoint} failed: HTTP #{response.code} - #{response_body}" )
+          logger.error( headers )
+          logger.error( JSON.pretty_generate( response_headers ) )
 
           return JSON.parse( response_body )
         end
@@ -155,12 +205,12 @@ module Grafana
       rescue RestClient::PreconditionFailed
         return { 'status' => 412, 'message' => 'Precondition failed. The Object probably already exists.' }
       rescue RestClient::ExceptionWithResponse => error
-#        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
-#        logger.error( "query: #{data}" )
+        #logger.error( "Error: (RestClient::ExceptionWithResponse) #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
+        #logger.error( "query: #{data}" )
         return { 'status' => 500, 'message' => "Internal Server Error: #{error}" }
       rescue => error
-#        logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
-#        logger.error( "query: #{data}" )
+        #logger.error( "Error: #{__method__} #{method_type.upcase} on #{endpoint} error: '#{error}'" )
+        #logger.error( "query: #{data}" )
         return { 'status' => 500, 'message' => "Internal Server Error: #{error}" }
       end
     end

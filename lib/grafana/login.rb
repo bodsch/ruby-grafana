@@ -131,8 +131,8 @@ module Grafana
     # @return [Hash]
     #
     def ping_session
-      endpoint = '/api/login/ping'
       logger.debug( "Pinging current session (GET #{endpoint})" ) if @debug
+      endpoint = '/api/login/ping'
       get( endpoint )
     end
 

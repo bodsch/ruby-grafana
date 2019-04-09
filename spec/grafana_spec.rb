@@ -57,7 +57,6 @@ describe Grafana do
 
     it 'ping session' do
       r = @g.ping_session
-
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       message  = r.dig('message')
