@@ -5,7 +5,9 @@ require 'rest-client'
 require 'json'
 require 'timeout'
 
+require_relative 'logging'
 require_relative 'version'
+require_relative 'auth'
 require_relative 'validator'
 require_relative 'login'
 require_relative 'network'
@@ -48,6 +50,7 @@ module Grafana
     include Logging
 
     include Grafana::Version
+    include Grafana::Auth
     include Grafana::Validator
     include Grafana::Login
     include Grafana::Network
@@ -111,10 +114,17 @@ module Grafana
       ssl                 = settings.dig(:grafana, :ssl)           || false
       @timeout            = settings.dig(:grafana, :timeout)       || 5
       @open_timeout       = settings.dig(:grafana, :open_timeout)  || 5
-      @http_headers       = settings.dig(:grafana, :http_headers)  || {}
+      @api_user           = settings.dig(:grafana, :api, :user)    || 'admin'
+      @api_password       = settings.dig(:grafana, :api, :password)
+      @http_headers       = settings.dig(:grafana, :http_headers)  || { 'Content-Type' => 'application/json', 'Accept' => 'application/json' }
       @debug              = settings.dig(:debug)                   || false
 
       @headers            = {}
+
+      # Token Support for Grafana 6
+      @api_key            = nil
+      @api_token_name     = settings.dig(:grafana, :api, :token, :name ) || (0..10).to_a.map{|_a| rand(16).to_s(16)}.join
+      @api_token_lifetime = settings.dig(:grafana, :api, :token, :lifetime ) || 0
 
       raise ArgumentError.new('missing \'host\'') if( host.nil? )
 
@@ -127,7 +137,51 @@ module Grafana
       protocoll = ssl == true ? 'https' : 'http'
 
       @url      = format( '%s://%s:%d%s', protocoll, host, port, url_path )
+
+      @api_instance = create_instance
     end
+
+
+    def create_instance
+
+      params = { timeout: @timeout.to_i, open_timeout: @open_timeout.to_i, headers: @http_headers, verify_ssl: false }
+
+      unless( @api_key.nil? )
+        params = { timeout: @timeout.to_i, open_timeout: @open_timeout.to_i, headers: @http_headers, verify_ssl: false, user: @api_user, password: @api_password }
+      end
+
+      begin
+
+#        if( @api_key.nil? )
+
+          RestClient::Resource.new( @url, params )
+#            @url,
+#            timeout: @timeout.to_i,
+#            open_timeout: @open_timeout.to_i,
+#            headers: @http_headers,
+#            verify_ssl: false
+#          )
+#
+#        else
+#
+#          RestClient::Resource.new(
+#            @url,
+#            timeout: @timeout.to_i,
+#            open_timeout: @open_timeout.to_i,
+#            headers: @http_headers,
+#            verify_ssl: false,
+#            user: @api_user,
+#            password: @api_password
+#          )
+#        end
+
+      rescue => error
+        logger.error( error ) # if @debug
+        logger.debug( e.backtrace.join("\n") ) #if @debug
+        false
+      end
+    end
+
 
     # Get Settings
     #
@@ -142,20 +196,26 @@ module Grafana
 
     def version
       s = settings
-      @version =  s.dig('buildInfo','version')
-      @major_version = @version.split('.').first.to_i
 
-      {version: @version, major_version: @major_version}
+      status = s.dig('status')
+      if( status.to_i == 200 )
+        @version =  s.dig('buildInfo','version')
+        @major_version = @version.split('.').first.to_i
+
+        { version: @version, major_version: @major_version }
+      else
+        s
+      end
     end
 
 
-    def self.logger
-      @@logger ||= defined?(Logging) ? Logging.logger : Logger.new(STDOUT)
-    end
-
-    def self.logger=(logger)
-      @@logger = logger
-    end
+#    def self.logger
+#      @@logger ||= defined?(Logging) ? Logging.logger : Logger.new(STDOUT)
+#    end
+#
+#    def self.logger=(logger)
+#      @@logger = logger
+#    end
 
   end
 

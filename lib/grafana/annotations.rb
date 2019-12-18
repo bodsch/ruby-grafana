@@ -124,8 +124,8 @@ module Grafana
       time      = validate( params, required: false, var: 'time', type: Integer ) || Time.now.to_i
       time_end  = validate( params, required: false, var: 'time_end', type: Integer )
       region    = validate( params, required: false, var: 'region', type: Boolean )
-      tags      = validate( params, required: true, var: 'tags', type: Array )
-      text      = validate( params, required: true, var: 'text', type: String )
+      tags      = validate( params, required: true , var: 'tags', type: Array )
+      text      = validate( params, required: true , var: 'text', type: String )
 
       if( dashboard.is_a?(String) )
 

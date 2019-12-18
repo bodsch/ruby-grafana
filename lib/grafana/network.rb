@@ -61,9 +61,11 @@ module Grafana
     #
     def request( method_type = 'GET', endpoint = '/', data = {} )
 
+#       logger.debug( "request( method_type: #{method_type}, endpoint: #{endpoint}, data )" )
+
       raise 'try first login()' if @api_instance.nil?
 
-      login( username: @username, password: @password )
+#       login( username: @username, password: @password )
 
       response             = nil
       response_code        = 404
@@ -103,7 +105,7 @@ module Grafana
               logger.error('422')
 
               response_body = response_body.first if(response_body.is_a?(Array))
-              message_field_name = response_body.dig('fieldNames')
+              # message_field_name = response_body.dig('fieldNames')
 
               #status   = response_code # response_body.dig('status')
               message  = response_body # .dig('message')
@@ -150,6 +152,8 @@ module Grafana
           logger.error( "Error: #{__method__} is not a valid request method." )
           return false
         end
+
+#         logger.debug( "response: #{response} (#{response.class})" )
 
         response_code    = response.code.to_i
         response_body    = response.body

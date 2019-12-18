@@ -16,7 +16,7 @@ Metrics/ClassLength:
 
 # Increases "Method has too many lines" warning from 10 to 75
 Metrics/MethodLength:
-  Max: 75
+  Max: 98
 
 # Increases "Module has too many lines" warning from 100 to 300
 Metrics/ModuleLength:
@@ -24,7 +24,7 @@ Metrics/ModuleLength:
 
 # Increases "Assignment Branch Condition size" warning from 15 to 80
 Metrics/AbcSize:
-  Max: 80
+  Max: 100
 
 # Increases "Block has too many lines" warning from 25 to 190
 Metrics/BlockLength:
@@ -36,7 +36,7 @@ Documentation:
 
 # Increases "Line is too long" warning from 80 tp 200
 Metrics/LineLength:
-  Max: 200
+  Max: 250
   Enabled: true
 
 CyclomaticComplexity:

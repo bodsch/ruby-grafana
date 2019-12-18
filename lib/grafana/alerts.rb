@@ -102,7 +102,6 @@ module Grafana
 #       puts alert_id
       # GET /api/alerts/:id
 
-
       endpoint = format( '/api/alerts/%d' , alert_id )
 
 #       puts endpoint
@@ -130,13 +129,18 @@ module Grafana
       end
       raise ArgumentError.new('missing \'alert_id\'') if( alert_id.size.zero? )
 
-      if(alert_id.is_a?(String))
+      if( alert_id.is_a?(String) )
         data = alerts( alerts: 'all' ).select { |_k,v| v['name'] == alert_id }
         alert_id = data.keys.first if( data )
       end
 
+      endpoint = format( '/api/alerts/%d/pause', alert_id )
+
+      @logger.debug("Attempting pause alert id #{alert_id} (POST #{endpoint})") if @debug
+
       # POST /api/alerts/:id/pause
 #       puts alert_id
+      post( endpoint )
     end
 
     # Get alert notifications

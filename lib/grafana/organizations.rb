@@ -317,7 +317,7 @@ module Grafana
       organization   = validate( params, required: true, var: 'organization', type: String )
       login_or_email = validate( params, required: true, var: 'login_or_email', type: String )
       role           = validate( params, required: true, var: 'role', type: String )
-      valid_roles    = ['Viewer', 'Editor', 'Read Only Editor', 'Admin']
+      valid_roles    = %w[Viewer Editor "Read Only Editor" Admin]
 
       # https://stackoverflow.com/questions/9333952/case-insensitive-arrayinclude?answertab=votes#tab-top
       # Do this once, or each time the array changes

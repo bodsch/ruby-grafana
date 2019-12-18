@@ -8,7 +8,7 @@ module Grafana
     #
     # @param params [Hash]
     # @param options [Hash]
-    # @option options [Boolean] requiered
+    # @option options [Boolean] required
     # @option options [String] var
     # @option options [Class] type
     #
@@ -26,7 +26,7 @@ module Grafana
       params   = params.deep_symbolize_keys
       variable = params.dig(var.to_sym)
 
-      raise ArgumentError.new(format('\'%s\' is requiered and missing!', var)) if(variable.nil? && required == true )
+      raise ArgumentError.new(format('\'%s\' is required and missing!', var)) if(variable.nil? && required == true )
 
       unless( type.nil? )
         clazz = Object.const_get(type.to_s)
