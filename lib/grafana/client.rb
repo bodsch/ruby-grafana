@@ -119,6 +119,7 @@ module Grafana
       @http_headers       = settings.dig(:grafana, :http_headers)  || { 'Content-Type' => 'application/json', 'Accept' => 'application/json' }
       @debug              = settings.dig(:debug)                   || false
 
+      @debug = true
       @headers            = {}
 
       # Token Support for Grafana 6
@@ -144,37 +145,16 @@ module Grafana
 
     def create_instance
 
-      params = { timeout: @timeout.to_i, open_timeout: @open_timeout.to_i, headers: @http_headers, verify_ssl: false }
+#       logger.debug( "create_instance" )
+#       logger.debug( "@api_key: #{@api_key} #{@api_key.class}" )
 
-      unless( @api_key.nil? )
-        params = { timeout: @timeout.to_i, open_timeout: @open_timeout.to_i, headers: @http_headers, verify_ssl: false, user: @api_user, password: @api_password }
-      end
+      params = { timeout: @timeout.to_i, open_timeout: @open_timeout.to_i, headers: @http_headers, verify_ssl: false }
+      params = { timeout: @timeout.to_i, open_timeout: @open_timeout.to_i, headers: @http_headers, verify_ssl: false, user: @api_user, password: @api_password } if( @api_key.nil? )
+
+#       logger.debug( "params: #{params}" )
 
       begin
-
-#        if( @api_key.nil? )
-
-          RestClient::Resource.new( @url, params )
-#            @url,
-#            timeout: @timeout.to_i,
-#            open_timeout: @open_timeout.to_i,
-#            headers: @http_headers,
-#            verify_ssl: false
-#          )
-#
-#        else
-#
-#          RestClient::Resource.new(
-#            @url,
-#            timeout: @timeout.to_i,
-#            open_timeout: @open_timeout.to_i,
-#            headers: @http_headers,
-#            verify_ssl: false,
-#            user: @api_user,
-#            password: @api_password
-#          )
-#        end
-
+        @api_instance = RestClient::Resource.new( @url, params )
       rescue => error
         logger.error( error ) # if @debug
         logger.debug( e.backtrace.join("\n") ) #if @debug

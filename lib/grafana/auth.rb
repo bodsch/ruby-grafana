@@ -113,9 +113,8 @@ module Grafana
       payload = data.deep_string_keys
       # payload = existing_ds.merge(payload).deep_symbolize_keys
 
-      logger.debug(payload.to_json)
+      @logger.debug("create API token (POST #{endpoint})") if @debug
 
-      @logger.debug("create API token (POST #{endpoint})") #if @debug
       post(endpoint, payload.to_json)
 
     end

@@ -199,7 +199,7 @@ module Grafana
         status  = tmp_playlists.dig('status').to_i
         message = tmp_playlists.dig('message')
 
-        return return tmp_playlists if( status != 200 )
+        return tmp_playlists if( status != 200 )
 
         data = message.select { |k| k['id'] == playlist_id } if( playlist_id.is_a?(Integer) )
         data = message.select { |k| k['name'] == playlist_id } if( playlist_id.is_a?(String) )

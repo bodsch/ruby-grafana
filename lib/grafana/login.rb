@@ -143,7 +143,12 @@ module Grafana
     def ping_session
       endpoint = '/api/login/ping'
       logger.debug( "Pinging current session (GET #{endpoint})" ) if @debug
-      get( endpoint )
+
+      begin
+        get( endpoint )
+      rescue => error
+        logger.error(e)
+      end
     end
 
     # Returns health information about Grafana

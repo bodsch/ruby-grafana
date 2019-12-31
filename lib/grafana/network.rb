@@ -61,11 +61,11 @@ module Grafana
     #
     def request( method_type = 'GET', endpoint = '/', data = {} )
 
-#       logger.debug( "request( method_type: #{method_type}, endpoint: #{endpoint}, data )" )
+      logger.debug( "request( method_type: #{method_type}, endpoint: #{endpoint}, data )" )
 
       raise 'try first login()' if @api_instance.nil?
 
-#       login( username: @username, password: @password )
+#      login( username: @username, password: @password )
 
       response             = nil
       response_code        = 404
