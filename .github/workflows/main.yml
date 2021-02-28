@@ -44,12 +44,14 @@ jobs:
     - name: start grafana ${{ matrix.grafana }} in docker
       run: |
         docker pull grafana/grafana:${{ matrix.grafana }}
-        docker run --rm --detach --publish=3030:3000 --env URL_PATH=/ --hostname=grafana grafana/grafana:${{ matrix.grafana }}
+        docker run --rm --detach --publish=3035:3000 --env URL_PATH=/ --hostname=grafana grafana/grafana:${{ matrix.grafana }}
+        sleep 20s
+        docker ps
 
     - name: Run tests
       run: bundle exec rake
       env:
-        GRAFANA_PORT: 3030
+        GRAFANA_PORT: 3035
 
   grafana-6:
     name: "grafana ${{ matrix.grafana }} / ruby: ${{ matrix.ruby-version }}"
@@ -81,12 +83,14 @@ jobs:
     - name: start grafana ${{ matrix.grafana }} in docker
       run: |
         docker pull grafana/grafana:${{ matrix.grafana }}
-        docker run --rm --detach --publish=3030:3000 --env URL_PATH=/ --hostname=grafana grafana/grafana:${{ matrix.grafana }}
+        docker run --rm --detach --publish=3036:3000 --env URL_PATH=/ --hostname=grafana grafana/grafana:${{ matrix.grafana }}
+        sleep 20s
+        docker ps
 
     - name: Run tests
       run: bundle exec rake
       env:
-        GRAFANA_PORT: 3030
+        GRAFANA_PORT: 3036
 
   grafana-7:
     name: "grafana ${{ matrix.grafana }} / ruby: ${{ matrix.ruby-version }}"
@@ -117,9 +121,11 @@ jobs:
     - name: start grafana ${{ matrix.grafana }} in docker
       run: |
         docker pull grafana/grafana:${{ matrix.grafana }}
-        docker run --rm --detach --publish=3030:3000 --env URL_PATH=/ --hostname=grafana grafana/grafana:${{ matrix.grafana }}
+        docker run --rm --detach --publish=3037:3000 --env URL_PATH=/ --hostname=grafana grafana/grafana:${{ matrix.grafana }}
+        sleep 20s
+        docker ps
 
     - name: Run tests
       run: bundle exec rake
       env:
-        GRAFANA_PORT: 3030
+        GRAFANA_PORT: 3037
