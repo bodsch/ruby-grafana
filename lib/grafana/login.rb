@@ -29,19 +29,26 @@ module Grafana
       max_retries = validate( params, required: false, var: 'max_retries', type: Integer ) || 2
       sleep_between_retries = validate( params, required: false, var: 'sleep_between_retries', type: Integer ) || 5
 
-      begin
-        @api_instance = RestClient::Resource.new(
-          @url,
-          timeout: @timeout.to_i,
-          open_timeout: @open_timeout.to_i,
-          headers: @http_headers,
-          verify_ssl: false
-        )
-      rescue => e
-        logger.error( e ) if @debug
-        logger.debug( e.backtrace.join("\n") ) if @debug
-        false
+      # raise 'no valid rest instance found' if( @api_instance.nil? )
+
+      # only useful for Grafana version < 6
+      #
+      if( @api_instance.nil? )
+
+        @api_user = username
+        @api_password = password
+
+        @api_instance = create_instance
+
+        return true if(@api_instance)
+      else
+        logger.debug('User session already initiated') if @debug
+        return true
       end
+
+      logger.debug( "resource: #{@api_instance.inspect}")
+
+      false
 
       request_data = { 'User' => username, 'Password' => password }
 
@@ -51,12 +58,14 @@ module Grafana
         @headers          = {}
 
         begin
-          logger.debug('Attempting to establish user session') if @debug
+          logger.debug('Attempting to establish user session') # if @debug
 
-          response = @api_instance['/login'].post(
+          response = @api_instance['/api/login'].post(
             request_data.to_json,
             content_type: 'application/json; charset=UTF-8'
           )
+
+          logger.debug( "response #{response}")
 
           response_cookies  = response.cookies
           response_code     = response.code.to_i
@@ -131,11 +140,40 @@ module Grafana
     # @return [Hash]
     #
     def ping_session
-      logger.debug( "Pinging current session (GET #{endpoint})" ) if @debug
       endpoint = '/api/login/ping'
-      get( endpoint )
+      logger.debug( "Pinging current session (GET #{endpoint})" ) if @debug
+
+      begin
+        get( endpoint )
+      rescue => error
+        logger.error(e)
+      end
     end
 
+    # Returns health information about Grafana
+    #
+    # @example
+    #    health
+    #
+    # @return [Hash]
+    #
+    def health
+      endpoint = '/api/health'
+      logger.debug( "get health information (GET #{endpoint})" ) if @debug
+
+      result = get( endpoint )
+
+      if( result.is_a?(Hash) )
+        status = result.dig('status')
+        if( status.to_i == 200 )
+          message = result.dig('message')
+          r = message.gsub('=>', ':').gsub(':nil,', ':null,')
+          return { 'status' => status, 'message' => JSON.parse( r ) }
+        end
+      end
+
+      result
+    end
 
     def headers
       @headers

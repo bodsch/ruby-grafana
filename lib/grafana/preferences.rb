@@ -11,7 +11,7 @@ module Grafana
 
     # Get Current User Prefs
     # GET /api/user/preferences
-    def user_preferences()
+    def user_preferences
 
       v, mv = version.values
       return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)
@@ -43,7 +43,7 @@ module Grafana
 
     # Get Current Org Prefs
     # GET /api/org/preferences
-    def org_preferences()
+    def org_preferences
 
       v, mv = version.values
       return { 'status' => 404, 'message' => format( 'folder has been supported in Grafana since version 5. you use version %s', v) } if(mv < 5)

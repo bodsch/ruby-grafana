@@ -55,15 +55,23 @@ describe Grafana do
 
   describe 'Admin' do
 
+    it 'health' do
+      r = @g.health
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
     it 'ping session' do
+      version, major_version = @g.version.values
       r = @g.ping_session
       expect(r).to be_a(Hash)
       status  = r.dig('status')
-      message  = r.dig('message')
+
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
-      expect(message).to be_a(String)
-      expect(message).to be == 'Logged in'
+      expect(status).to be == 200 if(major_version > 5)
+      expect(status).to be == 401 if(major_version == 5)
     end
 
     it 'admin settings' do

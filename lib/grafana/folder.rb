@@ -99,7 +99,7 @@ module Grafana
 
       endpoint = '/api/folders'
 
-      @logger.debug("create folder#{title} (GET #{endpoint})") if  @debug
+      @logger.debug("create folder #{title} (GET #{endpoint})") if  @debug
       logger.debug(payload.to_json) if(@debug)
 
       post( endpoint, payload.to_json )
