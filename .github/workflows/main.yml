@@ -16,6 +16,7 @@ jobs:
     name: ruby 2.6
 
     runs-on: ${{ matrix.operating-system }}
+
     strategy:
       matrix:
         operating-system:
@@ -35,15 +36,12 @@ jobs:
     - name: Install dependencies
       run: bundle install
 
-    - name: stat grafana in docker
+    - name: start grafana ${{ matrix.grafana }} in docker
       run: |
-        docker run \
-          --rm \
-          --detach \
-          --publish=3030:3000 \
-          --env URL_PATH=/ \
-          --hostname=grafana \
-          grafana/grafana:${{ matrix.grafana }}
+        docker pull grafana/grafana:${{ matrix.grafana }}
+        docker run --rm --detach --publish=3030:3000 --env URL_PATH=/ --hostname=grafana grafana/grafana:${{ matrix.grafana }}
 
     - name: Run tests
       run: bundle exec rake
+      env:
+        GRAFANA_PORT: 3030
