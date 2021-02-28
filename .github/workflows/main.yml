@@ -51,8 +51,14 @@ jobs:
       env:
         GRAFANA_PORT: 3030
 
+    - name: stop grafana container
+      run: |
+        docker stop grafana
+
   grafana-6:
     name: "grafana ${{ matrix.grafana }} / ruby: ${{ matrix.ruby-version }}"
+    needs:
+      - grafana-5
 
     runs-on: ubuntu-18.04
 
@@ -89,7 +95,8 @@ jobs:
 
   grafana-7:
     name: "grafana ${{ matrix.grafana }} / ruby: ${{ matrix.ruby-version }}"
-
+    needs:
+      - grafana-6
     runs-on: ubuntu-18.04
 
     strategy:
