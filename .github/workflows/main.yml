@@ -64,7 +64,6 @@ jobs:
         grafana:
             - 6.7.4
         ruby-version:
-            - 2.6
             - 2.7
 
     steps:
@@ -101,7 +100,6 @@ jobs:
         grafana:
             - 7.4.3
         ruby-version:
-            - 2.6
             - 2.7
 
     steps:
