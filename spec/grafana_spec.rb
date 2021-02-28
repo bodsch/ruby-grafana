@@ -55,15 +55,23 @@ describe Grafana do
 
   describe 'Admin' do
 
+    it 'health' do
+      r = @g.health
+      expect(r).to be_a(Hash)
+      status  = r.dig('status')
+      expect(status).to be_a(Integer)
+      expect(status).to be == 200
+    end
+
     it 'ping session' do
+      version, major_version = @g.version.values
       r = @g.ping_session
       expect(r).to be_a(Hash)
       status  = r.dig('status')
-      message  = r.dig('message')
+
       expect(status).to be_a(Integer)
-      expect(status).to be == 200
-      expect(message).to be_a(String)
-      expect(message).to be == 'Logged in'
+      expect(status).to be == 200 if(major_version > 5)
+      expect(status).to be == 401 if(major_version == 5)
     end
 
     it 'admin settings' do
@@ -654,8 +662,8 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-    it 'Get Organisation by Name' do
-      r = @g.organization('Docker')
+    it 'Get Organisation \'Main Org.\' by Name' do
+      r = @g.organization('Main Org.')
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
@@ -680,7 +688,7 @@ describe Grafana do
 
 
     it 'Restore current Organisation' do
-      r = @g.update_current_organization( name: 'Docker')
+      r = @g.update_current_organization( name: 'Main Org.')
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
@@ -703,7 +711,7 @@ describe Grafana do
 
   describe 'Organisations' do
 
-    it 'Create Organisation' do
+    it 'Create Organisation \'Spec Test\'' do
       r = @g.create_organisation( name: 'Spec Test' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -739,7 +747,7 @@ describe Grafana do
       expect(name).to be_a(String)
     end
 
-    it 'Get Organisation by Name' do
+    it 'Get Organisation \'Spec Test\' by Name' do
       r = @g.organization( 'Spec Test' )
 
       expect(r).to be_a(Hash)

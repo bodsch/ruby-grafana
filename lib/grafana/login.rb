@@ -29,27 +29,26 @@ module Grafana
       max_retries = validate( params, required: false, var: 'max_retries', type: Integer ) || 2
       sleep_between_retries = validate( params, required: false, var: 'sleep_between_retries', type: Integer ) || 5
 
-      raise 'no valid rest instance found' if( @api_instance.nil? )
+      # raise 'no valid rest instance found' if( @api_instance.nil? )
 
       # only useful for Grafana version < 6
       #
+      if( @api_instance.nil? )
 
-      # begin
-      #
-      #   @api_instance = RestClient::Resource.new(
-      #     @url,
-      #     timeout: @timeout.to_i,
-      #     open_timeout: @open_timeout.to_i,
-      #     headers: @http_headers,
-      #     verify_ssl: false
-      #   )
-      # rescue => error
-      #   logger.error( error ) # if @debug
-      #   logger.debug( e.backtrace.join("\n") ) #if @debug
-      #   false
-      # end
+        @api_user = username
+        @api_password = password
+
+        @api_instance = create_instance
+
+        return true if(@api_instance)
+      else
+        logger.debug('User session already initiated') if @debug
+        return true
+      end
 
       logger.debug( "resource: #{@api_instance.inspect}")
+
+      false
 
       request_data = { 'User' => username, 'Password' => password }
 

@@ -30,7 +30,7 @@ module Grafana
       raise ArgumentError.new('missing \'organisation_id\'') if( organisation_id.size.zero? )
 
       endpoint = format( '/api/orgs/%d', organisation_id ) if(organisation_id.is_a?(Integer))
-      endpoint = format( '/api/orgs/name/%s', URI.escape( organisation_id ) ) if(organisation_id.is_a?(String))
+      endpoint = format( '/api/orgs/name/%s', ERB::Util.url_encode( organisation_id ) ) if(organisation_id.is_a?(String))
 
       @logger.debug("Attempting to get existing data source Id #{organisation_id} (GET #{endpoint})") if  @debug
 

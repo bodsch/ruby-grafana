@@ -124,16 +124,14 @@ module Grafana
 
         return { 'status' => 404, 'message' => format( 'No Playlist \'%s\' found', playlist_id) } if( data.size.zero? )
 
-        unless( empty? )
-
+        unless( data.empty? )
           playlist_data = []
-          # data.each do |k,_v|
-          data.each_key do |k|
+          data.each_entry do |k|
             playlist_data << playlist( k['id'] )
           end
+
           return { 'status' => status, 'playlists' => playlist_data }
         end
-#        return { 'status' => 200, 'message' => data } if( data.size != 0 )
       end
 
       raise format('playlist id can not be 0') if( playlist_id.zero? )

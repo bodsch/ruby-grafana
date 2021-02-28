@@ -118,8 +118,7 @@ module Grafana
       @api_password       = settings.dig(:grafana, :api, :password)
       @http_headers       = settings.dig(:grafana, :http_headers)  || { 'Content-Type' => 'application/json', 'Accept' => 'application/json' }
       @debug              = settings.dig(:debug)                   || false
-
-      @debug = true
+      @debug = false
       @headers            = {}
 
       # Token Support for Grafana 6
@@ -138,23 +137,22 @@ module Grafana
       protocoll = ssl == true ? 'https' : 'http'
 
       @url      = format( '%s://%s:%d%s', protocoll, host, port, url_path )
-
-      @api_instance = create_instance
     end
 
 
     def create_instance
 
-#       logger.debug( "create_instance" )
-#       logger.debug( "@api_key: #{@api_key} #{@api_key.class}" )
+      logger.debug( "create_instance" )
+      logger.debug( "@api_key: #{@api_key} #{@api_key.class}" )
 
       params = { timeout: @timeout.to_i, open_timeout: @open_timeout.to_i, headers: @http_headers, verify_ssl: false }
       params = { timeout: @timeout.to_i, open_timeout: @open_timeout.to_i, headers: @http_headers, verify_ssl: false, user: @api_user, password: @api_password } if( @api_key.nil? )
 
-#       logger.debug( "params: #{params}" )
+      logger.debug( "url   : #{@url}" )
+      logger.debug( "params: #{params}" )
 
       begin
-        @api_instance = RestClient::Resource.new( @url, params )
+        RestClient::Resource.new( @url, params )
       rescue => error
         logger.error( error ) # if @debug
         logger.debug( e.backtrace.join("\n") ) #if @debug

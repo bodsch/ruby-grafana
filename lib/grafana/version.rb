@@ -4,9 +4,9 @@ module Grafana
   module Version
 
     # major part of version
-    MAJOR = 0
+    MAJOR = 1
     # minor part of version
-    MINOR = 12
+    MINOR = 1
     # tiny part of version
     TINY  = 0
   end

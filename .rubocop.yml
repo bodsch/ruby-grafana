@@ -5,6 +5,7 @@ AllCops:
   Exclude:
     - examples/*
     - spec/*
+  NewCops: disable
 
 # Disables "Use nested module/class definitions instead of compact style" warning
 ClassAndModuleChildren:
@@ -35,7 +36,7 @@ Documentation:
   Enabled: false
 
 # Increases "Line is too long" warning from 80 tp 200
-Metrics/LineLength:
+Layout/LineLength:
   Max: 250
   Enabled: true
 
@@ -54,6 +55,6 @@ Style/RaiseArgs:
 Layout:
   Enabled: False
 
-RescueWithoutErrorClass:
+Style/RescueStandardError:
   Enabled: False
 
