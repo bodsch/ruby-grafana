@@ -1,0 +1,50 @@
+---
+
+name: build-test
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  run:
+    name: ruby 2.6
+
+    runs-on: ${{ matrix.operating-system }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        operating-system:
+            - ubuntu-latest
+        grafana:
+            - 5.4.3
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.6
+
+    - name: Install dependencies
+      run: bundle install
+
+    - name: start grafana ${{ matrix.grafana }} in docker
+      run: |
+        docker pull grafana/grafana:${{ matrix.grafana }}
+        docker run --rm --detach --publish=3030:3000 --env URL_PATH=/ --hostname=grafana grafana/grafana:${{ matrix.grafana }}
+
+    - name: Run tests
+      run: bundle exec rake
+      env:
+        GRAFANA_PORT: 3030

@@ -654,8 +654,8 @@ describe Grafana do
       expect(status).to be == 200
     end
 
-    it 'Get Organisation by Name' do
-      r = @g.organization('Docker')
+    it 'Get Organisation \'Main Org.\' by Name' do
+      r = @g.organization('Main Org.')
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
@@ -680,7 +680,7 @@ describe Grafana do
 
 
     it 'Restore current Organisation' do
-      r = @g.update_current_organization( name: 'Docker')
+      r = @g.update_current_organization( name: 'Main Org.')
       expect(r).to be_a(Hash)
       status  = r.dig('status')
       expect(status).to be_a(Integer)
@@ -703,7 +703,7 @@ describe Grafana do
 
   describe 'Organisations' do
 
-    it 'Create Organisation' do
+    it 'Create Organisation \'Spec Test\'' do
       r = @g.create_organisation( name: 'Spec Test' )
       expect(r).to be_a(Hash)
       status  = r.dig('status')
@@ -739,7 +739,7 @@ describe Grafana do
       expect(name).to be_a(String)
     end
 
-    it 'Get Organisation by Name' do
+    it 'Get Organisation \'Spec Test\' by Name' do
       r = @g.organization( 'Spec Test' )
 
       expect(r).to be_a(Hash)
