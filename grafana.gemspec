@@ -60,7 +60,7 @@ Gem::Specification.new do |spec|
     exit!
   end
 
-  spec.add_development_dependency('rake', '~> 0')
+  spec.add_development_dependency('rake', ">= 12.3.3")
   spec.add_development_dependency('rake-notes', '~> 0')
   spec.add_development_dependency('rubocop', '~> 0.49.0')
   spec.add_development_dependency('rubocop-checkstyle_formatter', '~> 0')
