@@ -43,7 +43,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency('json', '~> 2.1')
 
   begin
-    if( RUBY_VERSION >= '2.0' )
+    if( RUBY_VERSION >= '3.0' )
+      spec.required_ruby_version = '~> 3.0'
+    elsif( RUBY_VERSION >= '2.0' )
       spec.required_ruby_version = '~> 2.0'
     elsif( RUBY_VERSION <= '2.1' )
       spec.required_ruby_version = '~> 2.1'
